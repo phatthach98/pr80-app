@@ -1,0 +1,21 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# API Service
+
+The API service is a Node.js backend located in [apps/api](mdc:apps/api).
+
+## Key Files
+- [apps/api/src/index.ts](mdc:apps/api/src/index.ts) - Main API entry point
+
+## Configuration
+- [apps/api/package.json](mdc:apps/api/package.json) - Dependencies and scripts
+- [apps/api/tsconfig.json](mdc:apps/api/tsconfig.json) - TypeScript configuration
+
+## Development
+To run the API service in development mode:
+```bash
+pnpm dev:api
+```

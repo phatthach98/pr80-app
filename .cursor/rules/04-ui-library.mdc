@@ -1,0 +1,30 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UI Library
+
+The UI library contains shared components and design system located in [packages/ui](mdc:packages/ui).
+
+## Key Files and Directories
+- [packages/ui/src/index.tsx](mdc:packages/ui/src/index.tsx) - Main library entry point
+- [packages/ui/src/components](mdc:packages/ui/src/components) - Reusable UI components
+- [packages/ui/src/theme](mdc:packages/ui/src/theme) - Theming system
+- [packages/ui/THEMING.md](mdc:packages/ui/THEMING.md) - Theme documentation
+
+## Configuration
+- [packages/ui/package.json](mdc:packages/ui/package.json) - Dependencies and scripts
+- [packages/ui/tsconfig.json](mdc:packages/ui/tsconfig.json) - TypeScript configuration
+- [packages/ui/tailwind.config.js](mdc:packages/ui/tailwind.config.js) - Tailwind CSS configuration
+
+## Development
+To run the UI library in development mode:
+```bash
+pnpm dev:ui
+```
+
+## Storybook
+The UI library includes Storybook for component development:
+- [packages/ui/.storybook](mdc:packages/ui/.storybook) - Storybook configuration
+- [packages/ui/stories](mdc:packages/ui/stories) - Component stories

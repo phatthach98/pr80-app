@@ -1,0 +1,27 @@
+{
+  "name": "pr80-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for PR80 Application",
+  "scripts": {
+    "dev": "pnpm --recursive --parallel run dev",
+    "dev:api": "pnpm --filter @pr80-app/api run dev",
+    "dev:ui": "pnpm --filter ui run dev",
+    "dev:web": "pnpm --filter web run dev",
+    "build": "pnpm --recursive run build",
+    "build:api": "pnpm --filter @pr80-app/api run build",
+    "build:ui": "pnpm --filter ui run build",
+    "lint": "pnpm --recursive run lint",
+    "format": "pnpm --recursive run format"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.10.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
