@@ -1,0 +1,125 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Core Tokens */
+:root {
+  /* Color Space */
+  --color-white: oklch(1 0 0);
+  --color-black: oklch(0 0 0);
+  --color-gray-50: oklch(0.985 0 0);
+  --color-gray-100: oklch(0.97 0 0);
+  --color-gray-200: oklch(0.922 0 0);
+  --color-gray-300: oklch(0.708 0 0);
+  --color-gray-400: oklch(0.556 0 0);
+  --color-gray-500: oklch(0.269 0 0);
+  --color-gray-600: oklch(0.205 0 0);
+  --color-gray-700: oklch(0.145 0 0);
+  --color-gray-800: oklch(0.1 0 0);
+  --color-gray-900: oklch(0.05 0 0);
+
+  /* Brand Colors */
+  --color-primary: oklch(0.205 0 0);
+  --color-primary-light: oklch(0.488 0.243 264.376);
+  --color-accent: oklch(0.97 0 0);
+  --color-destructive: oklch(0.577 0.245 27.325);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+}
+
+/* Semantic Tokens */
+:root {
+  /* Background Colors */
+  --background: var(--color-white);
+  --background-muted: var(--color-gray-100);
+  --background-accent: var(--color-accent);
+  --background-destructive: var(--color-destructive);
+
+  /* Text Colors */
+  --foreground: var(--color-gray-700);
+  --foreground-muted: var(--color-gray-400);
+  --foreground-accent: var(--color-primary);
+  --foreground-destructive: var(--color-destructive);
+
+  /* Border Colors */
+  --border: var(--color-gray-200);
+  --border-muted: var(--color-gray-100);
+  --border-accent: var(--color-primary);
+  --border-destructive: var(--color-destructive);
+
+  /* Ring Colors */
+  --ring: var(--color-gray-300);
+  --ring-muted: var(--color-gray-200);
+  --ring-accent: var(--color-primary);
+  --ring-destructive: var(--color-destructive);
+
+  /* Component Specific */
+  --card-background: var(--color-white);
+  --card-foreground: var(--color-gray-700);
+  --popover-background: var(--color-white);
+  --popover-foreground: var(--color-gray-700);
+  --sidebar-background: var(--color-gray-50);
+  --sidebar-foreground: var(--color-gray-700);
+}
+
+/* Dark Mode Semantic Tokens */
+.dark {
+  /* Background Colors */
+  --background: var(--color-gray-700);
+  --background-muted: var(--color-gray-600);
+  --background-accent: var(--color-gray-500);
+  --background-destructive: var(--color-destructive);
+
+  /* Text Colors */
+  --foreground: var(--color-gray-50);
+  --foreground-muted: var(--color-gray-300);
+  --foreground-accent: var(--color-primary-light);
+  --foreground-destructive: var(--color-destructive);
+
+  /* Border Colors */
+  --border: var(--color-gray-600);
+  --border-muted: var(--color-gray-500);
+  --border-accent: var(--color-primary-light);
+  --border-destructive: var(--color-destructive);
+
+  /* Ring Colors */
+  --ring: var(--color-gray-500);
+  --ring-muted: var(--color-gray-600);
+  --ring-accent: var(--color-primary-light);
+  --ring-destructive: var(--color-destructive);
+
+  /* Component Specific */
+  --card-background: var(--color-gray-700);
+  --card-foreground: var(--color-gray-50);
+  --popover-background: var(--color-gray-700);
+  --popover-foreground: var(--color-gray-50);
+  --sidebar-background: var(--color-gray-600);
+  --sidebar-foreground: var(--color-gray-50);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

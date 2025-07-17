@@ -17,7 +17,13 @@
     /* type checking */
     "strict": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+
+    "baseUrl": "./src",
+    "paths": {
+      "@/components": ["components/index"],
+      "@/lib/*": ["./lib/*"]
+    }
   },
   "include": ["src"]
 }
