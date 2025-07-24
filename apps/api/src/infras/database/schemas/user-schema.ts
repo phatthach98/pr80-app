@@ -3,10 +3,9 @@ import { Schema, model } from "mongoose";
 // Simple User schema with validators
 const UserSchema = new Schema(
   {
-    id: {
+    _id: {
       type: String,
       required: [true, "User ID is required"],
-      unique: true,
       trim: true,
     },
     name: {
@@ -42,23 +41,36 @@ const UserSchema = new Schema(
       maxlength: [4, "Pass code cannot exceed 4 characters"],
       trim: true,
     },
-    address: {
-      type: String,
-      required: [true, "Address is required"],
-      trim: true,
-    },
-    roles: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Role",
-        required: [true, "At least one role is required"],
+    roles: {
+      type: [
+        {
+          id: {
+            type: String,
+            ref: "Role",
+            required: [true, "Role id is required"],
+            trim: true,
+          },
+        },
+      ],
+      required: [true, "At least one role is required"],
+      validate: {
+        validator: (roles: { id: string }[]) => Array.isArray(roles) && roles.length > 0,
+        message: "User must have at least one role.",
       },
-    ],
+    },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt automatically
     collection: "users",
+    _id: false,
   }
 );
+
+UserSchema.virtual('populatedRoles', {
+  ref: 'Role',
+  localField: 'roles.id',
+  foreignField: '_id',
+  justOne: false,
+})
 
 export const UserModel = model("User", UserSchema);

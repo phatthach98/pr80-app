@@ -1,20 +1,23 @@
 import { v4 as uuid } from "uuid";
 import { Role, ROLE_NAME } from "./role";
+import { Permission } from "./permission";
 
 export class User {
   public id: string;
   public name: string;
   public phoneNumber: string;
   public roles: Role[] = [];
+  private passCode: string;
 
-  constructor(id: string, name: string, phoneNumber: string) {
+  constructor(id: string, name: string, phoneNumber: string, passCode: string) {
     this.id = id;
     this.name = name;
     this.phoneNumber = phoneNumber;
+    this.passCode = passCode;
   }
 
-  static create(name: string, phoneNumber: string) {
-    return new User(uuid(), name, phoneNumber);
+  static create(name: string, phoneNumber: string, passCode: string) {
+    return new User(uuid(), name, phoneNumber, passCode);
   }
 
   public addRole(role: Role) {
@@ -28,7 +31,7 @@ export class User {
   }
 
   private hasRole(roleName: ROLE_NAME): boolean {
-    return this.roles.some((role) => role.name === roleName);
+    return this.roles.some((role) => role.id === roleName);
   }
 
   public isAdmin() {
@@ -43,8 +46,12 @@ export class User {
     return this.hasRole(ROLE_NAME.WAITER);
   }
 
-  public hasPermission(permission: string) {
+  public hasPermission(permission: Permission) {
     return this.roles.some((role) => role.hasPermission(permission));
+  }
+
+  public isSamePassCode(passCode: string) {
+    return this.passCode === passCode;
   }
 
   public toJSON() {

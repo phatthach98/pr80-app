@@ -1,3 +1,3 @@
 // Export simple MongoDB schemas
-export { UserModel } from './UserSchema';
-export { RoleModel } from './RoleSchema'; 
+export { UserModel } from './user-schema';
+export { RoleModel } from './role-schema'; 

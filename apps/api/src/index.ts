@@ -2,6 +2,11 @@
 import express, { Express } from "express";
 import dotenv from "dotenv";
 import { connectToDB } from "./infras/database/connection";
+import { authRouter } from "./presentation/router/auth.router";
+import { errorHandler } from "./presentation/middleware/error-handler.middleware";
+import { userRouter } from "./presentation/router/user.router";
+import { requestValidator } from "@presentation/middleware/request-validator.middleware";
+import { roleRouter } from "@presentation/router/role.router";
 
 dotenv.config();
 const app: Express = express();
@@ -14,7 +19,11 @@ const startServer = async () => {
       res.send("OK");
     });
 
-    // app.use(errorHandler);
+    app.use("/api/auth", authRouter);
+    app.use("/api", userRouter);
+    app.use("/api", roleRouter);
+
+    app.use(errorHandler);
 
     app.listen(3000, () => {
       console.log(`[server]: Server is running at http://localhost:3000`);

@@ -3,10 +3,9 @@ import { Schema, model } from "mongoose";
 // Simple Role schema with validators
 const RoleSchema = new Schema(
   {
-    id: {
+    _id: {
       type: String,
       required: [true, "Role ID is required"],
-      unique: true,
       trim: true,
     },
     name: {
@@ -18,6 +17,7 @@ const RoleSchema = new Schema(
       },
       lowercase: true,
       trim: true,
+      unique: true,
     },
     description: {
       type: String,
@@ -43,6 +43,7 @@ const RoleSchema = new Schema(
   {
     timestamps: true, // Adds createdAt and updatedAt automatically
     collection: "roles",
+    _id: false,
   }
 );
 
