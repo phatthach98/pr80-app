@@ -9,5 +9,5 @@ export interface JwtTokenService {
       expiresIn?: string;
     }
   ): string;
-  verifyToken(token: string): Promise<{ userId: string; [key: string]: any }>;
+  verifyToken<T>(token: string): Promise<T>;
 }

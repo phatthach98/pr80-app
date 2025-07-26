@@ -9,7 +9,7 @@ export class AuthUseCase {
   ) {}
 
   async login(phoneNumber: string, passCode: string) {
-    const user = await this.userRepository.findUser(phoneNumber);
+    const user = await this.userRepository.findUserByPhoneNumber(phoneNumber);
 
     if (!user || !user.isSamePassCode(passCode)) {
       throw new BadRequestError("Invalid credential");
