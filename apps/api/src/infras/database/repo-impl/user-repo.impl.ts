@@ -44,7 +44,7 @@ export class UserRepoImpl implements UserRepository {
 
   async findUserByPhoneNumber(phoneNumber: string): Promise<User | null> {
     const userDoc = await UserModel.findOne({ phoneNumber })
-      .populate("roles")
+      .populate("populatedRoles")
       .lean();
 
     if (!userDoc) {

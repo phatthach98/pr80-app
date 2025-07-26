@@ -115,5 +115,9 @@
       "@presentation/*": ["./src/presentation/*"],
       "@infras/*": ["./src/infras/*"]
     }
-  }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/types/**/*.d.ts"
+  ]
 }

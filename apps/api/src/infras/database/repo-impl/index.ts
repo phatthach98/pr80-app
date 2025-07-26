@@ -1,4 +1,3 @@
-import { UserRepoImpl } from "./user-repo.impl";
-import { RoleRepoImpl } from "./role-repo.impl";
-
-export { UserRepoImpl, RoleRepoImpl };
+export * from "./user-repo.impl";
+export * from "./role-repo.impl";
+export * from "./setting-repo.impl";

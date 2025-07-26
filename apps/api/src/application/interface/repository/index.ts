@@ -1,4 +1,3 @@
-import { UserRepository } from "./user-repo.interface";
-import { RoleRepository } from "./role-repo.interface";
-
-export { UserRepository, RoleRepository };
+export * from "./user-repo.interface";
+export * from "./role-repo.interface";
+export * from "./setting-repo.interface";
