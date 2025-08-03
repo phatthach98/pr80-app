@@ -1,0 +1,282 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+# Core Layer Implementation Rule
+
+## Context
+
+- Apply when creating new domain entities, use cases, or repository interfaces
+- Ensures consistent implementation of clean architecture patterns
+- Maintains separation of concerns and dependency flow from domain to infrastructure
+- Enforces consistent file naming conventions across the codebase
+
+## Critical Rules
+
+### Scope Constraints
+- Implementation should ONLY include core layers:
+  - Domain entities
+  - Repository interfaces
+  - Use cases
+- Do NOT implement infrastructure or presentation layers:
+  - No repository implementations
+  - No database schemas
+  - No controllers
+  - No routers
+  - No DTOs
+- Do NOT update dependency injection containers or tokens
+- Do NOT update application entry points or routes
+
+### External Dependencies
+- Use ONLY libraries and dependencies that are ALREADY in the project
+- Do NOT introduce new external libraries (like Zod, Joi, etc.) that aren't already used
+- Verify existing patterns before implementing new ones
+- Follow the project's existing validation and error handling approaches
+
+### File Naming Conventions
+- Use kebab-case for all file names: `entity-name.ts`, `entity-name.use-case.ts`
+- Use singular form for entity names: `user.ts` not `users.ts`
+- Repository interfaces: `entity-name-repo.interface.ts`
+- Repository implementations: `entity-name-repo.impl.ts`
+- Controllers: `entity-name.controller.ts`
+- Routers: `entity-name.router.ts`
+- DTOs: `entity-name.dto.ts`
+- Schemas: `entity-name-schema.ts`
+
+### Domain Entities
+- Be placed in `apps/api/src/domain/entity/`
+- Implement static `create()` method that returns a new instance with a generated UUID
+- Implement `toJSON()` method that returns a plain object with public data
+- Implement entity-specific business methods for manipulating entity state
+- Include methods that support CRUD operations:
+  - Getter methods for accessing properties
+  - Update methods that modify entity state (e.g., `updateStatus()`)
+  - Validation methods to ensure entity integrity
+- Encapsulate business rules and validations within the entity
+- Have no dependencies on external layers
+- Use PascalCase for class names: `export class EntityName`
+
+### Application Use Cases
+- Be placed in `apps/api/src/application/use-case/`
+- Follow naming pattern: `{EntityName}UseCase`
+- Inject dependencies via constructor from infrastructure layer (repositories, services)
+- Be registered in `use-case/index.ts` for dependency injection
+- Not directly access infrastructure implementations
+- Methods should follow these CRUD patterns:
+  - `getEntities()`: Retrieve all entities
+  - `getEntityById(id: string)`: Retrieve a single entity by ID
+  - `createEntity(...)`: Create a new entity with provided attributes
+  - `updateEntity(id: string, ...)`: Update an entity with provided attributes
+  - `deleteEntity(id: string)`: Delete an entity by ID
+- Additional methods should be named according to their specific business action
+- Error handling should use the application's error classes (e.g., NotFoundError)
+
+### Repository Interfaces
+- Be placed in `apps/api/src/application/interface/repository/`
+- Follow naming pattern: `{EntityName}Repository`
+- Define methods for CRUD operations returning domain entities
+- Be registered in `repository/index.ts` for dependency injection
+- Method names should be consistent and follow these patterns:
+  - `getEntity(id: string)`: Get a single entity by ID
+  - `getEntities()`: Get all entities of this type
+  - `create(entity: Entity)`: Create a new entity
+  - `update(entity: Entity)`: Update an existing entity
+  - `delete(id: string)`: Delete an entity by ID
+- Additional query methods should follow the pattern:
+  - `getEntitiesByAttribute(attribute: Type)`: Get entities filtered by an attribute
+
+### Import Patterns
+- Always prioritize alias imports first (e.g., `@domain/entity/product`)
+- Use relative imports ONLY if the corresponding alias is not declared
+- Be consistent with the existing codebase
+- Do not change import patterns without explicit instruction
+
+
+
+## Examples
+
+<example>
+// Domain Entity (apps/api/src/domain/entity/product.ts)
+import { v4 as uuid } from "uuid";
+
+export class Product {
+  public id: string;
+  public name: string;
+  public price: number;
+  private stockLevel: number;
+
+  constructor(id: string, name: string, price: number, stockLevel: number) {
+    this.id = id;
+    this.name = name;
+    this.price = price;
+    this.stockLevel = stockLevel;
+  }
+
+  static create(name: string, price: number, stockLevel: number): Product {
+    return new Product(uuid(), name, price, stockLevel);
+  }
+
+  public isInStock(): boolean {
+    return this.stockLevel > 0;
+  }
+  
+  public updatePrice(newPrice: number): void {
+    this.price = newPrice;
+  }
+  
+  public updateStockLevel(quantity: number): void {
+    this.stockLevel = quantity;
+  }
+
+  public toJSON() {
+    return {
+      id: this.id,
+      name: this.name,
+      price: this.price,
+      inStock: this.isInStock()
+    };
+  }
+}
+
+// Repository Interface (apps/api/src/application/interface/repository/product-repo.interface.ts)
+import { Product } from "@domain/entity/product";
+
+export interface ProductRepository {
+  getProducts(): Promise<Product[] | null>;
+  getProductById(id: string): Promise<Product | null>;
+  getProductsByPriceRange(minPrice: number, maxPrice: number): Promise<Product[] | null>;
+  create(product: Product): Promise<Product>;
+  update(product: Product): Promise<Product | null>;
+  delete(id: string): Promise<boolean>;
+}
+
+// Use Case (apps/api/src/application/use-case/product.use-case.ts)
+import { Product } from "@domain/entity/product";
+import { ProductRepository } from "../interface/repository/product-repo.interface";
+import { NotFoundError } from "@application/errors";
+
+export class ProductUseCase {
+  constructor(private readonly productRepository: ProductRepository) {}
+
+  async getProducts() {
+    return this.productRepository.getProducts();
+  }
+  
+  async getProductById(id: string) {
+    const product = await this.productRepository.getProductById(id);
+    if (!product) {
+      throw new NotFoundError(`Product with id ${id} not found`);
+    }
+    return product;
+  }
+  
+  async getProductsByPriceRange(minPrice: number, maxPrice: number) {
+    return this.productRepository.getProductsByPriceRange(minPrice, maxPrice);
+  }
+
+  async createProduct(name: string, price: number, stockLevel: number) {
+    const product = Product.create(name, price, stockLevel);
+    return this.productRepository.create(product);
+  }
+  
+  async updateProductPrice(id: string, newPrice: number) {
+    const product = await this.getProductById(id);
+    product.updatePrice(newPrice);
+    return this.productRepository.update(product);
+  }
+  
+  async deleteProduct(id: string) {
+    await this.getProductById(id); // Verify product exists
+    return this.productRepository.delete(id);
+  }
+}
+</example>
+
+<example type="invalid">
+// INVALID: Domain Entity with infrastructure dependency
+// File: apps/api/src/domain/entity/Products.ts (WRONG: plural form and PascalCase filename)
+import { v4 as uuid } from "uuid";
+import { Database } from "../../infras/database/connection"; // WRONG: External dependency
+
+export class Product {
+  public id: string;
+  public name: string;
+  
+  constructor(id: string, name: string) {
+    this.id = id;
+    this.name = name;
+  }
+  
+  // WRONG: Direct database access in entity
+  async save() {
+    return Database.products.save(this);
+  }
+  
+  // WRONG: Missing toJSON method
+}
+
+// INVALID: Use case with direct infrastructure access and inconsistent CRUD naming
+// File: apps/api/src/application/use-case/productUseCase.ts (WRONG: camelCase filename)
+import { Product } from "@domain/entity/product";
+import { Database } from "../../infras/database/connection";
+
+export class ProductUseCase {
+  // WRONG: Direct database access instead of repository injection
+  async getProducts() {
+    return Database.products.getAll();
+  }
+  
+  // WRONG: Not using the entity's create method
+  async addProduct(name: string, price: number) {
+    const product = new Product(uuid(), name);
+    return Database.products.save(product);
+  }
+  
+  // WRONG: Inconsistent method naming (should be updateProduct)
+  async changeProductPrice(id: string, price: number) {
+    const product = await Database.products.findById(id);
+    product.price = price; // WRONG: Directly modifying property instead of using entity method
+    return Database.products.save(product);
+  }
+  
+  // WRONG: Inconsistent method naming (should be deleteProduct)
+  async removeProduct(id: string) {
+    return Database.products.remove(id);
+  }
+}
+
+// INVALID: Using external libraries not in the project
+// File: apps/api/src/application/use-case/product.use-case.ts
+import { z } from "zod"; // WRONG: Introducing a new validation library
+
+const ProductSchema = z.object({
+  name: z.string().min(1),
+  price: z.number().positive()
+});
+
+export class ProductUseCase {
+  // WRONG: Using external validation library not in project
+  async createProduct(data: unknown) {
+    const validated = ProductSchema.parse(data);
+    const product = Product.create(validated.name, validated.price, 0);
+    return this.productRepository.create(product);
+  }
+}
+
+// INVALID: Implementing outside of core layers
+// File: apps/api/src/presentation/product.controller.ts
+import { Request, Response } from "express";
+import { ProductUseCase } from "@application/use-case";
+
+// WRONG: Implementing presentation layer when only core layers are in scope
+export class ProductController {
+  constructor(private readonly productUseCase: ProductUseCase) {}
+  
+  async getProducts(req: Request, res: Response) {
+    const products = await this.productUseCase.getProducts();
+    return res.status(200).json(products);
+  }
+}
+</example>

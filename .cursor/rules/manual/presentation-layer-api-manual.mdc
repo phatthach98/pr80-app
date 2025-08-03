@@ -1,0 +1,364 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+# API Presentation Layer Implementation
+
+## Context
+
+- Apply this rule when implementing any component in the presentation layer of the API app
+- This includes controllers, routers, DTOs, and middleware
+- The presentation layer handles HTTP requests/responses and is the outermost layer of the clean architecture
+- This rule ensures consistent implementation across the presentation layer
+
+## Critical Rules
+
+- Controllers must follow single responsibility principle and be focused on a specific domain entity
+- Controllers should not contain business logic - delegate to use cases from application layer
+- DTOs must include both interface definitions and validators
+- Use express-validator for request validation
+- Wrap all controller methods with asyncHandler middleware to handle Promise rejections
+- Apply request validation middleware after route validators
+- Use dependency injection to access use cases in controllers
+- Implement proper error handling with custom error types from application layer
+- Follow RESTful API design principles for routes
+- Keep controllers thin - they should only transform requests to use case inputs and format responses
+- Authentication middleware should be defined and applied globally in the main index.ts file, not in individual routers
+- Use proper typing for request and response objects with Express generic types, not cascading types
+
+## Controller Implementation
+
+- Create a class named `EntityNameController` with static or instance methods
+- If using instance methods, inject required use cases through constructor
+- For static methods, resolve use cases from DI container
+- Each method should correspond to a specific API operation (get, create, update, delete)
+- Return appropriate HTTP status codes (200, 201, 204, etc.)
+- Use Express generic types for Request and Response objects correctly:
+  - For Request: `Request<P, ResBody, ReqBody, Query>` where:
+    - `P`: Route parameters (e.g., `{ id: string }`)
+    - `ResBody`: Leave as empty object `{}` or omit (not used in Request)
+    - `ReqBody`: Request body type (e.g., `CreateEntityDto`)
+    - `Query`: Query parameters (e.g., `{ filter?: string }`)
+  - Only specify the generic parameters you need:
+    - Basic request with no special typing: `Request`
+    - Request with route params only: `Request<{ id: string }>`
+    - Request with body only: `Request<{}, {}, CreateEntityDto>`
+    - Request with params and body: `Request<{ id: string }, {}, UpdateEntityDto>`
+  - For Response: `Response<T>` where T is the response data type
+  - Never use type assertions (e.g., `as CreateEntityDto`)
+
+## DTO Implementation
+
+- Create interfaces for all request and response objects in `dto` directory
+- Name interfaces as `EntityNameDto`, `CreateEntityNameDto`, `UpdateEntityNameDto`, etc.
+- Export validator arrays using express-validator for each DTO
+- Name validators as `createEntityNameValidator`, `updateEntityNameValidator`, etc.
+- Include appropriate validation rules based on business requirements
+- Ensure validators check for required fields, types, and value constraints
+- DTOs should be used as generic types in controller method signatures
+
+## Router Implementation
+
+- Create a router file for each entity in the `router` directory
+- Export a router instance configured with all entity-related routes
+- Group related routes under the same base path
+- Apply appropriate middleware in the correct order:
+  1. Validation middleware (entity-specific)
+  2. Request validator middleware (common)
+  3. Controller method wrapped with asyncHandler
+- Use HTTP methods according to REST conventions (GET, POST, PUT, DELETE)
+- Structure routes with clear naming: `/entity`, `/entity/:id`, etc.
+- Do not include authentication middleware in individual routers; it should be applied globally in index.ts
+
+## Middleware Implementation
+
+- Create middleware as separate functions or factories in the `middleware` directory
+- Middleware functions should follow Express middleware pattern (req, res, next)
+- Handle specific cross-cutting concerns (validation, authentication, error handling)
+- Keep middleware focused on a single responsibility
+- Use middleware factories when configuration or dependency injection is needed
+- Authentication middleware should be initialized once in the main application file (index.ts)
+
+## Authentication Middleware
+
+- Define and initialize authentication middleware in the main index.ts file
+- Apply authentication middleware globally to protected routes using app.use()
+- This ensures the middleware is created only once and consistently applied
+- Individual routers should not include authentication middleware
+- Routes that don't require authentication should be defined before applying the global auth middleware
+
+## Examples
+
+<example>
+// dish.dto.ts
+import { body } from "express-validator";
+
+export interface DishDto {
+  id: string;
+  name: string;
+  description: string;
+  basePrice: number;
+  category: string;
+  dishOptionIds?: string[];
+}
+
+export interface CreateDishDto {
+  name: string;
+  description: string;
+  basePrice: number;
+  category: string;
+  dishOptionIds?: string[];
+}
+
+export interface UpdateDishDto {
+  name?: string;
+  description?: string;
+  basePrice?: number;
+  category?: string;
+  dishOptionIds?: string[];
+}
+
+export const createDishValidator = [
+  body("name")
+    .notEmpty()
+    .withMessage("Dish name is required.")
+    .isString()
+    .withMessage("Dish name must be a string."),
+  body("description")
+    .optional()
+    .isString()
+    .withMessage("Description must be a string."),
+  body("basePrice")
+    .notEmpty()
+    .withMessage("Base price is required.")
+    .isNumeric()
+    .withMessage("Base price must be a number.")
+    .custom((value) => value >= 0)
+    .withMessage("Base price cannot be negative."),
+  body("category")
+    .notEmpty()
+    .withMessage("Category is required.")
+    .isString()
+    .withMessage("Category must be a string."),
+  body("dishOptionIds")
+    .optional()
+    .isArray()
+    .withMessage("Dish option IDs must be an array.")
+];
+
+// dish.controller.ts
+import { Request, Response } from "express";
+import { DishUseCase } from "@application/use-case";
+import { DISH_USE_CASE } from "@infras/di/tokens";
+import { container } from "@infras/di";
+import { CreateDishDto, DishDto, UpdateDishDto } from "./dto/dish.dto";
+
+const dishUseCase = container.resolve<DishUseCase>(DISH_USE_CASE);
+
+export class DishController {
+  // Simple request with no special typing
+  static async getAllDishes(
+    req: Request, 
+    res: Response<DishDto[]>
+  ) {
+    const dishes = await dishUseCase.getAllDishes();
+    res.json(dishes);
+  }
+  
+  // Request with route params only
+  static async getDishById(
+    req: Request<{ id: string }>, 
+    res: Response<DishDto>
+  ) {
+    const { id } = req.params;
+    const dish = await dishUseCase.getDishById(id);
+    res.json(dish);
+  }
+  
+  // Request with body only
+  static async createDish(
+    req: Request<{}, {}, CreateDishDto>, 
+    res: Response<DishDto>
+  ) {
+    const { name, description, basePrice, category, dishOptionIds } = req.body;
+    const dish = await dishUseCase.createDish({
+      name,
+      description,
+      basePrice,
+      category,
+      dishOptionIds: dishOptionIds || []
+    });
+    res.status(201).json(dish);
+  }
+  
+  // Request with route params and body
+  static async updateDish(
+    req: Request<{ id: string }, {}, UpdateDishDto>,
+    res: Response<DishDto>
+  ) {
+    const { id } = req.params;
+    const changes = req.body;
+    const dish = await dishUseCase.updateDish(id, changes);
+    res.json(dish);
+  }
+  
+  // Request with query params
+  static async searchDishes(
+    req: Request<{}, {}, {}, { category?: string; query?: string }>,
+    res: Response<DishDto[]>
+  ) {
+    const { category, query } = req.query;
+    const dishes = await dishUseCase.searchDishes({ category, query });
+    res.json(dishes);
+  }
+}
+
+// index.ts (main application file)
+import express from "express";
+import { authRouter } from "@presentation/router/auth.router";
+import { dishRouter } from "@presentation/router/dish.router";
+import { authMiddlewareFactory } from "@presentation/middleware/request-authenticator.middleware";
+import { container } from "@infras/di";
+import { JWT_TOKEN_SERVICE } from "@infras/di/tokens";
+import { JwtTokenService } from "@application/interface/service";
+
+const app = express();
+app.use(express.json());
+
+// Initialize auth middleware once
+const jwtService = container.resolve<JwtTokenService>(JWT_TOKEN_SERVICE);
+const authenticateRequest = authMiddlewareFactory(jwtService);
+
+// Public routes that don't require authentication
+app.use("/api/auth", authRouter);
+
+// Apply authentication middleware globally to protected routes
+app.use("/api", authenticateRequest, dishRouter);
+
+// dish.router.ts
+import { Router } from "express";
+import { asyncHandler } from "@presentation/middleware/async-handler.middleware";
+import { DishController } from "@presentation/dish.controller";
+import { createDishValidator } from "@presentation/dto/dish.dto";
+import { requestValidator } from "@presentation/middleware/request-validator.middleware";
+
+export const dishRouter = Router();
+
+dishRouter.post(
+  "/dishes",
+  createDishValidator,
+  requestValidator,
+  asyncHandler(DishController.createDish)
+);
+</example>
+
+<example type="invalid">
+// Bad practice - business logic in controller
+export class DishController {
+  static async createDish(req: Request, res: Response) {
+    const { name, description, basePrice, category } = req.body;
+    
+    // Business logic should be in use case, not controller
+    if (basePrice < 0) {
+      return res.status(400).json({ error: "Price cannot be negative" });
+    }
+    
+    // Direct database access in controller - violates clean architecture
+    const dish = await dishRepository.create({
+      name,
+      description,
+      basePrice,
+      category
+    });
+    
+    res.status(201).json(dish);
+  }
+}
+
+// Missing validation in DTO
+export interface CreateDishDto {
+  name: string;
+  description: string;
+  basePrice: number;
+  category: string;
+}
+
+// No validators exported
+
+// Inconsistent router implementation
+const router = Router();
+
+// Missing middleware
+router.post("/dishes", (req, res) => {
+  DishController.createDish(req, res);
+});
+
+// Not using asyncHandler - unhandled promise rejections
+
+// Bad practice - defining auth middleware in each router
+import { authMiddlewareFactory } from "@presentation/middleware/request-authenticator.middleware";
+import { container } from "@infras/di";
+import { JWT_TOKEN_SERVICE } from "@infras/di/tokens";
+
+// Don't do this - creates multiple instances of the same middleware
+const jwtService = container.resolve(JWT_TOKEN_SERVICE);
+const authMiddleware = authMiddlewareFactory(jwtService);
+
+router.post("/dishes", authMiddleware, createDishValidator, requestValidator, 
+  (req, res) => {
+    DishController.createDish(req, res);
+  }
+);
+
+// Bad practice - cascading types instead of using Express generics
+// Don't do this:
+static async updateDish(req: Request, res: Response) {
+  const id = req.params.id as string;
+  const body = req.body as UpdateDishDto;
+  // ...
+}
+
+// Don't do this either - not using Express generics properly:
+interface CustomRequest extends Request {
+  body: CreateDishDto;
+}
+static async createDish(req: CustomRequest, res: Response) {
+  // ...
+}
+
+// Bad practice - using ResBody in Request type
+// Don't do this:
+static async createDish(
+  req: Request<{}, DishDto, CreateDishDto>, // DishDto should not be in ResBody position
+  res: Response<DishDto>
+) {
+  // ...
+}
+
+// Bad practice - using any in type parameters
+// Don't do this:
+static async updateDish(
+  req: Request<{ id: string }, any, UpdateDishDto>,
+  res: Response
+) {
+  // ...
+}
+
+// Bad practice - unnecessary empty generic parameters
+// Don't do this when no special typing is needed:
+static async getAllDishes(
+  req: Request<{}, {}, {}, {}>, 
+  res: Response
+) {
+  // ...
+}
+// Do this instead:
+static async getAllDishes(
+  req: Request, 
+  res: Response<DishDto[]>
+) {
+  // ...
+}
+</example>
