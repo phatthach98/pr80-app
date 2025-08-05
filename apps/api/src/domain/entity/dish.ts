@@ -37,11 +37,11 @@ export class Dish {
   }
 
   public removeOption(optionId: string): void {
-    this.options = this.options.filter(option => option.id !== optionId);
+    this.options = this.options.filter((option) => option.id !== optionId);
   }
 
   public hasOption(optionId: string): boolean {
-    return this.options.some(option => option.id === optionId);
+    return this.options.some((option) => option.id === optionId);
   }
 
   public updatePrice(newPrice: number): void {
@@ -63,7 +63,11 @@ export class Dish {
       name: this.name,
       description: this.description,
       price: this.price,
-      options: this.options,
+      options: this.options.map(option => {
+        // Create a new object with only the id property
+        const { id } = option;
+        return { id };
+      }),
     };
   }
 }
