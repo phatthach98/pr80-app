@@ -1,0 +1,76 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+# Postman Collection Generation for PR-80 APIs
+
+## Context
+
+- Apply when generating or updating Postman collections for PR-80 APIs
+- Use when creating API documentation in Postman format
+- Ensures consistency with existing collection structure and naming
+
+## Critical Rules
+
+- Use existing "PR-80" collection as the base for all new API endpoints
+- Name API endpoints following the pattern: `[Resource Name] [Action]` (e.g., "[Dish Option] Get by ID")
+- Do NOT group APIs by resource type - maintain flat structure in the collection
+- Extract API routes from controller and router files to ensure complete coverage
+- Use DTOs to generate request body schemas for POST and PUT requests
+- Include raw JSON body examples based on DTO structure
+- Reuse existing environment variables for base URLs, tokens, and other shared values
+- Set appropriate authorization headers based on middleware requirements
+- Include descriptive names and comments for each endpoint
+- Set proper content-type headers (application/json)
+- Include status code expectations in response examples
+
+## Examples
+
+<example>
+// Controller file: dish-option.controller.ts
+@Post('/')
+async createDishOption(@Body() dto: CreateDishOptionDto) {
+  return this.dishOptionUseCase.createDishOption(dto);
+}
+
+// Postman endpoint:
+Name: "[Dish Option] Create"
+Method: POST
+URL: {{baseUrl}}/api/dish-options
+Headers: 
+  - Content-Type: application/json
+  - Authorization: Bearer {{accessToken}}
+Body (raw JSON):
+{
+  "name": "Size",
+  "options": [
+    {
+      "name": "Small",
+      "price": 0
+    },
+    {
+      "name": "Medium",
+      "price": 1.5
+    }
+  ]
+}
+</example>
+
+<example type="invalid">
+// Incorrect naming:
+Name: "POST /api/dish-options"
+Method: POST
+URL: {{baseUrl}}/dish-options
+
+// Missing authorization:
+Headers:
+  - Content-Type: application/json
+
+// Incomplete body:
+Body (raw JSON):
+{
+  "name": "Size"
+}
+</example>
