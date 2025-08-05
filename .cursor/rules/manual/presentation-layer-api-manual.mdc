@@ -17,6 +17,7 @@ alwaysApply: false
 
 - Controllers must follow single responsibility principle and be focused on a specific domain entity
 - Controllers should not contain business logic - delegate to use cases from application layer
+- Always use model's toJSON() method when sending responses, never send domain model objects directly
 - DTOs must include both interface definitions and validators
 - Use express-validator for request validation
 - Wrap all controller methods with asyncHandler middleware to handle Promise rejections
@@ -36,6 +37,9 @@ alwaysApply: false
 - Do not use instance methods or constructors for dependency injection
 - Each method should correspond to a specific API operation (get, create, update, delete)
 - Return appropriate HTTP status codes (200, 201, 204, etc.)
+- Always call toJSON() on domain model objects before sending responses:
+  - For single entities: `res.json(entity.toJSON())`
+  - For collections: `res.json(entities.map(entity => entity.toJSON()))`
 - Use Express generic types for Request and Response objects correctly:
   - For Request: `Request<P, ResBody, ReqBody, Query>` where:
     - `P`: Route parameters (e.g., `{ id: string }`)
@@ -166,7 +170,7 @@ export class DishController {
     res: Response<DishDto[]>
   ) {
     const dishes = await dishUseCase.getAllDishes();
-    res.json(dishes);
+    res.json(dishes.map(dish => dish.toJSON()));
   }
   
   // Request with route params only
@@ -176,7 +180,7 @@ export class DishController {
   ) {
     const { id } = req.params;
     const dish = await dishUseCase.getDishById(id);
-    res.json(dish);
+    res.json(dish.toJSON());
   }
   
   // Request with body only
@@ -192,7 +196,7 @@ export class DishController {
       category,
       dishOptionIds: dishOptionIds || []
     });
-    res.status(201).json(dish);
+    res.status(201).json(dish.toJSON());
   }
   
   // Request with route params and body
@@ -203,7 +207,7 @@ export class DishController {
     const { id } = req.params;
     const changes = req.body;
     const dish = await dishUseCase.updateDish(id, changes);
-    res.json(dish);
+    res.json(dish.toJSON());
   }
   
   // Request with query params
@@ -213,7 +217,7 @@ export class DishController {
   ) {
     const { category, query } = req.query;
     const dishes = await dishUseCase.searchDishes({ category, query });
-    res.json(dishes);
+    res.json(dishes.map(dish => dish.toJSON()));
   }
 }
 
@@ -275,6 +279,7 @@ export class DishController {
       category
     });
     
+    // Missing toJSON() call - don't send domain models directly
     res.status(201).json(dish);
   }
 }
@@ -326,6 +331,7 @@ export class DishController {
   async getDishes(req: Request, res: Response) {
     // Using instance method instead of static method
     const dishes = await this.dishUseCase.getDishes();
+    // Also missing toJSON() calls on domain models
     res.json(dishes);
   }
 }

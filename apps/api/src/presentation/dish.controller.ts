@@ -12,7 +12,7 @@ export class DishController {
     res: Response<DishDto[]>
   ) {
     const dishes = await dishUseCase.getDishes();
-    res.json(dishes || []);
+    res.json(dishes ? dishes.map(dish => dish.toJSON()) : []);
   }
 
   static async getDishById(
@@ -21,7 +21,7 @@ export class DishController {
   ) {
     const { id } = req.params;
     const dish = await dishUseCase.getDishById(id);
-    res.json(dish);
+    res.json(dish.toJSON());
   }
 
   static async createDish(
@@ -35,7 +35,7 @@ export class DishController {
       price,
       options || []
     );
-    res.status(201).json(dish);
+    res.status(201).json(dish.toJSON());
   }
 
   static async updateDish(
@@ -44,7 +44,7 @@ export class DishController {
   ) {
     const { id } = req.params;
     const dish = await dishUseCase.updateDish(id, req.body);
-    res.json(dish);
+    res.json(dish.toJSON());
   }
 
   static async deleteDish(
@@ -62,7 +62,7 @@ export class DishController {
   ) {
     const { id, optionId } = req.params;
     const dish = await dishUseCase.addOptionToDish(id, optionId);
-    res.json(dish);
+    res.json(dish.toJSON());
   }
 
   static async removeOptionFromDish(
@@ -71,6 +71,6 @@ export class DishController {
   ) {
     const { id, optionId } = req.params;
     const dish = await dishUseCase.removeOptionFromDish(id, optionId);
-    res.json(dish);
+    res.json(dish.toJSON());
   }
 }

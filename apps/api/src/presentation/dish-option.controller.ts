@@ -17,7 +17,7 @@ export class DishOptionController {
     res: Response<DishOptionDto[]>
   ) {
     const dishOptions = await dishOptionUseCase.getDishOptions();
-    return res.json(dishOptions || []);
+    return res.json(dishOptions ? dishOptions.map(option => option.toJSON()) : []);
   }
 
   static async getDishOptionById(
@@ -26,7 +26,7 @@ export class DishOptionController {
   ) {
     const { id } = req.params;
     const dishOption = await dishOptionUseCase.getDishOptionById(id);
-    return res.json(dishOption);
+    return res.json(dishOption.toJSON());
   }
 
   static async createDishOption(
@@ -39,7 +39,7 @@ export class DishOptionController {
       description,
       options
     );
-    return res.status(201).json(dishOption);
+    return res.status(201).json(dishOption.toJSON());
   }
 
   static async updateDishOption(
@@ -49,7 +49,7 @@ export class DishOptionController {
     const { id } = req.params;
     const changes = req.body;
     const updatedDishOption = await dishOptionUseCase.updateDishOption(id, changes);
-    return res.json(updatedDishOption);
+    return res.json(updatedDishOption.toJSON());
   }
 
   static async deleteDishOption(

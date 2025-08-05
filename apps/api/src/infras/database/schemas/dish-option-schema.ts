@@ -1,11 +1,11 @@
-import { Schema, model } from "mongoose";
-import { SelectOption } from "../../../types";
+import mongoose, { Schema, model } from "mongoose";
+import { DishSelectOption } from "../../../types";
 
 interface DishOptionDocument {
   id: string;
   name: string;
   description: string;
-  options: SelectOption[];
+  options: DishSelectOption[];
 }
 
 const dishOptionSchema = new Schema<DishOptionDocument>(
@@ -17,6 +17,7 @@ const dishOptionSchema = new Schema<DishOptionDocument>(
       {
         label: { type: String, required: true },
         value: { type: String, required: true },
+        extraPrice: { type: mongoose.Schema.Types.Decimal128, required: true },
       },
     ],
   },

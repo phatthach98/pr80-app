@@ -1,23 +1,23 @@
 import { body, param } from "express-validator";
-import { SelectOption } from "../../types";
+import { DishSelectOption } from "../../types";
 
 export interface DishOptionDto {
   id: string;
   name: string;
   description: string;
-  options: SelectOption[];
+  options: DishSelectOption[];
 }
 
 export interface CreateDishOptionDto {
   name: string;
   description: string;
-  options: SelectOption[];
+  options: DishSelectOption[];
 }
 
 export interface UpdateDishOptionDto {
   name?: string;
   description?: string;
-  options?: SelectOption[];
+  options?: DishSelectOption[];
 }
 
 export interface DishOptionResponseDto {
@@ -45,6 +45,9 @@ export const createDishOptionValidator = [
     .isString()
     .notEmpty()
     .withMessage("Option value is required"),
+  body("options.*.extraPrice")
+    .isNumeric()
+    .withMessage("Extra price must be a number"),
 ];
 
 export const updateDishOptionValidator = [
@@ -72,6 +75,9 @@ export const updateDishOptionValidator = [
     .optional()
     .isString()
     .withMessage("Option value must be a string"),
+  body("options.*.extraPrice")
+    .isNumeric()
+    .withMessage("Extra price must be a number"),
 ];
 
 export const dishOptionIdValidator = [

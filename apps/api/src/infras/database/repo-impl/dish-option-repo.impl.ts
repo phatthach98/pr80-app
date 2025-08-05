@@ -1,7 +1,7 @@
 import { DishOptionRepository } from "@application/interface/repository/dish-option-repo.interface";
 import { DishOption } from "@domain/entity/dish-option";
 import { DishOptionSchema } from "../schemas/dish-option-schema";
-import { SelectOption } from "../../../types";
+import { DishSelectOption } from "../../../types";
 
 export class DishOptionRepositoryImpl implements DishOptionRepository {
   // Removed constructor injection - using schema directly
@@ -9,7 +9,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
   async getDishOptions(): Promise<DishOption[] | null> {
     try {
       const dishOptions = await DishOptionSchema.find().lean();
-      
+
       if (!dishOptions.length) {
         return null;
       }
@@ -20,7 +20,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
             option.id,
             option.name,
             option.description,
-            option.options as SelectOption[]
+            option.options
           )
       );
     } catch (error) {
@@ -48,10 +48,12 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
   async update(changes: Partial<DishOption>): Promise<DishOption> {
     try {
       const { id, ...updateData } = changes;
-      
-      const updatedDishOption = await DishOptionSchema
-        .findOneAndUpdate({ id }, updateData, { new: true })
-        .lean();
+
+      const updatedDishOption = await DishOptionSchema.findOneAndUpdate(
+        { id },
+        updateData,
+        { new: true }
+      ).lean();
 
       if (!updatedDishOption) {
         throw new Error("Dish option not found");
@@ -61,7 +63,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         updatedDishOption.id,
         updatedDishOption.name,
         updatedDishOption.description,
-        updatedDishOption.options as SelectOption[]
+        updatedDishOption.options as DishSelectOption[]
       );
     } catch (error) {
       console.error("Error updating dish option:", error);
@@ -72,7 +74,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
   async getDishOptionById(id: string): Promise<DishOption | null> {
     try {
       const dishOption = await DishOptionSchema.findOne({ id }).lean();
-      
+
       if (!dishOption) {
         return null;
       }
@@ -81,7 +83,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         dishOption.id,
         dishOption.name,
         dishOption.description,
-        dishOption.options as SelectOption[]
+        dishOption.options as DishSelectOption[]
       );
     } catch (error) {
       console.error("Error fetching dish option by ID:", error);

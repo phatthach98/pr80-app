@@ -1,6 +1,6 @@
 import { DishOption } from "@domain/entity/dish-option";
 import { DishOptionRepository } from "../interface/repository/dish-option-repo.interface";
-import { SelectOption } from "../../types";
+import { DishSelectOption } from "../../types";
 import { NotFoundError } from "@application/errors";
 
 export class DishOptionUseCase {
@@ -23,7 +23,7 @@ export class DishOptionUseCase {
   async createDishOption(
     name: string,
     description: string,
-    options: SelectOption[]
+    options: DishSelectOption[]
   ) {
     const dishOption = DishOption.create(name, description, options);
     return this.dishOptionRepository.create(dishOption);
