@@ -2,14 +2,16 @@ import { DIContainer } from "./container";
 import * as TOKENS from "./tokens";
 
 // Import UseCases
-import { AuthUseCase, UserUseCase, RoleUseCase } from "@application/use-case";
+import { AuthUseCase, UserUseCase, RoleUseCase, DishUseCase } from "@application/use-case";
 import { SettingUseCase } from "@application/use-case/setting.use-case";
+import { DishOptionUseCase } from "@application/use-case/dish-option.use-case";
 
 // Import Implementations
 import {
   UserRepoImpl,
   RoleRepoImpl,
   SettingRepoImpl,
+  DishOptionRepositoryImpl,
 } from "@infras/database/repo-impl";
 import { JwtServiceImpl } from "@infras/service";
 // Create the container instance
@@ -24,6 +26,7 @@ container.register(TOKENS.JWT_TOKEN_SERVICE, JwtServiceImpl);
 container.register(TOKENS.USER_REPOSITORY, UserRepoImpl);
 container.register(TOKENS.ROLE_REPOSITORY, RoleRepoImpl);
 container.register(TOKENS.SETTING_REPOSITORY, SettingRepoImpl);
+container.register(TOKENS.DISH_OPTION_REPOSITORY, DishOptionRepositoryImpl);
 
 // UseCases (with dependencies)
 container.register(TOKENS.AUTH_USE_CASE, AuthUseCase, [
@@ -40,4 +43,8 @@ container.register(TOKENS.ROLE_USE_CASE, RoleUseCase, [TOKENS.ROLE_REPOSITORY]);
 
 container.register(TOKENS.SETTING_USE_CASE, SettingUseCase, [
   TOKENS.SETTING_REPOSITORY,
+]);
+
+container.register(TOKENS.DISH_OPTION_USE_CASE, DishOptionUseCase, [
+  TOKENS.DISH_OPTION_REPOSITORY,
 ]);

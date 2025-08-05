@@ -24,6 +24,9 @@ export const errorHandler = (
     process.env.NODE_ENV === "production"
       ? "An internal server error occurred"
       : err.message; // Show detailed message only in development
-
+  // Log the error stack for server-side observation
+  if (err.stack) {
+    console.error("Error stack:", err.stack);
+  }
   return res.status(500).json({ message });
 };

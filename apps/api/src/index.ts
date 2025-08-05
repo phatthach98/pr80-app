@@ -7,6 +7,7 @@ import { errorHandler } from "@presentation/middleware/error-handler.middleware"
 import { userRouter } from "@presentation/router/user.router";
 import { roleRouter } from "@presentation/router/role.router";
 import { settingRouter } from "@presentation/router/setting.router";
+import { dishOptionRouter } from "@presentation/router/dish-option.router";
 import { container } from "@infras/di";
 import { JWT_TOKEN_SERVICE } from "@infras/di/tokens";
 import { JwtTokenService } from "@application/interface/service";
@@ -33,6 +34,7 @@ const startServer = async () => {
     app.use("/api", authenticateRequest, userRouter);
     app.use("/api", authenticateRequest, roleRouter);
     app.use("/api", authenticateRequest, settingRouter);
+    app.use("/api", authenticateRequest, dishOptionRouter);
 
     app.use(errorHandler);
 
