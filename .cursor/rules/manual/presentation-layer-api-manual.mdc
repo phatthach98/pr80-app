@@ -30,9 +30,10 @@ alwaysApply: false
 
 ## Controller Implementation
 
-- Create a class named `EntityNameController` with static or instance methods
-- If using instance methods, inject required use cases through constructor
-- For static methods, resolve use cases from DI container
+- Create a class named `EntityNameController` with static methods only
+- Controller methods must be static - do not create controller instances
+- Resolve use cases from DI container at the top level outside the class
+- Do not use instance methods or constructors for dependency injection
 - Each method should correspond to a specific API operation (get, create, update, delete)
 - Return appropriate HTTP status codes (200, 201, 204, etc.)
 - Use Express generic types for Request and Response objects correctly:
@@ -155,6 +156,7 @@ import { DISH_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
 import { CreateDishDto, DishDto, UpdateDishDto } from "./dto/dish.dto";
 
+// Resolve use case at the top level outside the class - this is the correct pattern
 const dishUseCase = container.resolve<DishUseCase>(DISH_USE_CASE);
 
 export class DishController {
@@ -311,6 +313,26 @@ router.post("/dishes", authMiddleware, createDishValidator, requestValidator,
     DishController.createDish(req, res);
   }
 );
+
+// Bad practice - creating controller instances or using instance methods
+// Don't do this:
+export class DishController {
+  private dishUseCase: DishUseCase;
+  
+  constructor(dishUseCase: DishUseCase) {
+    this.dishUseCase = dishUseCase;
+  }
+  
+  async getDishes(req: Request, res: Response) {
+    // Using instance method instead of static method
+    const dishes = await this.dishUseCase.getDishes();
+    res.json(dishes);
+  }
+}
+
+// Don't do this either:
+const dishController = new DishController(dishUseCase);
+router.get("/dishes", asyncHandler(dishController.getDishes.bind(dishController)));
 
 // Bad practice - cascading types instead of using Express generics
 // Don't do this:

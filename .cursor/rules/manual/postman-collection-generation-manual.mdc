@@ -26,6 +26,73 @@ alwaysApply: false
 - Set proper content-type headers (application/json)
 - Include status code expectations in response examples
 
+## MCP Tool Usage Guidelines
+
+- Use `mcp_postman_get_collection` to find the existing PR-80 collection ID
+- Use `mcp_postman_get_environment` to retrieve environment variables
+- Create new requests with `mcp_postman_create_collection_request` with complete request details:
+  - Always include the `method` parameter with the correct HTTP method
+  - Always include the `url` parameter with the full API path
+  - For requests with path parameters, include `pathVariableData` array
+  - For POST/PUT requests, include `dataMode: "raw"`, `rawModeData` with JSON body, and proper headers
+- Update existing requests with `mcp_postman_update_collection_request` with complete request details
+- Always verify that requests include proper authentication using the Bearer token pattern
+- When updating requests, ensure all required fields are specified (method, url, auth, etc.)
+
+### MCP Tool Example
+
+```javascript
+// Example: Creating a new GET request
+mcp_postman_create_collection_request({
+  collection_id: "72eb84fb-c3d8-450c-bdcd-71aadae93ab1",
+  request: {
+    name: "[Dish] Get all",
+    method: "GET",
+    url: "{{BASE_URL}}/api/dishes",
+    auth: {
+      type: "bearer",
+      bearer: [{ key: "token", value: "{{JWT_TOKEN}}", type: "string" }]
+    }
+  }
+});
+
+// Example: Creating a new POST request with body
+mcp_postman_create_collection_request({
+  collection_id: "72eb84fb-c3d8-450c-bdcd-71aadae93ab1",
+  request: {
+    name: "[Dish] Create",
+    method: "POST",
+    url: "{{BASE_URL}}/api/dishes",
+    dataMode: "raw",
+    rawModeData: JSON.stringify({
+      name: "Pizza Margherita",
+      description: "Classic Italian pizza",
+      price: 12.99,
+      options: [{ id: "option_id_here" }]
+    }, null, 2),
+    headers: "Content-Type: application/json",
+    auth: {
+      type: "bearer",
+      bearer: [{ key: "token", value: "{{JWT_TOKEN}}", type: "string" }]
+    }
+  }
+});
+
+// Example: Updating an existing request
+mcp_postman_update_collection_request({
+  collection_id: "72eb84fb-c3d8-450c-bdcd-71aadae93ab1",
+  request_id: "e962f457-b0fe-7b28-9630-64d47d5f10ae",
+  request: {
+    method: "GET",
+    url: "{{BASE_URL}}/api/dishes",
+    auth: {
+      type: "bearer",
+      bearer: [{ key: "token", value: "{{JWT_TOKEN}}", type: "string" }]
+    }
+  }
+});
+```
+
 ## Examples
 
 <example>
