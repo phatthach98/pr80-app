@@ -12,6 +12,7 @@ import {
   RoleRepoImpl,
   SettingRepoImpl,
   DishOptionRepositoryImpl,
+  DishRepositoryImpl,
 } from "@infras/database/repo-impl";
 import { JwtServiceImpl } from "@infras/service";
 // Create the container instance
@@ -27,6 +28,7 @@ container.register(TOKENS.USER_REPOSITORY, UserRepoImpl);
 container.register(TOKENS.ROLE_REPOSITORY, RoleRepoImpl);
 container.register(TOKENS.SETTING_REPOSITORY, SettingRepoImpl);
 container.register(TOKENS.DISH_OPTION_REPOSITORY, DishOptionRepositoryImpl);
+container.register(TOKENS.DISH_REPOSITORY, DishRepositoryImpl);
 
 // UseCases (with dependencies)
 container.register(TOKENS.AUTH_USE_CASE, AuthUseCase, [
@@ -47,4 +49,8 @@ container.register(TOKENS.SETTING_USE_CASE, SettingUseCase, [
 
 container.register(TOKENS.DISH_OPTION_USE_CASE, DishOptionUseCase, [
   TOKENS.DISH_OPTION_REPOSITORY,
+]);
+
+container.register(TOKENS.DISH_USE_CASE, DishUseCase, [
+  TOKENS.DISH_REPOSITORY,
 ]);

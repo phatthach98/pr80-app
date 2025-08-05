@@ -14,12 +14,7 @@ export class JwtServiceImpl implements JwtTokenService {
     });
   }
 
-  async verifyToken(
-    token: string
-  ): Promise<{ userId: string; [key: string]: any }> {
-    return jwt.verify(token, this.secret) as {
-      userId: string;
-      [key: string]: any;
-    };
+  async verifyToken<T>(token: string): Promise<T> {
+    return jwt.verify(token, this.secret) as T;
   }
 }

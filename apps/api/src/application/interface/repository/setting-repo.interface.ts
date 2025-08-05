@@ -1,7 +1,4 @@
-export interface SelectOption {
-  label: string;
-  value: string | number;
-}
+import { SelectOption } from "../../../types";
 
 export interface SettingRepository {
   /**
