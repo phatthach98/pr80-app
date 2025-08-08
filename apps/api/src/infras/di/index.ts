@@ -2,7 +2,7 @@ import { DIContainer } from "./container";
 import * as TOKENS from "./tokens";
 
 // Import UseCases
-import { AuthUseCase, UserUseCase, RoleUseCase, DishUseCase } from "@application/use-case";
+import { AuthUseCase, UserUseCase, RoleUseCase, DishUseCase, OrderUseCase } from "@application/use-case";
 import { SettingUseCase } from "@application/use-case/setting.use-case";
 import { DishOptionUseCase } from "@application/use-case/dish-option.use-case";
 
@@ -13,6 +13,7 @@ import {
   SettingRepoImpl,
   DishOptionRepositoryImpl,
   DishRepositoryImpl,
+  OrderRepositoryImpl,
 } from "@infras/database/repo-impl";
 import { JwtServiceImpl } from "@infras/service";
 // Create the container instance
@@ -29,6 +30,7 @@ container.register(TOKENS.ROLE_REPOSITORY, RoleRepoImpl);
 container.register(TOKENS.SETTING_REPOSITORY, SettingRepoImpl);
 container.register(TOKENS.DISH_OPTION_REPOSITORY, DishOptionRepositoryImpl);
 container.register(TOKENS.DISH_REPOSITORY, DishRepositoryImpl);
+container.register(TOKENS.ORDER_REPOSITORY, OrderRepositoryImpl);
 
 // UseCases (with dependencies)
 container.register(TOKENS.AUTH_USE_CASE, AuthUseCase, [
@@ -53,4 +55,11 @@ container.register(TOKENS.DISH_OPTION_USE_CASE, DishOptionUseCase, [
 
 container.register(TOKENS.DISH_USE_CASE, DishUseCase, [
   TOKENS.DISH_REPOSITORY,
+]);
+
+// Register OrderUseCase with mock repository for presentation layer development
+container.register(TOKENS.ORDER_USE_CASE, OrderUseCase, [
+  TOKENS.ORDER_REPOSITORY,
+  TOKENS.DISH_REPOSITORY,
+  TOKENS.DISH_OPTION_REPOSITORY
 ]);

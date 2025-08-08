@@ -1,6 +1,6 @@
 import { body } from "express-validator";
 
-export interface DishDto {
+export interface DishResponse {
   id: string;
   name: string;
   description: string;
@@ -8,14 +8,14 @@ export interface DishDto {
   options: { id: string }[];
 }
 
-export interface CreateDishDto {
+export interface CreateDishRequest {
   name: string;
   description: string;
   price: number;
   options?: { id: string }[];
 }
 
-export interface UpdateDishDto {
+export interface UpdateDishRequest {
   name?: string;
   description?: string;
   price?: number;

@@ -2,14 +2,14 @@ import { Request, Response } from "express";
 import { DishUseCase } from "@application/use-case";
 import { DISH_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
-import { CreateDishDto, DishDto, UpdateDishDto } from "./dto/dish.dto";
+import { CreateDishRequest, DishResponse, UpdateDishRequest } from "./dto/dish.dto";
 
 const dishUseCase = container.resolve<DishUseCase>(DISH_USE_CASE);
 
 export class DishController {
   static async getDishes(
     req: Request, 
-    res: Response<DishDto[]>
+    res: Response<DishResponse[]>
   ) {
     const dishes = await dishUseCase.getDishes();
     res.json(dishes ? dishes.map(dish => dish.toJSON()) : []);
@@ -17,7 +17,7 @@ export class DishController {
 
   static async getDishById(
     req: Request<{ id: string }>, 
-    res: Response<DishDto>
+    res: Response<DishResponse>
   ) {
     const { id } = req.params;
     const dish = await dishUseCase.getDishById(id);
@@ -25,8 +25,8 @@ export class DishController {
   }
 
   static async createDish(
-    req: Request<{}, {}, CreateDishDto>, 
-    res: Response<DishDto>
+    req: Request<{}, {}, CreateDishRequest>, 
+    res: Response<DishResponse>
   ) {
     const { name, description, price, options } = req.body;
     const dish = await dishUseCase.createDish(
@@ -39,8 +39,8 @@ export class DishController {
   }
 
   static async updateDish(
-    req: Request<{ id: string }, {}, UpdateDishDto>,
-    res: Response<DishDto>
+    req: Request<{ id: string }, {}, UpdateDishRequest>,
+    res: Response<DishResponse>
   ) {
     const { id } = req.params;
     const dish = await dishUseCase.updateDish(id, req.body);
@@ -58,7 +58,7 @@ export class DishController {
 
   static async addOptionToDish(
     req: Request<{ id: string; optionId: string }>,
-    res: Response<DishDto>
+    res: Response<DishResponse>
   ) {
     const { id, optionId } = req.params;
     const dish = await dishUseCase.addOptionToDish(id, optionId);
@@ -67,7 +67,7 @@ export class DishController {
 
   static async removeOptionFromDish(
     req: Request<{ id: string; optionId: string }>,
-    res: Response<DishDto>
+    res: Response<DishResponse>
   ) {
     const { id, optionId } = req.params;
     const dish = await dishUseCase.removeOptionFromDish(id, optionId);
