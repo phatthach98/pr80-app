@@ -9,6 +9,7 @@ import { roleRouter } from "@presentation/router/role.router";
 import { settingRouter } from "@presentation/router/setting.router";
 import { dishOptionRouter } from "@presentation/router/dish-option.router";
 import { dishRouter } from "@presentation/router/dish.router";
+import { orderRouter } from "@presentation/router/order.router";
 import { container } from "@infras/di";
 import { JWT_TOKEN_SERVICE } from "@infras/di/tokens";
 import { JwtTokenService } from "@application/interface/service";
@@ -37,6 +38,7 @@ const startServer = async () => {
     app.use("/api", authenticateRequest, settingRouter);
     app.use("/api", authenticateRequest, dishOptionRouter);
     app.use("/api", authenticateRequest, dishRouter);
+    app.use("/api", authenticateRequest, orderRouter);
 
     app.use(errorHandler);
 

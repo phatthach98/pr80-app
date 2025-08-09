@@ -5,6 +5,7 @@ const SettingSchema = new Schema(
     _id: {
       type: String,
       required: true,
+      unique: true,
     },
     type: {
       type: String,
