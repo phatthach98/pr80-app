@@ -118,7 +118,11 @@ export class OrderController {
   ) {
     const { originalOrderId, dishes, note } = req.body;
     // Get user ID from authenticated request
-    const userId = req.user?.userId || "";
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new UnauthorizedError("User not authenticated");
+    }
 
     const order = await orderUseCase.createAdditionalOrder(
       originalOrderId,

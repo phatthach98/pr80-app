@@ -1,4 +1,5 @@
 import { body } from "express-validator";
+import { DishOption } from "@domain/entity/dish-option";
 
 export interface DishResponse {
   id: string;
@@ -6,6 +7,10 @@ export interface DishResponse {
   description: string;
   price: number;
   options: { id: string }[];
+}
+
+export interface DishWithOptionsResponse extends DishResponse {
+  optionDetails: DishOption[];
 }
 
 export interface CreateDishRequest {

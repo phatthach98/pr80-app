@@ -175,7 +175,7 @@ export class Order {
   }
 
   public toJSON() {
-    return {
+    const order: any = {
       id: this.id,
       linkedOrderId: this.linkedOrderId,
       createdBy: this.createdBy,
@@ -186,5 +186,16 @@ export class Order {
       note: this.note,
       dishes: this.dishes,
     };
+    
+    // Add timestamps if they exist
+    if ((this as any).createdAt) {
+      order.createdAt = (this as any).createdAt;
+    }
+    
+    if ((this as any).updatedAt) {
+      order.updatedAt = (this as any).updatedAt;
+    }
+    
+    return order;
   }
 }

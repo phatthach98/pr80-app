@@ -5,6 +5,7 @@ import { container } from "@infras/di";
 import {
   CreateDishRequest,
   DishResponse,
+  DishWithOptionsResponse,
   UpdateDishRequest,
 } from "./dto/dish.dto";
 
@@ -16,10 +17,20 @@ export class DishController {
     res.json(dishes ? dishes.map((dish) => dish.toJSON()) : []);
   }
 
-  static async getDishById(req: Request<{ id: string }>, res: Response) {
+  static async getDishById(
+    req: Request<{ id: string }, {}, {}, { includeOptions?: string }>,
+    res: Response<DishResponse | DishWithOptionsResponse>
+  ) {
     const { id } = req.params;
+    const includeOptions = req.query.includeOptions === 'true';
 
-    const result = await dishUseCase.getDishById(id);
+    let result;
+    if (includeOptions) {
+      result = await dishUseCase.getDishByIdWithOptions(id);
+    } else {
+      const dish = await dishUseCase.getDishById(id);
+      result = dish.toJSON();
+    }
 
     res.json(result);
   }

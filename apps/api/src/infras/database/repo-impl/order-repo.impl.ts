@@ -171,7 +171,7 @@ export class OrderRepositoryImpl implements OrderRepository {
       })),
     }));
 
-    return new Order(
+    const order = new Order(
       orderDoc._id.toString(), // Use _id as id in domain model
       orderDoc.createdBy,
       orderDoc.table,
@@ -182,5 +182,11 @@ export class OrderRepositoryImpl implements OrderRepository {
       orderDoc.note,
       parseFloat(orderDoc.totalAmount.toString())
     );
+    
+    // Add timestamps to the order object for use in responses
+    (order as any).createdAt = orderDoc.createdAt;
+    (order as any).updatedAt = orderDoc.updatedAt;
+    
+    return order;
   }
 }

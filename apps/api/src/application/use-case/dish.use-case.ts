@@ -1,4 +1,5 @@
 import { Dish } from "@domain/entity/dish";
+import { DishOption } from "@domain/entity/dish-option";
 import { DishRepository } from "../interface/repository/dish-repo.interface";
 import { DishOptionRepository } from "../interface/repository/dish-option-repo.interface";
 import { NotFoundError } from "@application/errors";
@@ -20,19 +21,38 @@ export class DishUseCase {
       throw new NotFoundError(`Dish with id ${id} not found`);
     }
 
-    // Always fetch and include option details if there are options
+    return dish;
+  }
+
+  async getDishByIdWithOptions(id: string) {
+    const dish = await this.dishRepository.getDishById(id);
+
+    if (!dish) {
+      throw new NotFoundError(`Dish with id ${id} not found`);
+    }
+
+    // Create a DTO that preserves the original dish entity
+    const dishDTO = {
+      id: dish.id,
+      name: dish.name,
+      description: dish.description,
+      price: dish.price,
+      options: dish.options,
+      optionDetails: [] as DishOption[]
+    };
+
+    // Fetch option details if there are options
     if (dish.options && dish.options.length > 0) {
       // Extract all option IDs
       const optionIds = dish.options.map((option) => option.id);
 
       // Fetch all dish options in a single database call
-      const dishOptions = await this.dishOptionRepository.getDishOptionsByIds(
+      dishDTO.optionDetails = await this.dishOptionRepository.getDishOptionsByIds(
         optionIds
       );
-      return { ...dish, options: dishOptions };
     }
 
-    return dish;
+    return dishDTO;
   }
 
   async createDish(

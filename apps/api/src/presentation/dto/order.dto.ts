@@ -41,6 +41,8 @@ export interface OrderResponse {
   type: OrderType;
   note: string;
   dishes: OrderDishItemResponse[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // DTO for creating a new order
