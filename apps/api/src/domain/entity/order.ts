@@ -6,11 +6,11 @@ export interface OrderDishItem {
   dishId: string;
   name: string;
   quantity: number;
-  price: number;
+  readonly price: number; // Make price readonly to prevent direct manipulation
   selectedOptions: {
     name: string;
     value: string;
-    extraPrice: number;
+    readonly extraPrice: number; // Make extraPrice readonly as well
   }[];
   takeAway: boolean;
 }
@@ -60,7 +60,16 @@ export class Order {
     this.type = type;
     this.note = note;
     this.dishes = dishes;
-    this.totalAmount = totalAmount || this.calculateTotalAmount();
+
+    // Always calculate the total amount based on dishes to prevent manipulation
+    // Only use provided totalAmount for linked orders where we need to include sub-orders
+    if (totalAmount !== undefined && !linkedOrderId) {
+      // For main orders with linked orders, we can use the provided totalAmount
+      this.totalAmount = totalAmount;
+    } else {
+      // For regular orders or sub-orders, always calculate from dishes
+      this.totalAmount = this.calculateTotalAmount();
+    }
   }
 
   static create(
@@ -84,12 +93,26 @@ export class Order {
   }
 
   private calculateTotalAmount(): number {
+    // Ensure we're using the correct price for each dish
     const total = this.dishes.reduce((sum, dish) => {
-      return sum + dish.price * dish.quantity;
+      // Calculate the base price plus any extra from options
+      const dishPrice = dish.price;
+
+      // Validate that the price is a positive number
+      if (typeof dishPrice !== "number" || dishPrice < 0) {
+        throw new Error(`Invalid price for dish ${dish.id}: ${dishPrice}`);
+      }
+
+      return sum + dishPrice * dish.quantity;
     }, 0);
 
     // Ensure price is stored with 2 decimal places
     return parseFloat(total.toFixed(2));
+  }
+
+  // Make totalAmount read-only by providing a getter
+  public getTotalAmount(): number {
+    return this.totalAmount;
   }
 
   public updateStatus(newStatus: OrderStatus): void {
@@ -186,16 +209,16 @@ export class Order {
       note: this.note,
       dishes: this.dishes,
     };
-    
+
     // Add timestamps if they exist
     if ((this as any).createdAt) {
       order.createdAt = (this as any).createdAt;
     }
-    
+
     if ((this as any).updatedAt) {
       order.updatedAt = (this as any).updatedAt;
     }
-    
+
     return order;
   }
 }

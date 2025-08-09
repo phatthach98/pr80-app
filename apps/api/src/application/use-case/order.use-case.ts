@@ -365,6 +365,42 @@ export class OrderUseCase {
     // Store the original linkedOrderId for later comparison
     const originalLinkedOrderId = order.linkedOrderId;
 
+    // Prevent direct price manipulation
+    if (changes.totalAmount !== undefined) {
+      throw new Error("Direct price manipulation is not allowed");
+    }
+
+    // If dishes are being updated, we need to validate them
+    if (changes.dishes) {
+      // If dishes are provided, verify they haven't been tampered with
+      for (const newDish of changes.dishes) {
+        // Find the corresponding dish in the original order
+        const originalDish = order.dishes.find(dish => dish.id === newDish.id);
+        
+        // If this is a new dish, it will be handled by addDish method which calculates the price
+        if (originalDish) {
+          // If it's an existing dish, ensure the price hasn't been changed
+          if (originalDish.price !== newDish.price) {
+            throw new Error(`Price manipulation detected for dish ${newDish.id}`);
+          }
+          
+          // Check if options prices have been manipulated
+          if (newDish.selectedOptions) {
+            for (let i = 0; i < newDish.selectedOptions.length; i++) {
+              const newOption = newDish.selectedOptions[i];
+              const originalOption = originalDish.selectedOptions.find(
+                opt => opt.name === newOption.name && opt.value === newOption.value
+              );
+              
+              if (originalOption && originalOption.extraPrice !== newOption.extraPrice) {
+                throw new Error(`Option price manipulation detected for dish ${newDish.id}`);
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Create a new Order instance with the updated properties
     const updatedOrder = new Order(
       order.id,
@@ -465,13 +501,25 @@ export class OrderUseCase {
       mainOrderId
     );
 
-    // Calculate the total amount of the main order (its own dishes)
-    let totalAmount = mainOrder.totalAmount;
+    // Calculate the main order's own total from its dishes (to ensure it's accurate)
+    let mainOrderTotal = 0;
+    for (const dish of mainOrder.dishes) {
+      mainOrderTotal += dish.price * dish.quantity;
+    }
+    mainOrderTotal = parseFloat(mainOrderTotal.toFixed(2));
 
     // Add the total amount of each linked order
     if (linkedOrders && linkedOrders.length > 0) {
       const linkedOrdersTotal = linkedOrders.reduce((sum, order) => {
-        return sum + order.totalAmount;
+        // Validate each linked order's total to prevent manipulation
+        let orderTotal = 0;
+        for (const dish of order.dishes) {
+          orderTotal += dish.price * dish.quantity;
+        }
+        orderTotal = parseFloat(orderTotal.toFixed(2));
+        
+        // Use the calculated total, not the stored one
+        return sum + orderTotal;
       }, 0);
 
       // Create a new order with the updated total amount
@@ -484,16 +532,9 @@ export class OrderUseCase {
         mainOrder.type,
         mainOrder.dishes,
         mainOrder.linkedOrderId,
-        mainOrder.note
-      );
-
-      // Set the new total amount that includes linked orders
-      updatedOrder.totalAmount = parseFloat(
-        (totalAmount + linkedOrdersTotal).toFixed(2)
-      );
-      console.log(
-        "🚀 ~ OrderUseCase ~ recalculateMainOrderTotal ~ parseFloat((totalAmount + linkedOrdersTotal).toFixed(2)):",
-        parseFloat((totalAmount + linkedOrdersTotal).toFixed(2))
+        mainOrder.note,
+        // Explicitly pass the calculated total that includes linked orders
+        parseFloat((mainOrderTotal + linkedOrdersTotal).toFixed(2))
       );
 
       // Update the order in the database
@@ -504,7 +545,22 @@ export class OrderUseCase {
       return result;
     }
 
-    // If there are no linked orders, return the main order as is
-    return mainOrder;
+    // If there are no linked orders, return the main order with its recalculated total
+    const updatedOrder = new Order(
+      mainOrder.id,
+      mainOrder.createdBy,
+      mainOrder.table,
+      mainOrder.status,
+      mainOrder.type,
+      mainOrder.dishes,
+      mainOrder.linkedOrderId,
+      mainOrder.note
+    );
+    
+    const result = await this.orderRepository.update(updatedOrder);
+    if (!result) {
+      throw new Error(`Failed to update main order ${mainOrderId}`);
+    }
+    return result;
   }
 }
