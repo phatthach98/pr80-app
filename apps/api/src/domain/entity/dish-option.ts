@@ -35,12 +35,12 @@ export class DishOption {
       options: this.options.map((option) => {
         // Format extraPrice as a string with 2 decimal places
         // MongoDB Decimal128 values are always returned as objects with toString method
-        const extraPrice = parseFloat(option.extraPrice.toString()).toFixed(2)
-          
-        return { 
-          label: option.label, 
+        const extraPrice = parseFloat(option.extraPrice.toString());
+
+        return {
+          label: option.label,
           value: option.value,
-          extraPrice: extraPrice 
+          extraPrice: extraPrice,
         };
       }),
     };

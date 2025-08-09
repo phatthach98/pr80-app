@@ -12,8 +12,8 @@ import { NotFoundError } from "@application/errors";
 
 // Define interfaces for the enhanced use case
 interface SelectedOption {
-  optionId: string;
-  valueId: string;
+  name: string;
+  value: string;
 }
 
 interface OrderItemRequest {
@@ -67,7 +67,7 @@ export class OrderUseCase {
   }
 
   /**
-   * Calculate dish price with options - enhanced method that works with option IDs
+   * Calculate dish price with options - enhanced method that fetches option prices from the backend
    */
   async calculateDishWithOptions(
     dishId: string,
@@ -84,44 +84,60 @@ export class OrderUseCase {
     // Get base price from dish
     const basePrice = dish.price;
 
-    // Calculate selected options prices
-    const processedOptions = [];
-    let totalExtraPrice = 0;
+    // If no options are selected, return the base dish
+    if (!selectedOptions || selectedOptions.length === 0) {
+      const id = uuid();
+      return {
+        id,
+        dishId: dish.id,
+        name: dish.name,
+        quantity: quantity,
+        price: basePrice,
+        selectedOptions: [],
+        takeAway: takeAway,
+      };
+    }
 
-    // Extract all option IDs for batch fetching
-    const optionIds = selectedOptions.map(option => option.optionId);
-    
+    // Extract all option IDs from the dish
+    const optionIds = dish.options.map((option) => option.id);
+
     // Fetch all dish options in a single database call
-    const dishOptions = await this.dishOptionRepository.getDishOptionsByIds(optionIds);
-    
-    // Create a map for quick lookup
-    const dishOptionsMap = new Map(
-      dishOptions.map(option => [option.id, option])
+    const dishOptions = await this.dishOptionRepository.getDishOptionsByIds(
+      optionIds
     );
 
-    // Process each selected option using the map
-    for (const option of selectedOptions) {
-      const dishOption = dishOptionsMap.get(option.optionId);
+    // Create a map for quick lookup
+    const dishOptionsMap = new Map(
+      dishOptions.map((option) => [option.name.toLowerCase(), option])
+    );
+    // Process each selected option using the map and calculate total price
+    let totalExtraPrice = 0;
+    const processedOptions = [];
+
+    for (const selectedOption of selectedOptions) {
+      const dishOption = dishOptionsMap.get(selectedOption.name.toLowerCase());
+
       if (!dishOption) {
-        throw new NotFoundError(`Option not found: ${option.optionId}`);
+        throw new NotFoundError(`Option not found: ${selectedOption.name}`);
       }
 
       const optionValue = dishOption.options.find(
-        (o) => o.value === option.valueId
+        (o) => o.value.toLowerCase() === selectedOption.value.toLowerCase()
       );
+
       if (!optionValue) {
         throw new NotFoundError(
-          `Option value not found: ${option.valueId} for option ${option.optionId}`
+          `Option value not found: ${selectedOption.value} for option ${selectedOption.name}`
         );
       }
 
       processedOptions.push({
-        name: dishOption.name,
+        name: selectedOption.name,
         value: optionValue.label,
         extraPrice: optionValue.extraPrice,
       });
 
-      totalExtraPrice += optionValue.extraPrice;
+      totalExtraPrice += parseFloat(optionValue.extraPrice.toString());
     }
 
     // Calculate total price (base + extras)
@@ -327,7 +343,9 @@ export class OrderUseCase {
       changes.status || order.status,
       changes.type || order.type,
       changes.dishes || order.dishes,
-      changes.linkedOrderId !== undefined ? changes.linkedOrderId : order.linkedOrderId,
+      changes.linkedOrderId !== undefined
+        ? changes.linkedOrderId
+        : order.linkedOrderId,
       changes.note !== undefined ? changes.note : order.note
     );
 

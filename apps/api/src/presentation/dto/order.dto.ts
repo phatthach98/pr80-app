@@ -3,8 +3,8 @@ import { OrderStatus, OrderType } from "@domain/entity/order";
 
 // Selected option in a request
 export interface SelectedOptionRequest {
-  optionId: string;
-  valueId: string;
+  name: string;
+  value: string;
 }
 
 // Order item in a request
@@ -118,14 +118,14 @@ export const createOrderValidator = [
     .optional()
     .isArray()
     .withMessage("Selected options must be an array."),
-  body("dishes.*.selectedOptions.*.optionId")
+  body("dishes.*.selectedOptions.*.name")
     .optional()
     .isString()
-    .withMessage("Option ID must be a string."),
-  body("dishes.*.selectedOptions.*.valueId")
+    .withMessage("Option name must be a string."),
+  body("dishes.*.selectedOptions.*.value")
     .optional()
     .isString()
-    .withMessage("Value ID must be a string."),
+    .withMessage("Option value must be a string."),
   body("dishes.*.takeAway")
     .optional()
     .isBoolean()
@@ -162,14 +162,14 @@ export const createAdditionalOrderValidator = [
     .optional()
     .isArray()
     .withMessage("Selected options must be an array."),
-  body("dishes.*.selectedOptions.*.optionId")
+  body("dishes.*.selectedOptions.*.name")
     .optional()
     .isString()
-    .withMessage("Option ID must be a string."),
-  body("dishes.*.selectedOptions.*.valueId")
+    .withMessage("Option name must be a string."),
+  body("dishes.*.selectedOptions.*.value")
     .optional()
     .isString()
-    .withMessage("Value ID must be a string."),
+    .withMessage("Option value must be a string."),
   body("dishes.*.takeAway")
     .optional()
     .isBoolean()
@@ -210,14 +210,14 @@ export const addOrderItemValidator = [
     .optional()
     .isArray()
     .withMessage("Selected options must be an array."),
-  body("selectedOptions.*.optionId")
+  body("selectedOptions.*.name")
     .optional()
     .isString()
-    .withMessage("Option ID must be a string."),
-  body("selectedOptions.*.valueId")
+    .withMessage("Option name must be a string."),
+  body("selectedOptions.*.value")
     .optional()
     .isString()
-    .withMessage("Value ID must be a string."),
+    .withMessage("Option value must be a string."),
   body("takeAway")
     .optional()
     .isBoolean()

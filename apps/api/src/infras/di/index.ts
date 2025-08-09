@@ -55,6 +55,7 @@ container.register(TOKENS.DISH_OPTION_USE_CASE, DishOptionUseCase, [
 
 container.register(TOKENS.DISH_USE_CASE, DishUseCase, [
   TOKENS.DISH_REPOSITORY,
+  TOKENS.DISH_OPTION_REPOSITORY,
 ]);
 
 // Register OrderUseCase with mock repository for presentation layer development

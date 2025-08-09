@@ -2,30 +2,30 @@ import { Request, Response } from "express";
 import { DishUseCase } from "@application/use-case";
 import { DISH_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
-import { CreateDishRequest, DishResponse, UpdateDishRequest } from "./dto/dish.dto";
+import {
+  CreateDishRequest,
+  DishResponse,
+  UpdateDishRequest,
+} from "./dto/dish.dto";
 
 const dishUseCase = container.resolve<DishUseCase>(DISH_USE_CASE);
 
 export class DishController {
-  static async getDishes(
-    req: Request, 
-    res: Response<DishResponse[]>
-  ) {
+  static async getDishes(req: Request, res: Response<DishResponse[]>) {
     const dishes = await dishUseCase.getDishes();
-    res.json(dishes ? dishes.map(dish => dish.toJSON()) : []);
+    res.json(dishes ? dishes.map((dish) => dish.toJSON()) : []);
   }
 
-  static async getDishById(
-    req: Request<{ id: string }>, 
-    res: Response<DishResponse>
-  ) {
+  static async getDishById(req: Request<{ id: string }>, res: Response) {
     const { id } = req.params;
-    const dish = await dishUseCase.getDishById(id);
-    res.json(dish.toJSON());
+
+    const result = await dishUseCase.getDishById(id);
+
+    res.json(result);
   }
 
   static async createDish(
-    req: Request<{}, {}, CreateDishRequest>, 
+    req: Request<{}, {}, CreateDishRequest>,
     res: Response<DishResponse>
   ) {
     const { name, description, price, options } = req.body;
@@ -47,10 +47,7 @@ export class DishController {
     res.json(dish.toJSON());
   }
 
-  static async deleteDish(
-    req: Request<{ id: string }>,
-    res: Response
-  ) {
+  static async deleteDish(req: Request<{ id: string }>, res: Response) {
     const { id } = req.params;
     await dishUseCase.deleteDish(id);
     res.status(204).end();
