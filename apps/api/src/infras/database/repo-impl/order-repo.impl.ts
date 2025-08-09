@@ -1,3 +1,4 @@
+import { v4 as uuid } from "uuid";
 import { OrderRepository } from "@application/interface/repository/order-repo.interface";
 import { Order, OrderStatus } from "@domain/entity/order";
 import { OrderSchema } from "../schemas/order-schema";
@@ -20,7 +21,8 @@ export class OrderRepositoryImpl implements OrderRepository {
 
   async getOrderById(id: string): Promise<Order | null> {
     try {
-      const order = await OrderSchema.findOne({ id }).lean();
+      // Find by MongoDB _id
+      const order = await OrderSchema.findOne({ _id: id }).lean();
       
       if (!order) {
         return null;
@@ -80,8 +82,9 @@ export class OrderRepositoryImpl implements OrderRepository {
 
   async create(order: Order): Promise<Order> {
     try {
+      // Create with _id set to domain id
       await OrderSchema.create({
-        id: order.id,
+        _id: order.id, // Map domain id to MongoDB _id
         linkedOrderId: order.linkedOrderId,
         createdBy: order.createdBy,
         status: order.status,
@@ -101,10 +104,12 @@ export class OrderRepositoryImpl implements OrderRepository {
 
   async update(order: Order): Promise<Order | null> {
     try {
+      // Find by MongoDB _id
       const updatedOrder = await OrderSchema.findOneAndUpdate(
-        { id: order.id },
+        { _id: order.id },
         {
           $set: {
+            linkedOrderId: order.linkedOrderId,
             status: order.status,
             table: order.table,
             totalAmount: order.totalAmount,
@@ -129,8 +134,9 @@ export class OrderRepositoryImpl implements OrderRepository {
 
   async delete(id: string): Promise<boolean> {
     try {
-      const result = await OrderSchema.deleteOne({ id });
-      return result.deletedCount > 0;
+      // Delete by MongoDB _id
+      const result = await OrderSchema.findOneAndDelete({ _id: id });
+      return !!result;
     } catch (error) {
       console.error("Error deleting order:", error);
       return false;
@@ -145,6 +151,7 @@ export class OrderRepositoryImpl implements OrderRepository {
     // Convert Decimal128 to number for each dish price
     const dishes = orderDoc.dishes.map((dish: any) => ({
       ...dish,
+      id: dish.id || uuid(), // Keep dish.id as is or generate new UUID
       price: parseFloat(dish.price.toString()),
       selectedOptions: dish.selectedOptions.map((option: any) => ({
         ...option,
@@ -153,7 +160,7 @@ export class OrderRepositoryImpl implements OrderRepository {
     }));
 
     return new Order(
-      orderDoc.id,
+      orderDoc._id.toString(), // Use _id as id in domain model
       orderDoc.createdBy,
       orderDoc.table,
       orderDoc.status,

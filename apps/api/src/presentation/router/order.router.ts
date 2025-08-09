@@ -11,7 +11,7 @@ import {
   updateOrderStatusValidator,
   updateOrderTableValidator,
   orderIdParamValidator,
-  dishIdParamValidator
+  dishItemIdParamValidator
 } from "@presentation/dto/order.dto";
 
 export const orderRouter = Router();
@@ -103,8 +103,8 @@ orderRouter.patch(
 
 // Update order item quantity
 orderRouter.patch(
-  "/orders/:id/items/:dishId/quantity",
-  [...orderIdParamValidator, ...dishIdParamValidator],
+  "/orders/:id/items/:dishItemId/quantity",
+  [...orderIdParamValidator, ...dishItemIdParamValidator],
   updateOrderItemQuantityValidator,
   requestValidator,
   asyncHandler(OrderController.updateOrderItemQuantity)
@@ -112,8 +112,8 @@ orderRouter.patch(
 
 // Remove order item
 orderRouter.delete(
-  "/orders/:id/items/:dishId",
-  [...orderIdParamValidator, ...dishIdParamValidator],
+  "/orders/:id/items/:dishItemId",
+  [...orderIdParamValidator, ...dishItemIdParamValidator],
   requestValidator,
   asyncHandler(OrderController.removeOrderItem)
 );

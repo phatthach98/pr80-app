@@ -17,11 +17,11 @@ export interface OrderItemRequest {
 
 // Response DTO for order dish items
 export interface OrderDishItemResponse {
+  id: string; // Unique identifier for this specific dish item
   dishId: string;
   name: string;
   quantity: number;
   price: number;
-  basePrice: number;
   selectedOptions: {
     name: string;
     value: string;
@@ -278,4 +278,12 @@ export const dishIdParamValidator = [
     .withMessage("Dish ID is required.")
     .isString()
     .withMessage("Dish ID must be a string.")
+];
+
+export const dishItemIdParamValidator = [
+  param("dishItemId")
+    .notEmpty()
+    .withMessage("Dish Item ID is required.")
+    .isString()
+    .withMessage("Dish Item ID must be a string.")
 ];

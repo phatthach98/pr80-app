@@ -2,7 +2,7 @@ import mongoose, { Schema, model } from "mongoose";
 import { DishSelectOption } from "../../../types";
 
 interface DishOptionDocument {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   options: DishSelectOption[];
@@ -10,7 +10,7 @@ interface DishOptionDocument {
 
 const dishOptionSchema = new Schema<DishOptionDocument>(
   {
-    id: { type: String, required: true, unique: true },
+    _id: { type: String, required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
     options: [
@@ -24,8 +24,11 @@ const dishOptionSchema = new Schema<DishOptionDocument>(
   {
     timestamps: true,
     versionKey: false,
+    _id: false // Disable auto _id generation
   }
 );
+
+// No need for pre-save hook as we're now directly using _id
 
 export const DishOptionSchema = model<DishOptionDocument>(
   "DishOption",

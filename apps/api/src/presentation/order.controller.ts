@@ -9,23 +9,20 @@ import {
   UpdateOrderRequest,
   CreateAdditionalOrderRequest,
   AddOrderItemRequest,
-  UpdateOrderItemQuantityRequest
+  UpdateOrderItemQuantityRequest,
 } from "./dto/order.dto";
 
 // Resolve use case at the top level outside the class
 const orderUseCase = container.resolve<OrderUseCase>(ORDER_USE_CASE);
 
 export class OrderController {
-  static async getAllOrders(
-    req: Request, 
-    res: Response<OrderResponse[]>
-  ) {
+  static async getAllOrders(req: Request, res: Response<OrderResponse[]>) {
     const orders = await orderUseCase.getOrders();
-    res.json(orders ? orders.map(order => order.toJSON()) : []);
+    res.json(orders ? orders.map((order) => order.toJSON()) : []);
   }
 
   static async getOrderById(
-    req: Request<{ id: string }>, 
+    req: Request<{ id: string }>,
     res: Response<OrderResponse>
   ) {
     const { id } = req.params;
@@ -39,7 +36,7 @@ export class OrderController {
   ) {
     const { status } = req.query;
     const orders = await orderUseCase.getOrdersByStatus(status);
-    res.json(orders ? orders.map(order => order.toJSON()) : []);
+    res.json(orders ? orders.map((order) => order.toJSON()) : []);
   }
 
   static async getOrdersByCreatedBy(
@@ -48,19 +45,19 @@ export class OrderController {
   ) {
     const { userId } = req.query;
     const orders = await orderUseCase.getOrdersByCreatedBy(userId);
-    res.json(orders ? orders.map(order => order.toJSON()) : []);
+    res.json(orders ? orders.map((order) => order.toJSON()) : []);
   }
 
   static async getOrderWithLinkedOrders(
     req: Request<{ id: string }>,
-    res: Response<{ mainOrder: OrderResponse, linkedOrders: OrderResponse[] }>
+    res: Response<{ mainOrder: OrderResponse; linkedOrders: OrderResponse[] }>
   ) {
     const { id } = req.params;
     const result = await orderUseCase.getOrderWithLinkedOrders(id);
-    
+
     res.json({
       mainOrder: result.mainOrder.toJSON(),
-      linkedOrders: result.linkedOrders.map(order => order.toJSON())
+      linkedOrders: result.linkedOrders.map((order) => order.toJSON()),
     });
   }
 
@@ -70,7 +67,7 @@ export class OrderController {
   ) {
     const { table, type, dishes = [], linkedOrderId, note } = req.body;
     // Get user ID from authenticated request
-    const userId = req.user?.userId || '';
+    const userId = req.user?.userId || "";
 
     // Process dishes if provided
     const processedDishes = [];
@@ -104,7 +101,7 @@ export class OrderController {
   ) {
     const { originalOrderId, dishes, note } = req.body;
     // Get user ID from authenticated request
-    const userId = req.user?.userId || '';
+    const userId = req.user?.userId || "";
 
     const order = await orderUseCase.createAdditionalOrder(
       originalOrderId,
@@ -174,9 +171,10 @@ export class OrderController {
     req: Request<{}, {}, AddOrderItemRequest>,
     res: Response<OrderResponse>
   ) {
-    const { orderId, dishId, quantity, selectedOptions, takeAway, table } = req.body;
+    const { orderId, dishId, quantity, selectedOptions, takeAway, table } =
+      req.body;
     // Get user ID from authenticated request
-    const userId = req.user?.userId || '';
+    const userId = req.user?.userId || "";
 
     const order = await orderUseCase.addOrUpdateOrderItem(
       orderId || null,
@@ -189,23 +187,31 @@ export class OrderController {
   }
 
   static async removeOrderItem(
-    req: Request<{ id: string, dishId: string }>,
+    req: Request<{ id: string; dishItemId: string }>,
     res: Response<OrderResponse>
   ) {
-    const { id, dishId } = req.params;
+    const { id, dishItemId } = req.params;
 
-    const order = await orderUseCase.removeOrderItem(id, dishId);
+    const order = await orderUseCase.removeOrderItem(id, dishItemId);
     res.json(order.toJSON());
   }
 
   static async updateOrderItemQuantity(
-    req: Request<{ id: string, dishId: string }, {}, UpdateOrderItemQuantityRequest>,
+    req: Request<
+      { id: string; itemId: string },
+      {},
+      UpdateOrderItemQuantityRequest
+    >,
     res: Response<OrderResponse>
   ) {
-    const { id, dishId } = req.params;
+    const { id, itemId } = req.params;
     const { quantity } = req.body;
 
-    const order = await orderUseCase.updateOrderItemQuantity(id, dishId, quantity);
+    const order = await orderUseCase.updateOrderItemQuantity(
+      id,
+      itemId,
+      quantity
+    );
     res.json(order.toJSON());
   }
 }

@@ -1,3 +1,4 @@
+import { v4 as uuid } from "uuid";
 import {
   Order,
   OrderDishItem,
@@ -7,7 +8,7 @@ import {
 import { OrderRepository } from "../interface/repository/order-repo.interface";
 import { DishRepository } from "../interface/repository/dish-repo.interface";
 import { DishOptionRepository } from "../interface/repository/dish-option-repo.interface";
-import { NotFoundError, BadRequestError } from "@application/errors";
+import { NotFoundError } from "@application/errors";
 
 // Define interfaces for the enhanced use case
 interface SelectedOption {
@@ -116,12 +117,15 @@ export class OrderUseCase {
     // Calculate total price (base + extras)
     const itemPrice = parseFloat((basePrice + totalExtraPrice).toFixed(2));
 
-    // Return the dish item with calculated prices
+    // Generate a unique ID for this dish item
+    const id = uuid();
+
+    // Return the dish item with calculated prices and unique ID
     return {
+      id,
       dishId: dish.id,
       name: dish.name,
       quantity: quantity,
-      basePrice: basePrice,
       price: itemPrice,
       selectedOptions: processedOptions,
       takeAway: takeAway,
@@ -176,17 +180,20 @@ export class OrderUseCase {
   }
 
   /**
-   * Remove a dish item from an order
+   * Remove a dish item from an order using its unique id
+   *
+   * @param orderId The ID of the order
+   * @param dishItemId The unique ID of the dish item to remove
    */
-  async removeOrderItem(orderId: string, dishId: string): Promise<Order> {
+  async removeOrderItem(orderId: string, dishItemId: string): Promise<Order> {
     const order = await this.getOrderById(orderId);
 
-    // Find the dish index
-    const dishIndex = order.dishes.findIndex((dish) => dish.dishId === dishId);
+    // Find the dish by its unique id
+    const dishIndex = order.dishes.findIndex((dish) => dish.id === dishItemId);
 
     if (dishIndex === -1) {
       throw new NotFoundError(
-        `Dish with id ${dishId} not found in order ${orderId}`
+        `Dish item with id ${dishItemId} not found in order ${orderId}`
       );
     }
 
@@ -206,17 +213,17 @@ export class OrderUseCase {
    */
   async updateOrderItemQuantity(
     orderId: string,
-    dishId: string,
+    dishItemId: string,
     newQuantity: number
   ): Promise<Order> {
     const order = await this.getOrderById(orderId);
 
-    // Find the dish index
-    const dishIndex = order.dishes.findIndex((dish) => dish.dishId === dishId);
+    // Find the dish index by its unique id
+    const dishIndex = order.dishes.findIndex((dish) => dish.id === dishItemId);
 
     if (dishIndex === -1) {
       throw new NotFoundError(
-        `Dish with id ${dishId} not found in order ${orderId}`
+        `Dish item with id ${dishItemId} not found in order ${orderId}`
       );
     }
 

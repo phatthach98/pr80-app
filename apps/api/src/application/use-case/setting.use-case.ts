@@ -1,8 +1,6 @@
-import {
-  SelectOption,
-  SettingRepository,
-} from "@application/interface/repository";
+import { SettingRepository } from "@application/interface/repository";
 import { v4 as uuid } from "uuid";
+import { SelectOption } from "../../types";
 
 export class SettingUseCase {
   constructor(private readonly settingRepository: SettingRepository) {}

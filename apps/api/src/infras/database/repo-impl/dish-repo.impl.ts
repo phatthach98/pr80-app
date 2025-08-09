@@ -1,3 +1,4 @@
+import { v4 as uuid } from "uuid";
 import { DishRepository } from "@application/interface/repository/dish-repo.interface";
 import { Dish } from "@domain/entity/dish";
 import { DishSchema } from "../schemas/dish-schema";
@@ -14,7 +15,7 @@ export class DishRepositoryImpl implements DishRepository {
       return dishes.map(
         (dish) =>
           new Dish(
-            dish.id,
+            dish._id.toString(), // Use _id as id in domain model
             dish.name,
             dish.description || "",
             parseFloat(dish.price.toString()),
@@ -29,14 +30,15 @@ export class DishRepositoryImpl implements DishRepository {
 
   async getDishById(id: string): Promise<Dish | null> {
     try {
-      const dish = await DishSchema.findOne({ id }).lean();
+      // Find by MongoDB _id
+      const dish = await DishSchema.findOne({ _id: id }).lean();
       
       if (!dish) {
         return null;
       }
 
       return new Dish(
-        dish.id,
+        dish._id.toString(), // Use _id as id in domain model
         dish.name,
         dish.description || "",
         parseFloat(dish.price.toString()),
@@ -51,7 +53,7 @@ export class DishRepositoryImpl implements DishRepository {
   async create(dish: Dish): Promise<Dish> {
     try {
       await DishSchema.create({
-        id: dish.id,
+        _id: dish.id, // Map domain id to MongoDB _id
         name: dish.name,
         description: dish.description,
         price: dish.price,
@@ -69,9 +71,18 @@ export class DishRepositoryImpl implements DishRepository {
     try {
       const { id, ...updateData } = changes;
       
+      if (!id) {
+        throw new Error("Dish ID is required for update");
+      }
+
+      // Find by MongoDB _id
       const updatedDish = await DishSchema.findOneAndUpdate(
-        { id },
-        { $set: updateData },
+        { _id: id },
+        { 
+          $set: {
+            ...updateData
+          }
+        },
         { new: true }
       ).lean();
 
@@ -80,7 +91,7 @@ export class DishRepositoryImpl implements DishRepository {
       }
 
       return new Dish(
-        updatedDish.id,
+        updatedDish._id.toString(), // Use _id as id in domain model
         updatedDish.name,
         updatedDish.description || "",
         parseFloat(updatedDish.price.toString()),
@@ -94,8 +105,9 @@ export class DishRepositoryImpl implements DishRepository {
 
   async deleteDish(id: string): Promise<boolean> {
     try {
-      const result = await DishSchema.deleteOne({ id });
-      return result.deletedCount > 0;
+      // Delete by MongoDB _id
+      const result = await DishSchema.findOneAndDelete({ _id: id });
+      return !!result;
     } catch (error) {
       console.error("Error deleting dish:", error);
       return false;

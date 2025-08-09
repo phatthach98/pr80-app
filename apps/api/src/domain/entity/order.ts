@@ -2,6 +2,7 @@ import { v4 as uuid } from "uuid";
 
 // Define the OrderDishItem interface
 export interface OrderDishItem {
+  id: string; // Unique identifier for this specific dish item in the order
   dishId: string;
   name: string;
   quantity: number;
