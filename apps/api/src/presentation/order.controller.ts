@@ -11,6 +11,7 @@ import {
   AddOrderItemRequest,
   UpdateOrderItemQuantityRequest,
 } from "./dto/order.dto";
+import { NotFoundError, UnauthorizedError } from "@application/errors";
 
 // Resolve use case at the top level outside the class
 const orderUseCase = container.resolve<OrderUseCase>(ORDER_USE_CASE);
@@ -27,6 +28,9 @@ export class OrderController {
   ) {
     const { id } = req.params;
     const order = await orderUseCase.getOrderById(id);
+    if (!order) {
+      throw new NotFoundError("Order not found");
+    }
     res.json(order.toJSON());
   }
 
@@ -67,7 +71,11 @@ export class OrderController {
   ) {
     const { table, type, dishes = [], linkedOrderId, note } = req.body;
     // Get user ID from authenticated request
-    const userId = req.user?.userId || "";
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new UnauthorizedError("User not authenticated");
+    }
 
     // Process dishes if provided
     const processedDishes = [];
@@ -168,11 +176,13 @@ export class OrderController {
   }
 
   static async addOrUpdateOrderItem(
-    req: Request<{}, {}, AddOrderItemRequest>,
+    req: Request<{ orderId?: string }, {}, AddOrderItemRequest>,
     res: Response<OrderResponse>
   ) {
-    const { orderId, dishId, quantity, selectedOptions, takeAway, table } =
-      req.body;
+    // Get orderId from URL params if available, otherwise from body for backward compatibility
+    const orderId = req.params.orderId || req.body.orderId;
+    const { dishId, quantity, selectedOptions, takeAway, table } = req.body;
+
     // Get user ID from authenticated request
     const userId = req.user?.userId || "";
 

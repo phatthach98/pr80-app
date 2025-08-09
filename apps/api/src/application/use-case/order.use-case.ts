@@ -88,10 +88,20 @@ export class OrderUseCase {
     const processedOptions = [];
     let totalExtraPrice = 0;
 
+    // Extract all option IDs for batch fetching
+    const optionIds = selectedOptions.map(option => option.optionId);
+    
+    // Fetch all dish options in a single database call
+    const dishOptions = await this.dishOptionRepository.getDishOptionsByIds(optionIds);
+    
+    // Create a map for quick lookup
+    const dishOptionsMap = new Map(
+      dishOptions.map(option => [option.id, option])
+    );
+
+    // Process each selected option using the map
     for (const option of selectedOptions) {
-      const dishOption = await this.dishOptionRepository.getDishOptionById(
-        option.optionId
-      );
+      const dishOption = dishOptionsMap.get(option.optionId);
       if (!dishOption) {
         throw new NotFoundError(`Option not found: ${option.optionId}`);
       }
@@ -309,14 +319,19 @@ export class OrderUseCase {
   async updateOrder(id: string, changes: Partial<Order>) {
     const order = await this.getOrderById(id);
 
-    // Apply changes
-    const updatedOrder = {
-      ...order,
-      ...changes,
-      id: order.id, // Ensure ID remains unchanged
-    };
+    // Create a new Order instance with the updated properties
+    const updatedOrder = new Order(
+      order.id,
+      changes.createdBy || order.createdBy,
+      changes.table || order.table,
+      changes.status || order.status,
+      changes.type || order.type,
+      changes.dishes || order.dishes,
+      changes.linkedOrderId !== undefined ? changes.linkedOrderId : order.linkedOrderId,
+      changes.note !== undefined ? changes.note : order.note
+    );
 
-    return this.orderRepository.update(updatedOrder as Order);
+    return this.orderRepository.update(updatedOrder);
   }
 
   /**

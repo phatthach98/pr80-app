@@ -102,6 +102,27 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
     }
   }
 
+  async getDishOptionsByIds(ids: string[]): Promise<DishOption[]> {
+    try {
+      // Find all dish options with _id in the provided ids array
+      const dishOptions = await DishOptionSchema.find({ _id: { $in: ids } }).lean();
+
+      // Map the database objects to domain entities
+      return dishOptions.map(
+        (option) =>
+          new DishOption(
+            option._id.toString(),
+            option.name,
+            option.description,
+            option.options as DishSelectOption[]
+          )
+      );
+    } catch (error) {
+      console.error("Error fetching dish options by IDs:", error);
+      return [];
+    }
+  }
+
   async deleteDishOption(id: string): Promise<boolean> {
     try {
       // Delete by MongoDB _id

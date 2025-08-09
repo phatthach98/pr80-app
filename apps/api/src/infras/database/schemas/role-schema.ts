@@ -7,6 +7,7 @@ const RoleSchema = new Schema(
       type: String,
       required: [true, "Role ID is required"],
       trim: true,
+      unique: true,
     },
     name: {
       type: String,

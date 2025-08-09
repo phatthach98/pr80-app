@@ -24,7 +24,7 @@ const OrderDishItemSchema = new Schema(
 // Define the Order schema
 const OrderSchemaDefinition = new Schema(
   {
-    _id: { type: String, required: true },
+    _id: { type: String, required: true, unique: true },
     linkedOrderId: { type: String, default: null },
     createdBy: { type: String, required: true },
     status: { 

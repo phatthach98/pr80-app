@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const DishSchemaDefinition = new Schema(
   {
-    _id: { type: String, required: true },
+    _id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     description: { type: String, required: false },
     price: { type: mongoose.Schema.Types.Decimal128, required: true },

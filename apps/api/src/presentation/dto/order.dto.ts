@@ -104,9 +104,8 @@ export const createOrderValidator = [
     .isIn(Object.values(OrderType))
     .withMessage("Type must be a valid OrderType."),
   body("dishes")
-    .optional()
-    .isArray()
-    .withMessage("Dishes must be an array."),
+    .isArray({ min: 1 })
+    .withMessage("At least one dish is required."),
   body("dishes.*.dishId")
     .optional()
     .isString()
@@ -135,10 +134,7 @@ export const createOrderValidator = [
     .optional()
     .isString()
     .withMessage("Linked order ID must be a string."),
-  body("note")
-    .optional()
-    .isString()
-    .withMessage("Note must be a string.")
+  body("note").optional().isString().withMessage("Note must be a string."),
 ];
 
 export const createAdditionalOrderValidator = [
@@ -178,17 +174,11 @@ export const createAdditionalOrderValidator = [
     .optional()
     .isBoolean()
     .withMessage("Take away must be a boolean."),
-  body("note")
-    .optional()
-    .isString()
-    .withMessage("Note must be a string.")
+  body("note").optional().isString().withMessage("Note must be a string."),
 ];
 
 export const updateOrderValidator = [
-  body("table")
-    .optional()
-    .isString()
-    .withMessage("Table must be a string."),
+  body("table").optional().isString().withMessage("Table must be a string."),
   body("status")
     .optional()
     .isIn(Object.values(OrderStatus))
@@ -197,13 +187,11 @@ export const updateOrderValidator = [
     .optional()
     .isIn(Object.values(OrderType))
     .withMessage("Type must be a valid OrderType."),
-  body("note")
-    .optional()
-    .isString()
-    .withMessage("Note must be a string.")
+  body("note").optional().isString().withMessage("Note must be a string."),
 ];
 
 export const addOrderItemValidator = [
+  // orderId is now optional in body since it can come from URL params
   body("orderId")
     .optional()
     .isString()
@@ -234,10 +222,7 @@ export const addOrderItemValidator = [
     .optional()
     .isBoolean()
     .withMessage("Take away must be a boolean."),
-  body("table")
-    .optional()
-    .isString()
-    .withMessage("Table must be a string.")
+  body("table").optional().isString().withMessage("Table must be a string."),
 ];
 
 export const updateOrderItemQuantityValidator = [
@@ -245,7 +230,7 @@ export const updateOrderItemQuantityValidator = [
     .notEmpty()
     .withMessage("Quantity is required.")
     .isInt({ min: 0 })
-    .withMessage("Quantity must be a non-negative integer.")
+    .withMessage("Quantity must be a non-negative integer."),
 ];
 
 export const updateOrderStatusValidator = [
@@ -253,7 +238,7 @@ export const updateOrderStatusValidator = [
     .notEmpty()
     .withMessage("Status is required.")
     .isIn(Object.values(OrderStatus))
-    .withMessage("Status must be a valid OrderStatus.")
+    .withMessage("Status must be a valid OrderStatus."),
 ];
 
 export const updateOrderTableValidator = [
@@ -261,7 +246,7 @@ export const updateOrderTableValidator = [
     .notEmpty()
     .withMessage("Table is required.")
     .isString()
-    .withMessage("Table must be a string.")
+    .withMessage("Table must be a string."),
 ];
 
 export const orderIdParamValidator = [
@@ -269,7 +254,7 @@ export const orderIdParamValidator = [
     .notEmpty()
     .withMessage("Order ID is required.")
     .isString()
-    .withMessage("Order ID must be a string.")
+    .withMessage("Order ID must be a string."),
 ];
 
 export const dishIdParamValidator = [
@@ -277,7 +262,7 @@ export const dishIdParamValidator = [
     .notEmpty()
     .withMessage("Dish ID is required.")
     .isString()
-    .withMessage("Dish ID must be a string.")
+    .withMessage("Dish ID must be a string."),
 ];
 
 export const dishItemIdParamValidator = [
@@ -285,5 +270,5 @@ export const dishItemIdParamValidator = [
     .notEmpty()
     .withMessage("Dish Item ID is required.")
     .isString()
-    .withMessage("Dish Item ID must be a string.")
+    .withMessage("Dish Item ID must be a string."),
 ];

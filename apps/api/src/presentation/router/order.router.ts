@@ -66,7 +66,16 @@ orderRouter.post(
   asyncHandler(OrderController.createAdditionalOrder)
 );
 
-// Add or update order item
+// Add a new order item to an existing order
+orderRouter.post(
+  "/orders/:orderId/items",
+  orderIdParamValidator,
+  addOrderItemValidator,
+  requestValidator,
+  asyncHandler(OrderController.addOrUpdateOrderItem)
+);
+
+// Create a new order with items (no orderId in path)
 orderRouter.post(
   "/orders/items",
   addOrderItemValidator,
