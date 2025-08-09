@@ -21,13 +21,13 @@ export enum OrderStatus {
   WAITING = "waiting",
   COOKED = "cooked",
   SERVED = "served",
-  PAID = "paid"
+  PAID = "paid",
 }
 
 // Define the OrderType enum
 export enum OrderType {
   MAIN = "main",
-  SUB = "sub"
+  SUB = "sub",
 }
 
 export class Order {
@@ -49,7 +49,8 @@ export class Order {
     type: OrderType = OrderType.MAIN,
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
-    note: string = ""
+    note: string = "",
+    totalAmount?: number
   ) {
     this.id = id;
     this.linkedOrderId = linkedOrderId;
@@ -59,7 +60,7 @@ export class Order {
     this.type = type;
     this.note = note;
     this.dishes = dishes;
-    this.totalAmount = this.calculateTotalAmount();
+    this.totalAmount = totalAmount || this.calculateTotalAmount();
   }
 
   static create(
@@ -86,7 +87,7 @@ export class Order {
     const total = this.dishes.reduce((sum, dish) => {
       return sum + dish.price * dish.quantity;
     }, 0);
-    
+
     // Ensure price is stored with 2 decimal places
     return parseFloat(total.toFixed(2));
   }
@@ -110,9 +111,10 @@ export class Order {
   public addDish(dish: OrderDishItem): void {
     // Check if dish already exists
     const existingDishIndex = this.dishes.findIndex(
-      (item) => item.dishId === dish.dishId && 
-                this.areDishOptionsEqual(item.selectedOptions, dish.selectedOptions) &&
-                item.takeAway === dish.takeAway
+      (item) =>
+        item.dishId === dish.dishId &&
+        this.areDishOptionsEqual(item.selectedOptions, dish.selectedOptions) &&
+        item.takeAway === dish.takeAway
     );
 
     if (existingDishIndex >= 0) {
@@ -136,7 +138,7 @@ export class Order {
         // Update quantity
         this.dishes[dishIndex].quantity = newQuantity;
       }
-      
+
       // Recalculate total amount
       this.totalAmount = this.calculateTotalAmount();
     }
@@ -145,7 +147,7 @@ export class Order {
   public removeDish(dishIndex: number): void {
     if (dishIndex >= 0 && dishIndex < this.dishes.length) {
       this.dishes.splice(dishIndex, 1);
-      
+
       // Recalculate total amount
       this.totalAmount = this.calculateTotalAmount();
     }
@@ -153,16 +155,22 @@ export class Order {
 
   private areDishOptionsEqual(options1: any[], options2: any[]): boolean {
     if (options1.length !== options2.length) return false;
-    
+
     // Sort both arrays to ensure consistent comparison
-    const sortedOptions1 = [...options1].sort((a, b) => a.name.localeCompare(b.name));
-    const sortedOptions2 = [...options2].sort((a, b) => a.name.localeCompare(b.name));
-    
+    const sortedOptions1 = [...options1].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+    const sortedOptions2 = [...options2].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+
     return sortedOptions1.every((option, index) => {
       const option2 = sortedOptions2[index];
-      return option.name === option2.name && 
-             option.value === option2.value && 
-             option.extraPrice === option2.extraPrice;
+      return (
+        option.name === option2.name &&
+        option.value === option2.value &&
+        option.extraPrice === option2.extraPrice
+      );
     });
   }
 
@@ -176,7 +184,7 @@ export class Order {
       totalAmount: this.totalAmount,
       type: this.type,
       note: this.note,
-      dishes: this.dishes
+      dishes: this.dishes,
     };
   }
 }

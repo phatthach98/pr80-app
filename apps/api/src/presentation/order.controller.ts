@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { OrderUseCase } from "@application/use-case";
 import { ORDER_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
-import { OrderStatus } from "@domain/entity/order";
+import { OrderStatus, OrderType } from "@domain/entity/order";
 import {
   OrderResponse,
   CreateOrderRequest,
@@ -40,6 +40,15 @@ export class OrderController {
   ) {
     const { status } = req.query;
     const orders = await orderUseCase.getOrdersByStatus(status);
+    res.json(orders ? orders.map((order) => order.toJSON()) : []);
+  }
+
+  static async getOrdersByType(
+    req: Request<{}, {}, {}, { type: OrderType }>,
+    res: Response<OrderResponse[]>
+  ) {
+    const { type } = req.query;
+    const orders = await orderUseCase.getOrdersByType(type);
     res.json(orders ? orders.map((order) => order.toJSON()) : []);
   }
 

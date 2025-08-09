@@ -48,6 +48,10 @@ export class OrderUseCase {
     return this.orderRepository.getOrdersByStatus(status);
   }
 
+  async getOrdersByType(type: OrderType) {
+    return this.orderRepository.getOrdersByType(type);
+  }
+
   async getOrdersByCreatedBy(userId: string) {
     return this.orderRepository.getOrdersByCreatedBy(userId);
   }
@@ -190,6 +194,11 @@ export class OrderUseCase {
         throw new Error(`Failed to update order ${orderId}`);
       }
       order = updatedOrder;
+
+      // If this is a sub-order, recalculate the main order's total
+      if (order.linkedOrderId) {
+        await this.recalculateMainOrderTotal(order.linkedOrderId);
+      }
     } else {
       // Create new order with this dish
       order = await this.createOrder(
@@ -231,6 +240,12 @@ export class OrderUseCase {
     if (!updatedOrder) {
       throw new Error(`Failed to update order ${orderId}`);
     }
+
+    // If this is a sub-order, recalculate the main order's total
+    if (order.linkedOrderId) {
+      await this.recalculateMainOrderTotal(order.linkedOrderId);
+    }
+
     return updatedOrder;
   }
 
@@ -261,6 +276,12 @@ export class OrderUseCase {
     if (!updatedOrder) {
       throw new Error(`Failed to update order ${orderId}`);
     }
+
+    // If this is a sub-order, recalculate the main order's total
+    if (order.linkedOrderId) {
+      await this.recalculateMainOrderTotal(order.linkedOrderId);
+    }
+
     return updatedOrder;
   }
 
@@ -326,7 +347,13 @@ export class OrderUseCase {
       note
     );
 
-    return this.orderRepository.create(additionalOrder);
+    // Create the additional order
+    const createdOrder = await this.orderRepository.create(additionalOrder);
+
+    // Recalculate the main order's total amount
+    const mainOrder = await this.recalculateMainOrderTotal(originalOrderId);
+
+    return mainOrder;
   }
 
   /**
@@ -334,6 +361,9 @@ export class OrderUseCase {
    */
   async updateOrder(id: string, changes: Partial<Order>) {
     const order = await this.getOrderById(id);
+
+    // Store the original linkedOrderId for later comparison
+    const originalLinkedOrderId = order.linkedOrderId;
 
     // Create a new Order instance with the updated properties
     const updatedOrder = new Order(
@@ -349,7 +379,23 @@ export class OrderUseCase {
       changes.note !== undefined ? changes.note : order.note
     );
 
-    return this.orderRepository.update(updatedOrder);
+    // Update the order
+    const result = await this.orderRepository.update(updatedOrder);
+
+    // If this is a sub-order (has a linkedOrderId), recalculate the main order's total
+    if (updatedOrder.linkedOrderId) {
+      await this.recalculateMainOrderTotal(updatedOrder.linkedOrderId);
+    }
+
+    // If the linkedOrderId was changed, also update the old main order's total
+    if (
+      originalLinkedOrderId &&
+      originalLinkedOrderId !== updatedOrder.linkedOrderId
+    ) {
+      await this.recalculateMainOrderTotal(originalLinkedOrderId);
+    }
+
+    return result;
   }
 
   /**
@@ -390,12 +436,75 @@ export class OrderUseCase {
       );
     }
 
+    // If this is a sub-order, get the main order ID before deleting
+    const mainOrderId = order.linkedOrderId;
+
     const deleted = await this.orderRepository.delete(id);
 
     if (!deleted) {
       throw new Error(`Failed to delete order with id ${id}`);
     }
 
+    // If this was a sub-order, recalculate the main order's total
+    if (mainOrderId) {
+      await this.recalculateMainOrderTotal(mainOrderId);
+    }
+
     return { success: true, message: "Order deleted successfully" };
+  }
+
+  /**
+   * Recalculate the total amount of a main order by summing up all its linked orders
+   */
+  async recalculateMainOrderTotal(mainOrderId: string): Promise<Order> {
+    // Get the main order
+    const mainOrder = await this.getOrderById(mainOrderId);
+
+    // Get all linked orders
+    const linkedOrders = await this.orderRepository.getLinkedOrders(
+      mainOrderId
+    );
+
+    // Calculate the total amount of the main order (its own dishes)
+    let totalAmount = mainOrder.totalAmount;
+
+    // Add the total amount of each linked order
+    if (linkedOrders && linkedOrders.length > 0) {
+      const linkedOrdersTotal = linkedOrders.reduce((sum, order) => {
+        return sum + order.totalAmount;
+      }, 0);
+
+      // Create a new order with the updated total amount
+      // We're creating a new instance to ensure all values are properly set
+      const updatedOrder = new Order(
+        mainOrder.id,
+        mainOrder.createdBy,
+        mainOrder.table,
+        mainOrder.status,
+        mainOrder.type,
+        mainOrder.dishes,
+        mainOrder.linkedOrderId,
+        mainOrder.note
+      );
+
+      // Set the new total amount that includes linked orders
+      updatedOrder.totalAmount = parseFloat(
+        (totalAmount + linkedOrdersTotal).toFixed(2)
+      );
+      console.log(
+        "🚀 ~ OrderUseCase ~ recalculateMainOrderTotal ~ parseFloat((totalAmount + linkedOrdersTotal).toFixed(2)):",
+        parseFloat((totalAmount + linkedOrdersTotal).toFixed(2))
+      );
+
+      // Update the order in the database
+      const result = await this.orderRepository.update(updatedOrder);
+      if (!result) {
+        throw new Error(`Failed to update main order ${mainOrderId}`);
+      }
+      return result;
+    }
+
+    // If there are no linked orders, return the main order as is
+    return mainOrder;
   }
 }

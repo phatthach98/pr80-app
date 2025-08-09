@@ -28,6 +28,12 @@ orderRouter.get(
   asyncHandler(OrderController.getOrdersByStatus)
 );
 
+// Get orders by type
+orderRouter.get(
+  "/orders/type",
+  asyncHandler(OrderController.getOrdersByType)
+);
+
 // Get orders by created by
 orderRouter.get(
   "/orders/user",

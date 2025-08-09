@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { OrderRepository } from "@application/interface/repository/order-repo.interface";
-import { Order, OrderStatus } from "@domain/entity/order";
+import { Order, OrderStatus, OrderType } from "@domain/entity/order";
 import { OrderSchema } from "../schemas/order-schema";
 
 export class OrderRepositoryImpl implements OrderRepository {
@@ -46,6 +46,21 @@ export class OrderRepositoryImpl implements OrderRepository {
       return orders.map((order) => this.mapToOrderEntity(order));
     } catch (error) {
       console.error("Error fetching orders by status:", error);
+      return null;
+    }
+  }
+
+  async getOrdersByType(type: OrderType): Promise<Order[] | null> {
+    try {
+      const orders = await OrderSchema.find({ type }).lean();
+
+      if (!orders) {
+        return null;
+      }
+
+      return orders.map((order) => this.mapToOrderEntity(order));
+    } catch (error) {
+      console.error("Error fetching orders by type:", error);
       return null;
     }
   }
@@ -164,7 +179,8 @@ export class OrderRepositoryImpl implements OrderRepository {
       orderDoc.type,
       dishes,
       orderDoc.linkedOrderId,
-      orderDoc.note
+      orderDoc.note,
+      parseFloat(orderDoc.totalAmount.toString())
     );
   }
 }
