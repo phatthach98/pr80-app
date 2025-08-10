@@ -10,7 +10,7 @@ interface DishOptionDocument {
 
 const dishOptionSchema = new Schema<DishOptionDocument>(
   {
-    _id: { type: String, required: true, unique: true },
+    _id: { type: String, required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
     options: [
@@ -24,7 +24,7 @@ const dishOptionSchema = new Schema<DishOptionDocument>(
   {
     timestamps: true,
     versionKey: false,
-    _id: false // Disable auto _id generation
+    _id: false, // Disable auto _id generation
   }
 );
 
