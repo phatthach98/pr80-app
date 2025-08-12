@@ -42,7 +42,7 @@ orderRouter.get(
 
 // Get order by ID
 orderRouter.get(
-  "/orders/:id",
+  "/orders/:orderId",
   orderIdParamValidator,
   requestValidator,
   asyncHandler(OrderController.getOrderById)
@@ -50,7 +50,7 @@ orderRouter.get(
 
 // Get order with linked orders
 orderRouter.get(
-  "/orders/:id/linked",
+  "/orders/:orderId/linked",
   orderIdParamValidator,
   requestValidator,
   asyncHandler(OrderController.getOrderWithLinkedOrders)
@@ -119,7 +119,7 @@ orderRouter.patch(
 
 // Remove order item
 orderRouter.delete(
-  "/orders/:id/items/:dishItemId",
+  "/orders/:orderId/items/:dishItemId",
   [...orderIdParamValidator, ...dishItemIdParamValidator],
   requestValidator,
   asyncHandler(OrderController.removeOrderItem)
@@ -127,7 +127,7 @@ orderRouter.delete(
 
 // Delete an order
 orderRouter.delete(
-  "/orders/:id",
+  "/orders/:orderId",
   orderIdParamValidator,
   requestValidator,
   asyncHandler(OrderController.deleteOrder)

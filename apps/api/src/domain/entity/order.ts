@@ -1,3 +1,4 @@
+import { parseDecimalSafely } from "@application/utils";
 import { v4 as uuid } from "uuid";
 
 // Define the OrderDishItem interface
@@ -63,7 +64,7 @@ export class Order {
 
     // Always calculate the total amount based on dishes to prevent manipulation
     // Only use provided totalAmount for linked orders where we need to include sub-orders
-    if (totalAmount !== undefined && !linkedOrderId) {
+    if (totalAmount) {
       // For main orders with linked orders, we can use the provided totalAmount
       this.totalAmount = totalAmount;
     } else {
@@ -96,7 +97,7 @@ export class Order {
     // Ensure we're using the correct price for each dish
     const total = this.dishes.reduce((sum, dish) => {
       // Calculate the base price plus any extra from options
-      const dishPrice = parseFloat(dish.price);
+      const dishPrice = parseDecimalSafely(dish.price);
 
       // Validate that the price is a positive number
       if (typeof dishPrice !== "number" || dishPrice < 0) {

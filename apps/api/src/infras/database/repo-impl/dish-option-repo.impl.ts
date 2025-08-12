@@ -74,12 +74,14 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         throw new Error(`Dish option with id ${id} not found`);
       }
 
-      const formattedOptions = updatedDishOption.options.map((option) => {
-        return {
-          ...option,
-          extraPrice: formatDecimal(option.extraPrice),
-        };
-      });
+      const formattedOptions = (updatedDishOption.options ?? []).map(
+        (option) => {
+          return {
+            ...option,
+            extraPrice: formatDecimal(option.extraPrice),
+          };
+        }
+      );
 
       return new DishOption(
         updatedDishOption._id.toString(), // Use _id as id in domain model
@@ -130,7 +132,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
 
       // Map the database objects to domain entities
       return dishOptions.map((dishOption) => {
-        const formattedOptions = dishOption.options.map((o) => {
+        const formattedOptions = (dishOption.options ?? []).map((o) => {
           return {
             ...o,
             extraPrice: formatDecimal(o.extraPrice),

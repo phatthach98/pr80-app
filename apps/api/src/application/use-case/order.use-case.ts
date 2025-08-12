@@ -9,6 +9,7 @@ import { OrderRepository } from "../interface/repository/order-repo.interface";
 import { DishRepository } from "../interface/repository/dish-repo.interface";
 import { DishOptionRepository } from "../interface/repository/dish-option-repo.interface";
 import { NotFoundError } from "@application/errors";
+import { parseDecimalSafely } from "@application/utils";
 
 // Define interfaces for the enhanced use case
 interface SelectedOption {
@@ -77,14 +78,13 @@ export class OrderUseCase {
     dishId: string,
     selectedOptions: SelectedOption[],
     quantity: number,
-    takeAway: boolean
+    takeAway: boolean = false
   ): Promise<OrderDishItem> {
     // Get dish from database
     const dish = await this.dishRepository.getDishById(dishId);
     if (!dish) {
       throw new NotFoundError(`Dish with id ${dishId} not found`);
     }
-
     // Get base price from dish
     const basePrice = dish.price;
 
@@ -141,13 +141,13 @@ export class OrderUseCase {
         extraPrice: optionValue.extraPrice,
       });
 
-      totalExtraPrice += parseFloat(optionValue.extraPrice || "0");
+      totalExtraPrice += parseDecimalSafely(optionValue.extraPrice || "0");
     }
 
     // Calculate total price (base + extras)
-    const itemPrice = (parseFloat(basePrice || "0") + totalExtraPrice).toFixed(
-      6
-    );
+    const itemPrice = (
+      parseDecimalSafely(basePrice || "0") + totalExtraPrice
+    ).toFixed(6);
 
     // Generate a unique ID for this dish item
     const id = uuid();
@@ -166,6 +166,7 @@ export class OrderUseCase {
 
   /**
    * Add or update a dish item in an order - new method for simplified flow
+   * If a dish with the same ID and options already exists, it will merge them by increasing the quantity
    */
   async addOrUpdateOrderItem(
     orderId: string | null,
@@ -187,8 +188,23 @@ export class OrderUseCase {
     if (orderId) {
       order = await this.getOrderById(orderId);
 
-      // Add dish to order
-      order.addDish(dishWithPrice);
+      // Check if the same dish with the same options already exists in the order
+      const existingDishIndex = this.findMatchingDishIndex(
+        order.dishes,
+        dishWithPrice
+      );
+
+      if (existingDishIndex !== -1) {
+        // If the dish with same options exists, update its quantity instead of adding a new one
+        const existingDish = order.dishes[existingDishIndex];
+        const newQuantity = existingDish.quantity + dishWithPrice.quantity;
+
+        // Update the quantity of the existing dish
+        order.updateDishQuantity(existingDishIndex, newQuantity);
+      } else {
+        // If no matching dish found, add as a new dish
+        order.addDish(dishWithPrice);
+      }
 
       // Update the order
       const updatedOrder = await this.orderRepository.update(order);
@@ -197,10 +213,9 @@ export class OrderUseCase {
       }
       order = updatedOrder;
 
-      // If this is a sub-order, recalculate the main order's total
-      if (order.linkedOrderId) {
-        await this.recalculateMainOrderTotal(order.linkedOrderId);
-      }
+      await this.recalculateMainOrderTotal(
+        order.type === OrderType.MAIN ? order.id : order.linkedOrderId || ""
+      );
     } else {
       // Create new order with this dish
       order = await this.createOrder(
@@ -244,9 +259,11 @@ export class OrderUseCase {
     }
 
     // If this is a sub-order, recalculate the main order's total
-    if (order.linkedOrderId) {
-      await this.recalculateMainOrderTotal(order.linkedOrderId);
-    }
+
+    // If this is a main order and might have linked orders, recalculate its total
+    await this.recalculateMainOrderTotal(
+      order.type === OrderType.MAIN ? order.id : order.linkedOrderId || ""
+    );
 
     return updatedOrder;
   }
@@ -282,6 +299,10 @@ export class OrderUseCase {
     // If this is a sub-order, recalculate the main order's total
     if (order.linkedOrderId) {
       await this.recalculateMainOrderTotal(order.linkedOrderId);
+    }
+    // If this is a main order and might have linked orders, recalculate its total
+    else if (order.type === OrderType.MAIN) {
+      await this.recalculateMainOrderTotal(order.id);
     }
 
     return updatedOrder;
@@ -364,9 +385,6 @@ export class OrderUseCase {
   async updateOrder(id: string, changes: Partial<Order>) {
     const order = await this.getOrderById(id);
 
-    // Store the original linkedOrderId for later comparison
-    const originalLinkedOrderId = order.linkedOrderId;
-
     // Prevent direct price manipulation
     if (changes.totalAmount !== undefined) {
       throw new Error("Direct price manipulation is not allowed");
@@ -430,18 +448,11 @@ export class OrderUseCase {
     // Update the order
     const result = await this.orderRepository.update(updatedOrder);
 
-    // If this is a sub-order (has a linkedOrderId), recalculate the main order's total
-    if (updatedOrder.linkedOrderId) {
-      await this.recalculateMainOrderTotal(updatedOrder.linkedOrderId);
-    }
-
-    // If the linkedOrderId was changed, also update the old main order's total
-    if (
-      originalLinkedOrderId &&
-      originalLinkedOrderId !== updatedOrder.linkedOrderId
-    ) {
-      await this.recalculateMainOrderTotal(originalLinkedOrderId);
-    }
+    await this.recalculateMainOrderTotal(
+      updatedOrder.type === OrderType.MAIN
+        ? updatedOrder.id
+        : updatedOrder.linkedOrderId || ""
+    );
 
     return result;
   }
@@ -502,6 +513,49 @@ export class OrderUseCase {
   }
 
   /**
+   * Helper method to find a matching dish in the order based on dishId and selected options
+   * Returns the index of the matching dish or -1 if not found
+   */
+  private findMatchingDishIndex(
+    existingDishes: OrderDishItem[],
+    newDish: OrderDishItem
+  ): number {
+    return existingDishes.findIndex((dish) => {
+      // First check if it's the same dish ID and takeAway status
+      if (
+        dish.dishId !== newDish.dishId ||
+        dish.takeAway !== newDish.takeAway
+      ) {
+        return false;
+      }
+
+      // Then check if the selected options match
+      if (dish.selectedOptions.length !== newDish.selectedOptions.length) {
+        return false;
+      }
+
+      // Sort both arrays to ensure consistent comparison
+      const sortedExistingOptions = [...dish.selectedOptions].sort(
+        (a, b) => a.name.localeCompare(b.name) || a.value.localeCompare(b.value)
+      );
+
+      const sortedNewOptions = [...newDish.selectedOptions].sort(
+        (a, b) => a.name.localeCompare(b.name) || a.value.localeCompare(b.value)
+      );
+
+      // Check if all options match
+      return sortedExistingOptions.every((option, index) => {
+        const newOption = sortedNewOptions[index];
+        return (
+          option.name.toLowerCase() === newOption.name.toLowerCase() &&
+          option.value.toLowerCase() === newOption.value.toLowerCase() &&
+          option.extraPrice === newOption.extraPrice
+        );
+      });
+    });
+  }
+
+  /**
    * Recalculate the total amount of a main order by summing up all its linked orders
    */
   async recalculateMainOrderTotal(mainOrderId: string): Promise<Order> {
@@ -516,48 +570,32 @@ export class OrderUseCase {
     // Calculate the main order's own total from its dishes (to ensure it's accurate)
     let mainOrderTotal = 0;
     for (const dish of mainOrder.dishes) {
-      mainOrderTotal += parseFloat(dish.price) * dish.quantity;
+      mainOrderTotal += parseDecimalSafely(dish.price) * dish.quantity;
     }
-    mainOrderTotal = parseFloat(mainOrderTotal.toFixed(6));
+    mainOrderTotal = parseDecimalSafely(mainOrderTotal.toFixed(6));
+
+    // Calculate the total from linked orders
+    let linkedOrdersTotal = 0;
 
     // Add the total amount of each linked order
     if (linkedOrders && linkedOrders.length > 0) {
-      const linkedOrdersTotal = linkedOrders.reduce((sum, order) => {
+      linkedOrdersTotal = linkedOrders.reduce((sum, order) => {
         // Validate each linked order's total to prevent manipulation
         let orderTotal = 0;
         for (const dish of order.dishes) {
-          orderTotal += parseFloat(dish.price) * dish.quantity;
+          orderTotal += parseDecimalSafely(dish.price) * dish.quantity;
         }
-        orderTotal = parseFloat(orderTotal.toFixed(6));
+        orderTotal = parseDecimalSafely(orderTotal.toFixed(6));
 
         // Use the calculated total, not the stored one
         return sum + orderTotal;
       }, 0);
-
-      // Create a new order with the updated total amount
-      // We're creating a new instance to ensure all values are properly set
-      const updatedOrder = new Order(
-        mainOrder.id,
-        mainOrder.createdBy,
-        mainOrder.table,
-        mainOrder.status,
-        mainOrder.type,
-        mainOrder.dishes,
-        mainOrder.linkedOrderId,
-        mainOrder.note,
-        // Explicitly pass the calculated total that includes linked orders
-        (mainOrderTotal + linkedOrdersTotal).toFixed(6)
-      );
-
-      // Update the order in the database
-      const result = await this.orderRepository.update(updatedOrder);
-      if (!result) {
-        throw new Error(`Failed to update main order ${mainOrderId}`);
-      }
-      return result;
     }
 
-    // If there are no linked orders, return the main order with its recalculated total
+    // Calculate the final total (main order + linked orders)
+    const finalTotal = (mainOrderTotal + linkedOrdersTotal).toFixed(6);
+
+    // Create a new order with the updated total amount
     const updatedOrder = new Order(
       mainOrder.id,
       mainOrder.createdBy,
@@ -566,13 +604,17 @@ export class OrderUseCase {
       mainOrder.type,
       mainOrder.dishes,
       mainOrder.linkedOrderId,
-      mainOrder.note
+      mainOrder.note,
+      // Always explicitly pass the calculated total that includes linked orders
+      finalTotal
     );
 
+    // Update the order in the database
     const result = await this.orderRepository.update(updatedOrder);
     if (!result) {
       throw new Error(`Failed to update main order ${mainOrderId}`);
     }
+
     return result;
   }
 }

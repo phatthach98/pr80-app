@@ -161,7 +161,6 @@ export class OrderRepositoryImpl implements OrderRepository {
 
   // Helper method to convert MongoDB document to domain entity
   private mapToOrderEntity(orderDoc: any): Order {
-    // Convert Decimal128 to number for each dish price
     const dishes = orderDoc.dishes.map((dish: any) => ({
       ...dish,
       id: dish.id || uuid(), // Keep dish.id as is or generate new UUID

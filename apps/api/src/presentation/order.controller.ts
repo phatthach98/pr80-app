@@ -23,11 +23,11 @@ export class OrderController {
   }
 
   static async getOrderById(
-    req: Request<{ id: string }>,
+    req: Request<{ orderId: string }>,
     res: Response<OrderResponse>
   ) {
-    const { id } = req.params;
-    const order = await orderUseCase.getOrderById(id);
+    const { orderId } = req.params;
+    const order = await orderUseCase.getOrderById(orderId);
     if (!order) {
       throw new NotFoundError("Order not found");
     }
@@ -62,11 +62,11 @@ export class OrderController {
   }
 
   static async getOrderWithLinkedOrders(
-    req: Request<{ id: string }>,
+    req: Request<{ orderId: string }>,
     res: Response<{ mainOrder: OrderResponse; linkedOrders: OrderResponse[] }>
   ) {
-    const { id } = req.params;
-    const result = await orderUseCase.getOrderWithLinkedOrders(id);
+    const { orderId } = req.params;
+    const result = await orderUseCase.getOrderWithLinkedOrders(orderId);
 
     res.json({
       mainOrder: result.mainOrder.toJSON(),
@@ -180,11 +180,11 @@ export class OrderController {
   }
 
   static async deleteOrder(
-    req: Request<{ id: string }>,
+    req: Request<{ orderId: string }>,
     res: Response<{ success: boolean; message: string }>
   ) {
-    const { id } = req.params;
-    const result = await orderUseCase.deleteOrder(id);
+    const { orderId } = req.params;
+    const result = await orderUseCase.deleteOrder(orderId);
     res.json(result);
   }
 
@@ -210,12 +210,12 @@ export class OrderController {
   }
 
   static async removeOrderItem(
-    req: Request<{ id: string; dishItemId: string }>,
+    req: Request<{ orderId: string; dishItemId: string }>,
     res: Response<OrderResponse>
   ) {
-    const { id, dishItemId } = req.params;
+    const { orderId, dishItemId } = req.params;
 
-    const order = await orderUseCase.removeOrderItem(id, dishItemId);
+    const order = await orderUseCase.removeOrderItem(orderId, dishItemId);
     res.json(order.toJSON());
   }
 
