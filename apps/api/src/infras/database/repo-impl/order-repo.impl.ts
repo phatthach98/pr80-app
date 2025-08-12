@@ -2,6 +2,7 @@ import { v4 as uuid } from "uuid";
 import { OrderRepository } from "@application/interface/repository/order-repo.interface";
 import { Order, OrderStatus, OrderType } from "@domain/entity/order";
 import { OrderSchema } from "../schemas/order-schema";
+import { formatDecimal } from "../utils/mongodb.util";
 
 export class OrderRepositoryImpl implements OrderRepository {
   async getOrders(): Promise<Order[]> {
@@ -164,10 +165,10 @@ export class OrderRepositoryImpl implements OrderRepository {
     const dishes = orderDoc.dishes.map((dish: any) => ({
       ...dish,
       id: dish.id || uuid(), // Keep dish.id as is or generate new UUID
-      price: parseFloat(dish.price.toString()),
+      price: formatDecimal(dish.price),
       selectedOptions: dish.selectedOptions.map((option: any) => ({
         ...option,
-        extraPrice: parseFloat(option.extraPrice.toString()),
+        extraPrice: formatDecimal(option.extraPrice),
       })),
     }));
 
@@ -180,13 +181,13 @@ export class OrderRepositoryImpl implements OrderRepository {
       dishes,
       orderDoc.linkedOrderId,
       orderDoc.note,
-      parseFloat(orderDoc.totalAmount.toString())
+      formatDecimal(orderDoc.totalAmount)
     );
-    
+
     // Add timestamps to the order object for use in responses
     (order as any).createdAt = orderDoc.createdAt;
     (order as any).updatedAt = orderDoc.updatedAt;
-    
+
     return order;
   }
 }

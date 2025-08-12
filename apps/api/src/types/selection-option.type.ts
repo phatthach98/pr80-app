@@ -3,7 +3,6 @@ export interface SelectOption {
   value: string;
 }
 
-// For database/internal use (number)
 export interface DishSelectOption extends SelectOption {
-  extraPrice: number;
+  extraPrice: string | null;
 }

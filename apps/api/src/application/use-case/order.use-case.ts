@@ -141,11 +141,11 @@ export class OrderUseCase {
         extraPrice: optionValue.extraPrice,
       });
 
-      totalExtraPrice += parseFloat(optionValue.extraPrice.toString());
+      totalExtraPrice += parseFloat(optionValue.extraPrice);
     }
 
     // Calculate total price (base + extras)
-    const itemPrice = parseFloat((basePrice + totalExtraPrice).toFixed(2));
+    const itemPrice = (parseFloat(basePrice) + totalExtraPrice).toFixed(6);
 
     // Generate a unique ID for this dish item
     const id = uuid();
@@ -375,25 +375,35 @@ export class OrderUseCase {
       // If dishes are provided, verify they haven't been tampered with
       for (const newDish of changes.dishes) {
         // Find the corresponding dish in the original order
-        const originalDish = order.dishes.find(dish => dish.id === newDish.id);
-        
+        const originalDish = order.dishes.find(
+          (dish) => dish.id === newDish.id
+        );
+
         // If this is a new dish, it will be handled by addDish method which calculates the price
         if (originalDish) {
           // If it's an existing dish, ensure the price hasn't been changed
           if (originalDish.price !== newDish.price) {
-            throw new Error(`Price manipulation detected for dish ${newDish.id}`);
+            throw new Error(
+              `Price manipulation detected for dish ${newDish.id}`
+            );
           }
-          
+
           // Check if options prices have been manipulated
           if (newDish.selectedOptions) {
             for (let i = 0; i < newDish.selectedOptions.length; i++) {
               const newOption = newDish.selectedOptions[i];
               const originalOption = originalDish.selectedOptions.find(
-                opt => opt.name === newOption.name && opt.value === newOption.value
+                (opt) =>
+                  opt.name === newOption.name && opt.value === newOption.value
               );
-              
-              if (originalOption && originalOption.extraPrice !== newOption.extraPrice) {
-                throw new Error(`Option price manipulation detected for dish ${newDish.id}`);
+
+              if (
+                originalOption &&
+                originalOption.extraPrice !== newOption.extraPrice
+              ) {
+                throw new Error(
+                  `Option price manipulation detected for dish ${newDish.id}`
+                );
               }
             }
           }
@@ -504,9 +514,9 @@ export class OrderUseCase {
     // Calculate the main order's own total from its dishes (to ensure it's accurate)
     let mainOrderTotal = 0;
     for (const dish of mainOrder.dishes) {
-      mainOrderTotal += dish.price * dish.quantity;
+      mainOrderTotal += parseFloat(dish.price) * dish.quantity;
     }
-    mainOrderTotal = parseFloat(mainOrderTotal.toFixed(2));
+    mainOrderTotal = parseFloat(mainOrderTotal.toFixed(6));
 
     // Add the total amount of each linked order
     if (linkedOrders && linkedOrders.length > 0) {
@@ -514,10 +524,10 @@ export class OrderUseCase {
         // Validate each linked order's total to prevent manipulation
         let orderTotal = 0;
         for (const dish of order.dishes) {
-          orderTotal += dish.price * dish.quantity;
+          orderTotal += parseFloat(dish.price) * dish.quantity;
         }
-        orderTotal = parseFloat(orderTotal.toFixed(2));
-        
+        orderTotal = parseFloat(orderTotal.toFixed(6));
+
         // Use the calculated total, not the stored one
         return sum + orderTotal;
       }, 0);
@@ -534,7 +544,7 @@ export class OrderUseCase {
         mainOrder.linkedOrderId,
         mainOrder.note,
         // Explicitly pass the calculated total that includes linked orders
-        parseFloat((mainOrderTotal + linkedOrdersTotal).toFixed(2))
+        (mainOrderTotal + linkedOrdersTotal).toFixed(6)
       );
 
       // Update the order in the database
@@ -556,7 +566,7 @@ export class OrderUseCase {
       mainOrder.linkedOrderId,
       mainOrder.note
     );
-    
+
     const result = await this.orderRepository.update(updatedOrder);
     if (!result) {
       throw new Error(`Failed to update main order ${mainOrderId}`);

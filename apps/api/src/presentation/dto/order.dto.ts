@@ -21,11 +21,11 @@ export interface OrderDishItemResponse {
   dishId: string;
   name: string;
   quantity: number;
-  price: number;
+  price: string;
   selectedOptions: {
     name: string;
     value: string;
-    extraPrice: number;
+    extraPrice: string;
   }[];
   takeAway: boolean;
 }

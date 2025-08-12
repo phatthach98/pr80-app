@@ -6,11 +6,11 @@ export interface OrderDishItem {
   dishId: string;
   name: string;
   quantity: number;
-  readonly price: number; // Make price readonly to prevent direct manipulation
+  readonly price: string; // Make price readonly to prevent direct manipulation
   selectedOptions: {
     name: string;
     value: string;
-    readonly extraPrice: number; // Make extraPrice readonly as well
+    readonly extraPrice: string; // Make extraPrice readonly as well
   }[];
   takeAway: boolean;
 }
@@ -36,7 +36,7 @@ export class Order {
   public createdBy: string;
   public status: OrderStatus;
   public table: string;
-  public totalAmount: number;
+  public totalAmount: string | null;
   public type: OrderType;
   public note: string;
   public dishes: OrderDishItem[];
@@ -50,7 +50,7 @@ export class Order {
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
     note: string = "",
-    totalAmount?: number
+    totalAmount?: string | null
   ) {
     this.id = id;
     this.linkedOrderId = linkedOrderId;
@@ -92,11 +92,11 @@ export class Order {
     );
   }
 
-  private calculateTotalAmount(): number {
+  private calculateTotalAmount(): string {
     // Ensure we're using the correct price for each dish
     const total = this.dishes.reduce((sum, dish) => {
       // Calculate the base price plus any extra from options
-      const dishPrice = dish.price;
+      const dishPrice = parseFloat(dish.price);
 
       // Validate that the price is a positive number
       if (typeof dishPrice !== "number" || dishPrice < 0) {
@@ -107,11 +107,11 @@ export class Order {
     }, 0);
 
     // Ensure price is stored with 2 decimal places
-    return parseFloat(total.toFixed(2));
+    return total.toFixed(6);
   }
 
   // Make totalAmount read-only by providing a getter
-  public getTotalAmount(): number {
+  public getTotalAmount(): string | null {
     return this.totalAmount;
   }
 

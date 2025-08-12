@@ -26,17 +26,12 @@ export interface DishOptionResponseDto {
 }
 
 export const createDishOptionValidator = [
-  body("name")
-    .isString()
-    .notEmpty()
-    .withMessage("Name is required"),
+  body("name").isString().notEmpty().withMessage("Name is required"),
   body("description")
     .isString()
     .notEmpty()
     .withMessage("Description is required"),
-  body("options")
-    .isArray()
-    .withMessage("Options must be an array"),
+  body("options").isArray().withMessage("Options must be an array"),
   body("options.*.label")
     .isString()
     .notEmpty()
@@ -46,8 +41,8 @@ export const createDishOptionValidator = [
     .notEmpty()
     .withMessage("Option value is required"),
   body("options.*.extraPrice")
-    .isNumeric()
-    .withMessage("Extra price must be a number"),
+    .isString()
+    .withMessage("Extra price must be a string"),
 ];
 
 export const updateDishOptionValidator = [
@@ -55,18 +50,12 @@ export const updateDishOptionValidator = [
     .isString()
     .notEmpty()
     .withMessage("Valid dish option ID is required"),
-  body("name")
-    .optional()
-    .isString()
-    .withMessage("Name must be a string"),
+  body("name").optional().isString().withMessage("Name must be a string"),
   body("description")
     .optional()
     .isString()
     .withMessage("Description must be a string"),
-  body("options")
-    .optional()
-    .isArray()
-    .withMessage("Options must be an array"),
+  body("options").optional().isArray().withMessage("Options must be an array"),
   body("options.*.label")
     .optional()
     .isString()
@@ -76,8 +65,8 @@ export const updateDishOptionValidator = [
     .isString()
     .withMessage("Option value must be a string"),
   body("options.*.extraPrice")
-    .isNumeric()
-    .withMessage("Extra price must be a number"),
+    .isString()
+    .withMessage("Extra price must be a string"),
 ];
 
 export const dishOptionIdValidator = [

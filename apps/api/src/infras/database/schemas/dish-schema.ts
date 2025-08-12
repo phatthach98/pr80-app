@@ -5,7 +5,17 @@ const DishSchemaDefinition = new Schema(
     _id: { type: String, required: true },
     name: { type: String, required: true },
     description: { type: String, required: false },
-    price: { type: mongoose.Schema.Types.Decimal128, required: true },
+    price: {
+      type: mongoose.Schema.Types.Decimal128,
+      required: true,
+      get: (price: mongoose.Types.Decimal128): string | null => {
+        if (!price) return null;
+        return parseFloat(price.toString()).toFixed(6);
+      },
+      set: (price: string): mongoose.Types.Decimal128 => {
+        return mongoose.Types.Decimal128.fromString(price);
+      },
+    },
     options: [
       {
         id: { type: String, required: true },
@@ -16,6 +26,8 @@ const DishSchemaDefinition = new Schema(
     timestamps: true,
     versionKey: false,
     _id: false, // Disable auto _id generation
+    toJSON: { getters: true },
+    toObject: { getters: true },
   }
 );
 

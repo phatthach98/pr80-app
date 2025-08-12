@@ -2,12 +2,13 @@ import { v4 as uuid } from "uuid";
 import { DishRepository } from "@application/interface/repository/dish-repo.interface";
 import { Dish } from "@domain/entity/dish";
 import { DishSchema } from "../schemas/dish-schema";
+import { formatDecimal } from "../utils/mongodb.util";
 
 export class DishRepositoryImpl implements DishRepository {
   async getDishes(): Promise<Dish[] | null> {
     try {
       const dishes = await DishSchema.find().lean();
-      
+
       if (!dishes) {
         return null;
       }
@@ -18,7 +19,7 @@ export class DishRepositoryImpl implements DishRepository {
             dish._id.toString(), // Use _id as id in domain model
             dish.name,
             dish.description || "",
-            parseFloat(dish.price.toString()),
+            formatDecimal(dish.price),
             dish.options
           )
       );
@@ -32,7 +33,7 @@ export class DishRepositoryImpl implements DishRepository {
     try {
       // Find by MongoDB _id
       const dish = await DishSchema.findOne({ _id: id }).lean();
-      
+
       if (!dish) {
         return null;
       }
@@ -41,7 +42,7 @@ export class DishRepositoryImpl implements DishRepository {
         dish._id.toString(), // Use _id as id in domain model
         dish.name,
         dish.description || "",
-        parseFloat(dish.price.toString()),
+        formatDecimal(dish.price),
         dish.options
       );
     } catch (error) {
@@ -57,7 +58,7 @@ export class DishRepositoryImpl implements DishRepository {
         name: dish.name,
         description: dish.description,
         price: dish.price,
-        options: dish.options
+        options: dish.options,
       });
 
       return dish;
@@ -70,7 +71,7 @@ export class DishRepositoryImpl implements DishRepository {
   async update(changes: Partial<Dish>): Promise<Dish> {
     try {
       const { id, ...updateData } = changes;
-      
+
       if (!id) {
         throw new Error("Dish ID is required for update");
       }
@@ -78,10 +79,10 @@ export class DishRepositoryImpl implements DishRepository {
       // Find by MongoDB _id
       const updatedDish = await DishSchema.findOneAndUpdate(
         { _id: id },
-        { 
+        {
           $set: {
-            ...updateData
-          }
+            ...updateData,
+          },
         },
         { new: true }
       ).lean();
@@ -94,7 +95,7 @@ export class DishRepositoryImpl implements DishRepository {
         updatedDish._id.toString(), // Use _id as id in domain model
         updatedDish.name,
         updatedDish.description || "",
-        parseFloat(updatedDish.price.toString()),
+        formatDecimal(updatedDish.price),
         updatedDish.options
       );
     } catch (error) {

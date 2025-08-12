@@ -38,7 +38,7 @@ export class DishUseCase {
       description: dish.description,
       price: dish.price,
       options: dish.options,
-      optionDetails: [] as DishOption[]
+      optionDetails: [] as DishOption[],
     };
 
     // Fetch option details if there are options
@@ -47,9 +47,8 @@ export class DishUseCase {
       const optionIds = dish.options.map((option) => option.id);
 
       // Fetch all dish options in a single database call
-      dishDTO.optionDetails = await this.dishOptionRepository.getDishOptionsByIds(
-        optionIds
-      );
+      dishDTO.optionDetails =
+        await this.dishOptionRepository.getDishOptionsByIds(optionIds);
     }
 
     return dishDTO;
@@ -58,7 +57,7 @@ export class DishUseCase {
   async createDish(
     name: string,
     description: string,
-    price: number,
+    price: string,
     options: { id: string }[] = []
   ) {
     const dish = Dish.create(name, description, price, options);
