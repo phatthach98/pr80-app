@@ -135,13 +135,13 @@ export class OrderController {
   }
 
   static async updateOrder(
-    req: Request<{ id: string }, {}, UpdateOrderRequest>,
+    req: Request<{ orderId: string }, {}, UpdateOrderRequest>,
     res: Response<OrderResponse>
   ) {
-    const { id } = req.params;
+    const { orderId } = req.params;
     const changes = req.body;
 
-    const order = await orderUseCase.updateOrder(id, changes);
+    const order = await orderUseCase.updateOrder(orderId, changes);
     if (order) {
       res.json(order.toJSON());
     } else {
@@ -150,13 +150,13 @@ export class OrderController {
   }
 
   static async updateOrderStatus(
-    req: Request<{ id: string }, {}, { status: OrderStatus }>,
+    req: Request<{ orderId: string }, {}, { status: OrderStatus }>,
     res: Response<OrderResponse>
   ) {
-    const { id } = req.params;
+    const { orderId } = req.params;
     const { status } = req.body;
 
-    const order = await orderUseCase.updateOrderStatus(id, status);
+    const order = await orderUseCase.updateOrderStatus(orderId, status);
     if (order) {
       res.json(order.toJSON());
     } else {
@@ -165,13 +165,13 @@ export class OrderController {
   }
 
   static async updateOrderTable(
-    req: Request<{ id: string }, {}, { table: string }>,
+    req: Request<{ orderId: string }, {}, { table: string }>,
     res: Response<OrderResponse>
   ) {
-    const { id } = req.params;
+    const { orderId } = req.params;
     const { table } = req.body;
 
-    const order = await orderUseCase.updateOrderTable(id, table);
+    const order = await orderUseCase.updateOrderTable(orderId, table);
     if (order) {
       res.json(order.toJSON());
     } else {
@@ -221,18 +221,18 @@ export class OrderController {
 
   static async updateOrderItemQuantity(
     req: Request<
-      { id: string; itemId: string },
+      { orderId: string; dishItemId: string },
       {},
       UpdateOrderItemQuantityRequest
     >,
     res: Response<OrderResponse>
   ) {
-    const { id, itemId } = req.params;
+    const { orderId, dishItemId } = req.params;
     const { quantity } = req.body;
 
     const order = await orderUseCase.updateOrderItemQuantity(
-      id,
-      itemId,
+      orderId,
+      dishItemId,
       quantity
     );
     res.json(order.toJSON());

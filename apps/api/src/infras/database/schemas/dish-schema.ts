@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { formatDecimal, parseDecimal } from "../utils/mongodb.util";
 
 const DishSchemaDefinition = new Schema(
   {
@@ -8,13 +9,8 @@ const DishSchemaDefinition = new Schema(
     price: {
       type: mongoose.Schema.Types.Decimal128,
       required: true,
-      get: (price: mongoose.Types.Decimal128): string | null => {
-        if (!price) return null;
-        return parseFloat(price.toString()).toFixed(6);
-      },
-      set: (price: string): mongoose.Types.Decimal128 => {
-        return mongoose.Types.Decimal128.fromString(price);
-      },
+      get: formatDecimal,
+      set: parseDecimal,
     },
     options: [
       {

@@ -1,23 +1,23 @@
 import { body, param } from "express-validator";
-import { DishSelectOption } from "../../types";
+import { SelectOptionWithPrice } from "../../types";
 
 export interface DishOptionDto {
   id: string;
   name: string;
   description: string;
-  options: DishSelectOption[];
+  options: SelectOptionWithPrice[];
 }
 
 export interface CreateDishOptionDto {
   name: string;
   description: string;
-  options: DishSelectOption[];
+  options: SelectOptionWithPrice[];
 }
 
 export interface UpdateDishOptionDto {
   name?: string;
   description?: string;
-  options?: DishSelectOption[];
+  options?: SelectOptionWithPrice[];
 }
 
 export interface DishOptionResponseDto {

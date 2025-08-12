@@ -81,17 +81,9 @@ orderRouter.post(
   asyncHandler(OrderController.addOrUpdateOrderItem)
 );
 
-// Create a new order with items (no orderId in path)
-orderRouter.post(
-  "/orders/items",
-  addOrderItemValidator,
-  requestValidator,
-  asyncHandler(OrderController.addOrUpdateOrderItem)
-);
-
 // Update an order
 orderRouter.put(
-  "/orders/:id",
+  "/orders/:orderId",
   orderIdParamValidator,
   updateOrderValidator,
   requestValidator,
@@ -100,7 +92,7 @@ orderRouter.put(
 
 // Update order status
 orderRouter.patch(
-  "/orders/:id/status",
+  "/orders/:orderId/status",
   orderIdParamValidator,
   updateOrderStatusValidator,
   requestValidator,
@@ -109,7 +101,7 @@ orderRouter.patch(
 
 // Update order table
 orderRouter.patch(
-  "/orders/:id/table",
+  "/orders/:orderId/table",
   orderIdParamValidator,
   updateOrderTableValidator,
   requestValidator,
@@ -118,7 +110,7 @@ orderRouter.patch(
 
 // Update order item quantity
 orderRouter.patch(
-  "/orders/:id/items/:dishItemId/quantity",
+  "/orders/:orderId/items/:dishItemId/quantity",
   [...orderIdParamValidator, ...dishItemIdParamValidator],
   updateOrderItemQuantityValidator,
   requestValidator,

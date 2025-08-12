@@ -141,11 +141,13 @@ export class OrderUseCase {
         extraPrice: optionValue.extraPrice,
       });
 
-      totalExtraPrice += parseFloat(optionValue.extraPrice);
+      totalExtraPrice += parseFloat(optionValue.extraPrice || "0");
     }
 
     // Calculate total price (base + extras)
-    const itemPrice = (parseFloat(basePrice) + totalExtraPrice).toFixed(6);
+    const itemPrice = (parseFloat(basePrice || "0") + totalExtraPrice).toFixed(
+      6
+    );
 
     // Generate a unique ID for this dish item
     const id = uuid();

@@ -36,7 +36,7 @@ export class Order {
   public createdBy: string;
   public status: OrderStatus;
   public table: string;
-  public totalAmount: string | null;
+  public totalAmount: string;
   public type: OrderType;
   public note: string;
   public dishes: OrderDishItem[];
@@ -50,7 +50,7 @@ export class Order {
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
     note: string = "",
-    totalAmount?: string | null
+    totalAmount?: string
   ) {
     this.id = id;
     this.linkedOrderId = linkedOrderId;

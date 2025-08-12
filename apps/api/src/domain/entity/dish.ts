@@ -4,14 +4,14 @@ export class Dish {
   public id: string;
   public name: string;
   public description: string;
-  public price: string | null;
+  public price: string;
   public options: { id: string }[];
 
   constructor(
     id: string,
     name: string,
     description: string,
-    price: string | null,
+    price: string,
     options: { id: string }[] = []
   ) {
     this.id = id;

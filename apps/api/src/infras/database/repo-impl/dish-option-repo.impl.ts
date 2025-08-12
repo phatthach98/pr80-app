@@ -19,9 +19,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         const formattedOptions = option.options.map((o) => {
           return {
             ...o,
-            extraPrice: formatDecimal(
-              o.extraPrice as unknown as Types.Decimal128
-            ),
+            extraPrice: formatDecimal(o.extraPrice),
           };
         });
         return new DishOption(

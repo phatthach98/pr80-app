@@ -1,9 +1,7 @@
 import mongoose from "mongoose";
 
-export const formatDecimal = (
-  price: mongoose.Types.Decimal128
-): string | null => {
-  if (!price) return null;
+export const formatDecimal = (price: mongoose.Types.Decimal128): string => {
+  if (!price) return "0.000000";
   return parseFloat(price.toString()).toFixed(6);
 };
 

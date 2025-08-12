@@ -22,13 +22,8 @@ const OrderDishItemSchema = new Schema(
         extraPrice: {
           type: mongoose.Schema.Types.Decimal128,
           required: true,
-          get: (price: mongoose.Types.Decimal128): string | null => {
-            if (!price) return null;
-            return parseFloat(price.toString()).toFixed(6);
-          },
-          set: (price: string): mongoose.Types.Decimal128 => {
-            return mongoose.Types.Decimal128.fromString(price);
-          },
+          get: formatDecimal,
+          set: parseDecimal,
         },
       },
     ],
@@ -57,13 +52,8 @@ const OrderSchemaDefinition = new Schema(
     totalAmount: {
       type: mongoose.Schema.Types.Decimal128,
       required: true,
-      get: (price: mongoose.Types.Decimal128): string | null => {
-        if (!price) return null;
-        return parseFloat(price.toString()).toFixed(6);
-      },
-      set: (price: string): mongoose.Types.Decimal128 => {
-        return mongoose.Types.Decimal128.fromString(price);
-      },
+      get: formatDecimal,
+      set: parseDecimal,
     },
     type: {
       type: String,

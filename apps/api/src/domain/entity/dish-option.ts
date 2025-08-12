@@ -1,17 +1,17 @@
 import { v4 as uuid } from "uuid";
-import { DishSelectOption } from "../../types";
+import { SelectOptionWithPrice } from "../../types";
 
 export class DishOption {
   public id: string;
   public name: string;
   public description: string;
-  public options: DishSelectOption[];
+  public options: SelectOptionWithPrice[];
 
   constructor(
     id: string,
     name: string,
     description: string,
-    options: DishSelectOption[]
+    options: SelectOptionWithPrice[]
   ) {
     this.id = id;
     this.name = name;
@@ -22,7 +22,7 @@ export class DishOption {
   static create(
     name: string,
     description: string,
-    options: DishSelectOption[]
+    options: SelectOptionWithPrice[]
   ): DishOption {
     return new DishOption(uuid(), name, description, options);
   }
