@@ -1,21 +1,29 @@
 import mongoose, { Schema } from "mongoose";
+import { formatDecimal, parseDecimal } from "../utils/mongodb.util";
 
 const DishSchemaDefinition = new Schema(
   {
-    _id: { type: String, required: true, unique: true },
+    _id: { type: String, required: true },
     name: { type: String, required: true },
     description: { type: String, required: false },
-    price: { type: mongoose.Schema.Types.Decimal128, required: true },
+    price: {
+      type: mongoose.Schema.Types.Decimal128,
+      required: true,
+      get: formatDecimal,
+      set: parseDecimal,
+    },
     options: [
       {
-        id: { type: String, required: true }
-      }
-    ]
+        id: { type: String, required: true },
+      },
+    ],
   },
   {
     timestamps: true,
     versionKey: false,
-    _id: false // Disable auto _id generation
+    _id: false, // Disable auto _id generation
+    toJSON: { getters: true },
+    toObject: { getters: true },
   }
 );
 

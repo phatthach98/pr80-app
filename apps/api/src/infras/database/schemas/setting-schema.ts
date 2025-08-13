@@ -5,7 +5,6 @@ const SettingSchema = new Schema(
     _id: {
       type: String,
       required: true,
-      unique: true,
     },
     type: {
       type: String,
@@ -30,4 +29,4 @@ const SettingSchema = new Schema(
   }
 );
 
-export const SettingModel = model("Setting", SettingSchema); 
+export const SettingModel = model("Setting", SettingSchema);

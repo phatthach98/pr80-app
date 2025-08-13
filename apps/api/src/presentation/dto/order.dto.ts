@@ -21,11 +21,11 @@ export interface OrderDishItemResponse {
   dishId: string;
   name: string;
   quantity: number;
-  price: number;
+  price: string;
   selectedOptions: {
     name: string;
     value: string;
-    extraPrice: number;
+    extraPrice: string;
   }[];
   takeAway: boolean;
 }
@@ -192,12 +192,7 @@ export const updateOrderValidator = [
   body("note").optional().isString().withMessage("Note must be a string."),
 ];
 
-export const addOrderItemValidator = [
-  // orderId is now optional in body since it can come from URL params
-  body("orderId")
-    .optional()
-    .isString()
-    .withMessage("Order ID must be a string."),
+export const addOrderItemValidator = [ 
   body("dishId")
     .notEmpty()
     .withMessage("Dish ID is required.")
@@ -252,7 +247,7 @@ export const updateOrderTableValidator = [
 ];
 
 export const orderIdParamValidator = [
-  param("id")
+  param("orderId")
     .notEmpty()
     .withMessage("Order ID is required.")
     .isString()

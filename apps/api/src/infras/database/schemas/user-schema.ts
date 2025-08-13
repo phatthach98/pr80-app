@@ -7,7 +7,6 @@ const UserSchema = new Schema(
       type: String,
       required: [true, "User ID is required"],
       trim: true,
-      unique: true,
     },
     name: {
       type: String,
@@ -55,7 +54,8 @@ const UserSchema = new Schema(
       ],
       required: [true, "At least one role is required"],
       validate: {
-        validator: (roles: { id: string }[]) => Array.isArray(roles) && roles.length > 0,
+        validator: (roles: { id: string }[]) =>
+          Array.isArray(roles) && roles.length > 0,
         message: "User must have at least one role.",
       },
     },
@@ -67,11 +67,11 @@ const UserSchema = new Schema(
   }
 );
 
-UserSchema.virtual('populatedRoles', {
-  ref: 'Role',
-  localField: 'roles.id',
-  foreignField: '_id',
+UserSchema.virtual("populatedRoles", {
+  ref: "Role",
+  localField: "roles.id",
+  foreignField: "_id",
   justOne: false,
-})
+});
 
 export const UserModel = model("User", UserSchema);

@@ -1,17 +1,17 @@
 import { v4 as uuid } from "uuid";
-import { DishSelectOption } from "../../types";
+import { SelectOptionWithPrice } from "../../types";
 
 export class DishOption {
   public id: string;
   public name: string;
   public description: string;
-  public options: DishSelectOption[];
+  public options: SelectOptionWithPrice[];
 
   constructor(
     id: string,
     name: string,
     description: string,
-    options: DishSelectOption[]
+    options: SelectOptionWithPrice[]
   ) {
     this.id = id;
     this.name = name;
@@ -22,7 +22,7 @@ export class DishOption {
   static create(
     name: string,
     description: string,
-    options: DishSelectOption[]
+    options: SelectOptionWithPrice[]
   ): DishOption {
     return new DishOption(uuid(), name, description, options);
   }
@@ -32,17 +32,7 @@ export class DishOption {
       id: this.id,
       name: this.name,
       description: this.description,
-      options: this.options.map((option) => {
-        // Format extraPrice as a string with 2 decimal places
-        // MongoDB Decimal128 values are always returned as objects with toString method
-        const extraPrice = parseFloat(option.extraPrice.toString());
-
-        return {
-          label: option.label,
-          value: option.value,
-          extraPrice: extraPrice,
-        };
-      }),
+      options: this.options.length > 0 ? this.options : [],
     };
   }
 }

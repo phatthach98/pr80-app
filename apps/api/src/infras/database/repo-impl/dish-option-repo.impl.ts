@@ -1,8 +1,8 @@
-import { v4 as uuid } from "uuid";
 import { DishOptionRepository } from "@application/interface/repository/dish-option-repo.interface";
 import { DishOption } from "@domain/entity/dish-option";
 import { DishOptionSchema } from "../schemas/dish-option-schema";
-import { DishSelectOption } from "../../../types";
+import { formatDecimal } from "../utils/mongodb.util";
+import { Types } from "mongoose";
 
 export class DishOptionRepositoryImpl implements DishOptionRepository {
   // Removed constructor injection - using schema directly
@@ -15,15 +15,20 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         return null;
       }
 
-      return dishOptions.map(
-        (option) =>
-          new DishOption(
-            option._id.toString(), // Use _id as id in domain model
-            option.name,
-            option.description,
-            option.options
-          )
-      );
+      return dishOptions.map((option) => {
+        const formattedOptions = option.options.map((o) => {
+          return {
+            ...o,
+            extraPrice: formatDecimal(o.extraPrice),
+          };
+        });
+        return new DishOption(
+          option._id.toString(), // Use _id as id in domain model
+          option.name,
+          option.description,
+          formattedOptions
+        );
+      });
     } catch (error) {
       console.error("Error fetching dish options:", error);
       return null;
@@ -57,10 +62,10 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
       // Find by MongoDB _id
       const updatedDishOption = await DishOptionSchema.findOneAndUpdate(
         { _id: id },
-        { 
+        {
           $set: {
-            ...updateData
-          }
+            ...updateData,
+          },
         },
         { new: true }
       ).lean();
@@ -69,11 +74,20 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         throw new Error(`Dish option with id ${id} not found`);
       }
 
+      const formattedOptions = (updatedDishOption.options ?? []).map(
+        (option) => {
+          return {
+            ...option,
+            extraPrice: formatDecimal(option.extraPrice),
+          };
+        }
+      );
+
       return new DishOption(
         updatedDishOption._id.toString(), // Use _id as id in domain model
         updatedDishOption.name,
         updatedDishOption.description,
-        updatedDishOption.options as DishSelectOption[]
+        formattedOptions
       );
     } catch (error) {
       console.error("Error updating dish option:", error);
@@ -90,11 +104,18 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         return null;
       }
 
+      const formattedOptions = dishOption.options.map((option) => {
+        return {
+          ...option,
+          extraPrice: formatDecimal(option.extraPrice),
+        };
+      });
+
       return new DishOption(
         dishOption._id.toString(), // Use _id as id in domain model
         dishOption.name,
         dishOption.description,
-        dishOption.options as DishSelectOption[]
+        formattedOptions
       );
     } catch (error) {
       console.error("Error fetching dish option by ID:", error);
@@ -105,18 +126,25 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
   async getDishOptionsByIds(ids: string[]): Promise<DishOption[]> {
     try {
       // Find all dish options with _id in the provided ids array
-      const dishOptions = await DishOptionSchema.find({ _id: { $in: ids } }).lean();
+      const dishOptions = await DishOptionSchema.find({
+        _id: { $in: ids },
+      }).lean();
 
       // Map the database objects to domain entities
-      return dishOptions.map(
-        (option) =>
-          new DishOption(
-            option._id.toString(),
-            option.name,
-            option.description,
-            option.options as DishSelectOption[]
-          )
-      );
+      return dishOptions.map((dishOption) => {
+        const formattedOptions = (dishOption.options ?? []).map((o) => {
+          return {
+            ...o,
+            extraPrice: formatDecimal(o.extraPrice),
+          };
+        });
+        return new DishOption(
+          dishOption._id.toString(),
+          dishOption.name,
+          dishOption.description,
+          formattedOptions
+        );
+      });
     } catch (error) {
       console.error("Error fetching dish options by IDs:", error);
       return [];

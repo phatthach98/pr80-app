@@ -23,11 +23,11 @@ export class OrderController {
   }
 
   static async getOrderById(
-    req: Request<{ id: string }>,
+    req: Request<{ orderId: string }>,
     res: Response<OrderResponse>
   ) {
-    const { id } = req.params;
-    const order = await orderUseCase.getOrderById(id);
+    const { orderId } = req.params;
+    const order = await orderUseCase.getOrderById(orderId);
     if (!order) {
       throw new NotFoundError("Order not found");
     }
@@ -62,11 +62,11 @@ export class OrderController {
   }
 
   static async getOrderWithLinkedOrders(
-    req: Request<{ id: string }>,
+    req: Request<{ orderId: string }>,
     res: Response<{ mainOrder: OrderResponse; linkedOrders: OrderResponse[] }>
   ) {
-    const { id } = req.params;
-    const result = await orderUseCase.getOrderWithLinkedOrders(id);
+    const { orderId } = req.params;
+    const result = await orderUseCase.getOrderWithLinkedOrders(orderId);
 
     res.json({
       mainOrder: result.mainOrder.toJSON(),
@@ -135,13 +135,13 @@ export class OrderController {
   }
 
   static async updateOrder(
-    req: Request<{ id: string }, {}, UpdateOrderRequest>,
+    req: Request<{ orderId: string }, {}, UpdateOrderRequest>,
     res: Response<OrderResponse>
   ) {
-    const { id } = req.params;
+    const { orderId } = req.params;
     const changes = req.body;
 
-    const order = await orderUseCase.updateOrder(id, changes);
+    const order = await orderUseCase.updateOrder(orderId, changes);
     if (order) {
       res.json(order.toJSON());
     } else {
@@ -150,13 +150,13 @@ export class OrderController {
   }
 
   static async updateOrderStatus(
-    req: Request<{ id: string }, {}, { status: OrderStatus }>,
+    req: Request<{ orderId: string }, {}, { status: OrderStatus }>,
     res: Response<OrderResponse>
   ) {
-    const { id } = req.params;
+    const { orderId } = req.params;
     const { status } = req.body;
 
-    const order = await orderUseCase.updateOrderStatus(id, status);
+    const order = await orderUseCase.updateOrderStatus(orderId, status);
     if (order) {
       res.json(order.toJSON());
     } else {
@@ -165,13 +165,13 @@ export class OrderController {
   }
 
   static async updateOrderTable(
-    req: Request<{ id: string }, {}, { table: string }>,
+    req: Request<{ orderId: string }, {}, { table: string }>,
     res: Response<OrderResponse>
   ) {
-    const { id } = req.params;
+    const { orderId } = req.params;
     const { table } = req.body;
 
-    const order = await orderUseCase.updateOrderTable(id, table);
+    const order = await orderUseCase.updateOrderTable(orderId, table);
     if (order) {
       res.json(order.toJSON());
     } else {
@@ -180,11 +180,11 @@ export class OrderController {
   }
 
   static async deleteOrder(
-    req: Request<{ id: string }>,
+    req: Request<{ orderId: string }>,
     res: Response<{ success: boolean; message: string }>
   ) {
-    const { id } = req.params;
-    const result = await orderUseCase.deleteOrder(id);
+    const { orderId } = req.params;
+    const result = await orderUseCase.deleteOrder(orderId);
     res.json(result);
   }
 
@@ -210,29 +210,29 @@ export class OrderController {
   }
 
   static async removeOrderItem(
-    req: Request<{ id: string; dishItemId: string }>,
+    req: Request<{ orderId: string; dishItemId: string }>,
     res: Response<OrderResponse>
   ) {
-    const { id, dishItemId } = req.params;
+    const { orderId, dishItemId } = req.params;
 
-    const order = await orderUseCase.removeOrderItem(id, dishItemId);
+    const order = await orderUseCase.removeOrderItem(orderId, dishItemId);
     res.json(order.toJSON());
   }
 
   static async updateOrderItemQuantity(
     req: Request<
-      { id: string; itemId: string },
+      { orderId: string; dishItemId: string },
       {},
       UpdateOrderItemQuantityRequest
     >,
     res: Response<OrderResponse>
   ) {
-    const { id, itemId } = req.params;
+    const { orderId, dishItemId } = req.params;
     const { quantity } = req.body;
 
     const order = await orderUseCase.updateOrderItemQuantity(
-      id,
-      itemId,
+      orderId,
+      dishItemId,
       quantity
     );
     res.json(order.toJSON());
