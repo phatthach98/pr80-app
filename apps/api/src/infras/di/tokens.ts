@@ -1,5 +1,6 @@
 // Services
 export const JWT_TOKEN_SERVICE = "JwtTokenService";
+export const SOCKET_SERVICE = "SocketService";
 
 // Use Cases
 export const AUTH_USE_CASE = "AuthUseCase";

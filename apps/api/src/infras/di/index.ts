@@ -15,7 +15,7 @@ import {
   DishRepositoryImpl,
   OrderRepositoryImpl,
 } from "@infras/database/repo-impl";
-import { JwtServiceImpl } from "@infras/service";
+import { JwtServiceImpl, SocketServiceImpl } from "@infras/service";
 // Create the container instance
 export const container = new DIContainer();
 
@@ -23,6 +23,8 @@ export const container = new DIContainer();
 
 // Services (no dependencies)
 container.register(TOKENS.JWT_TOKEN_SERVICE, JwtServiceImpl);
+// Socket service depends on JWT service for authentication
+container.register(TOKENS.SOCKET_SERVICE, SocketServiceImpl, [TOKENS.JWT_TOKEN_SERVICE]);
 
 // Repositories (no dependencies)
 container.register(TOKENS.USER_REPOSITORY, UserRepoImpl);
@@ -30,6 +32,7 @@ container.register(TOKENS.ROLE_REPOSITORY, RoleRepoImpl);
 container.register(TOKENS.SETTING_REPOSITORY, SettingRepoImpl);
 container.register(TOKENS.DISH_OPTION_REPOSITORY, DishOptionRepositoryImpl);
 container.register(TOKENS.DISH_REPOSITORY, DishRepositoryImpl);
+// Order repository has no dependencies
 container.register(TOKENS.ORDER_REPOSITORY, OrderRepositoryImpl);
 
 // UseCases (with dependencies)
@@ -58,9 +61,10 @@ container.register(TOKENS.DISH_USE_CASE, DishUseCase, [
   TOKENS.DISH_OPTION_REPOSITORY,
 ]);
 
-// Register OrderUseCase with mock repository for presentation layer development
+// Register OrderUseCase with socket service for real-time updates
 container.register(TOKENS.ORDER_USE_CASE, OrderUseCase, [
   TOKENS.ORDER_REPOSITORY,
   TOKENS.DISH_REPOSITORY,
-  TOKENS.DISH_OPTION_REPOSITORY
+  TOKENS.DISH_OPTION_REPOSITORY,
+  TOKENS.SOCKET_SERVICE
 ]);

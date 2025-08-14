@@ -8,6 +8,7 @@ import {
 import { OrderRepository } from "../interface/repository/order-repo.interface";
 import { DishRepository } from "../interface/repository/dish-repo.interface";
 import { DishOptionRepository } from "../interface/repository/dish-option-repo.interface";
+import { SocketService } from "../interface/service";
 import { NotFoundError } from "@application/errors";
 import { parseDecimalSafely } from "@application/utils";
 
@@ -28,7 +29,8 @@ export class OrderUseCase {
   constructor(
     private readonly orderRepository: OrderRepository,
     private readonly dishRepository: DishRepository,
-    private readonly dishOptionRepository: DishOptionRepository
+    private readonly dishOptionRepository: DishOptionRepository,
+    private readonly socketService?: SocketService
   ) {}
 
   async getOrders() {
@@ -333,7 +335,14 @@ export class OrderUseCase {
       note
     );
 
-    return this.orderRepository.create(order);
+    const createdOrder = await this.orderRepository.create(order);
+
+    // Emit socket event for order creation
+    if (this.socketService) {
+      this.socketService.emitOrderCreated(createdOrder);
+    }
+
+    return createdOrder;
   }
 
   /**
@@ -454,6 +463,11 @@ export class OrderUseCase {
         : updatedOrder.linkedOrderId || ""
     );
 
+    // Emit socket event for order update
+    if (this.socketService && result) {
+      this.socketService.emitOrderUpdated(result);
+    }
+
     return result;
   }
 
@@ -465,7 +479,14 @@ export class OrderUseCase {
 
     order.updateStatus(newStatus);
 
-    return this.orderRepository.update(order);
+    const updatedOrder = await this.orderRepository.update(order);
+
+    // Emit socket event for order update
+    if (this.socketService && updatedOrder) {
+      this.socketService.emitOrderUpdated(updatedOrder);
+    }
+
+    return updatedOrder;
   }
 
   /**
@@ -477,7 +498,14 @@ export class OrderUseCase {
     // Update the table
     order.updateTable(newTable);
 
-    return this.orderRepository.update(order);
+    const updatedOrder = await this.orderRepository.update(order);
+
+    // Emit socket event for order update
+    if (this.socketService && updatedOrder) {
+      this.socketService.emitOrderUpdated(updatedOrder);
+    }
+
+    return updatedOrder;
   }
 
   /**
@@ -507,6 +535,11 @@ export class OrderUseCase {
     // If this was a sub-order, recalculate the main order's total
     if (mainOrderId) {
       await this.recalculateMainOrderTotal(mainOrderId);
+    }
+
+    // Emit socket event for order deletion
+    if (this.socketService) {
+      this.socketService.emitOrderDeleted(id);
     }
 
     return { success: true, message: "Order deleted successfully" };
@@ -613,6 +646,11 @@ export class OrderUseCase {
     const result = await this.orderRepository.update(updatedOrder);
     if (!result) {
       throw new Error(`Failed to update main order ${mainOrderId}`);
+    }
+
+    // Emit socket event for order update
+    if (this.socketService) {
+      this.socketService.emitOrderUpdated(result);
     }
 
     return result;
