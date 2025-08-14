@@ -142,7 +142,7 @@ export class OrderRepositoryImpl implements OrderRepository {
       }
 
       const updatedOrderEntity = this.mapToOrderEntity(updatedOrder);
-      
+
       return updatedOrderEntity;
     } catch (error) {
       console.error("Error updating order:", error);
@@ -154,7 +154,7 @@ export class OrderRepositoryImpl implements OrderRepository {
     try {
       // Delete by MongoDB _id
       const result = await OrderSchema.findOneAndDelete({ _id: id });
-      
+
       return !!result;
     } catch (error) {
       console.error("Error deleting order:", error);
@@ -191,5 +191,9 @@ export class OrderRepositoryImpl implements OrderRepository {
     (order as any).updatedAt = orderDoc.updatedAt;
 
     return order;
+  }
+
+  public mapFromDocument(orderDoc: any): Order {
+    return this.mapToOrderEntity(orderDoc);
   }
 }

@@ -11,6 +11,7 @@ import { OrderRepositoryImpl } from "../repo-impl/order-repo.impl";
  * @param socketService The socket service to emit events
  */
 let retryTimer: NodeJS.Timeout | null = null;
+// TODO: persist resume token on redis or local cache instead
 let lastResumeToken: mongoose.mongo.ResumeToken | undefined;
 
 export const setupOrderChangeStream = async (socketService: SocketService) => {
@@ -52,9 +53,7 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
             case "insert": {
               // New order created
               const orderDoc = change.fullDocument;
-              const order = await orderRepo.getOrderById(
-                orderDoc._id.toString()
-              );
+              const order = orderRepo.mapFromDocument(orderDoc);
               if (order) {
                 socketService.emitOrderCreated(
                   order,
@@ -66,9 +65,7 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
             case "update": {
               // Order updated
               const orderDoc = change.fullDocument;
-              const order = await orderRepo.getOrderById(
-                orderDoc._id.toString()
-              );
+              const order = orderRepo.mapFromDocument(orderDoc);
               if (order) {
                 socketService.emitOrderUpdated(
                   order,
