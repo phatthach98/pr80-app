@@ -10,6 +10,9 @@ import { OrderRepositoryImpl } from "../repo-impl/order-repo.impl";
  * Sets up MongoDB change streams for the Order collection or falls back to repository-based events
  * @param socketService The socket service to emit events
  */
+let retryTimer: NodeJS.Timeout | null = null;
+let lastResumeToken: mongoose.mongo.ResumeToken | undefined;
+
 export const setupOrderChangeStream = async (socketService: SocketService) => {
   try {
     // Check if MongoDB deployment supports change streams
@@ -17,16 +20,17 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
       throw new Error("MongoDB connection not established");
     }
     const admin = mongoose.connection.db.admin();
-    const serverInfo = await admin.serverInfo();
+    const helloCommand: any =
+      (await admin.command({ hello: 1 } as any).catch(() => null)) ??
+      (await admin.command({ isMaster: 1 } as any));
+    const isReplicaSet = Boolean(helloCommand?.setName);
+    const isSharded = helloCommand?.msg === "isdbgrid";
 
     // Create a new repository instance to map documents to domain entities
     const orderRepo = new OrderRepositoryImpl();
 
     // If we're in a replica set or sharded cluster, use change streams
-    if (
-      serverInfo.hasOwnProperty("replicaSet") ||
-      serverInfo.msg === "isdbgrid"
-    ) {
+    if (isReplicaSet || isSharded) {
       console.log(
         "MongoDB deployment supports change streams, setting up change stream"
       );
@@ -34,6 +38,7 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
       // Set up change stream for Order collection
       const changeStream = OrderSchema.watch([], {
         fullDocument: "updateLookup",
+        ...(lastResumeToken ? { resumeAfter: lastResumeToken } : {}),
       });
 
       // Handle change stream events
@@ -42,7 +47,7 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
           console.log(
             `Change detected in Order collection: ${change.operationType}`
           );
-
+          lastResumeToken = change._id as any;
           switch (change.operationType) {
             case "insert": {
               // New order created
@@ -97,7 +102,13 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
           console.error("Error closing change stream:", err);
         });
         // Try to resume the change stream after a delay
-        setTimeout(() => setupOrderChangeStream(socketService), 5000);
+        if (retryTimer) {
+          clearTimeout(retryTimer);
+        }
+        retryTimer = setTimeout(
+          () => setupOrderChangeStream(socketService),
+          5000
+        );
       });
 
       return changeStream;
