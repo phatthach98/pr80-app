@@ -3,7 +3,7 @@ import { Server as HttpServer } from "http";
 import {
   SocketService,
   SocketEventSource,
-  SocketEvents
+  SocketEvents,
 } from "@application/interface/service";
 import { Order } from "@domain/entity/order";
 import { JwtTokenService } from "@application/interface/service";
@@ -21,6 +21,9 @@ export class SocketServiceImpl implements SocketService {
     server: HttpServer,
     eventSource: SocketEventSource = SocketEventSource.USE_CASE
   ): void {
+    if (this.io) {
+      this.close();
+    }
     this.eventSource = eventSource;
     this.io = new SocketIOServer(server, {
       cors: {
@@ -33,7 +36,7 @@ export class SocketServiceImpl implements SocketService {
     // Socket middleware for authentication
     this.io.use(async (socket, next) => {
       try {
-        const token = socket.handshake.headers.token as string;
+        const token = socket.handshake.headers.authorization?.split(" ")[1];
         if (!token) {
           return next(new Error("Authentication error: Token not provided"));
         }
@@ -47,7 +50,9 @@ export class SocketServiceImpl implements SocketService {
         socket.data.user = decoded;
         return next();
       } catch (error) {
-        return next(new Error("Authentication error"));
+        return next(
+          new Error("Authentication error: Invalid or expired token")
+        );
       }
     });
 
@@ -55,14 +60,16 @@ export class SocketServiceImpl implements SocketService {
     this.io.on("connection", (socket) => {
       console.log(`User connected: ${socket.id}`);
       socket.join(SocketEvents.ROOMS.ORDERS);
-      console.log(`User ${socket.id} subscribe to ${SocketEvents.ROOMS.ORDERS}`);
-
-    
+      console.log(
+        `User ${socket.id} subscribe to ${SocketEvents.ROOMS.ORDERS}`
+      );
 
       // Handle disconnection
       socket.on("disconnect", () => {
         socket.leave(SocketEvents.ROOMS.ORDERS);
-        console.log(`User ${socket.id} unsubscribed from ${SocketEvents.ROOMS.ORDERS}`);
+        console.log(
+          `User ${socket.id} unsubscribed from ${SocketEvents.ROOMS.ORDERS}`
+        );
         console.log(`User disconnected: ${socket.id}`);
       });
     });
@@ -81,7 +88,9 @@ export class SocketServiceImpl implements SocketService {
 
     // Only emit events from the configured source to prevent duplicates
     if (source === this.eventSource) {
-      this.io.to(SocketEvents.ROOMS.ORDERS).emit(SocketEvents.ORDER.CREATED, order);
+      this.io
+        .to(SocketEvents.ROOMS.ORDERS)
+        .emit(SocketEvents.ORDER.CREATED, order);
       console.log(
         `Order created event emitted from ${source} source for order ${order.id}`
       );
@@ -99,7 +108,9 @@ export class SocketServiceImpl implements SocketService {
 
     // Only emit events from the configured source to prevent duplicates
     if (source === this.eventSource) {
-      this.io.to(SocketEvents.ROOMS.ORDERS).emit(SocketEvents.ORDER.UPDATED, order);
+      this.io
+        .to(SocketEvents.ROOMS.ORDERS)
+        .emit(SocketEvents.ORDER.UPDATED, order);
       console.log(
         `Order updated event emitted from ${source} source for order ${order.id}`
       );
@@ -117,7 +128,9 @@ export class SocketServiceImpl implements SocketService {
 
     // Only emit events from the configured source to prevent duplicates
     if (source === this.eventSource) {
-      this.io.to(SocketEvents.ROOMS.ORDERS).emit(SocketEvents.ORDER.DELETED, { id: orderId });
+      this.io
+        .to(SocketEvents.ROOMS.ORDERS)
+        .emit(SocketEvents.ORDER.DELETED, { id: orderId });
       console.log(
         `Order deleted event emitted from ${source} source for order ${orderId}`
       );

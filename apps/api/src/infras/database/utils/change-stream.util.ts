@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
-import { SocketService, SocketEventSource } from "@application/interface/service";
+import {
+  SocketService,
+  SocketEventSource,
+} from "@application/interface/service";
 import { OrderSchema } from "../schemas/order-schema";
 import { OrderRepositoryImpl } from "../repo-impl/order-repo.impl";
 
@@ -15,45 +18,67 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
     }
     const admin = mongoose.connection.db.admin();
     const serverInfo = await admin.serverInfo();
-    
+
     // Create a new repository instance to map documents to domain entities
     const orderRepo = new OrderRepositoryImpl();
-    
+
     // If we're in a replica set or sharded cluster, use change streams
-    if (serverInfo.hasOwnProperty('replicaSet') || serverInfo.msg === 'isdbgrid') {
-      console.log("MongoDB deployment supports change streams, setting up change stream");
-      
+    if (
+      serverInfo.hasOwnProperty("replicaSet") ||
+      serverInfo.msg === "isdbgrid"
+    ) {
+      console.log(
+        "MongoDB deployment supports change streams, setting up change stream"
+      );
+
       // Set up change stream for Order collection
-      const changeStream = OrderSchema.watch([], { fullDocument: "updateLookup" });
+      const changeStream = OrderSchema.watch([], {
+        fullDocument: "updateLookup",
+      });
 
       // Handle change stream events
       changeStream.on("change", async (change) => {
         try {
-          console.log(`Change detected in Order collection: ${change.operationType}`);
+          console.log(
+            `Change detected in Order collection: ${change.operationType}`
+          );
 
           switch (change.operationType) {
             case "insert": {
               // New order created
-                        const orderDoc = change.fullDocument;
-          const order = await orderRepo.getOrderById(orderDoc._id.toString());
-          if (order) {
-            socketService.emitOrderCreated(order, SocketEventSource.CHANGE_STREAM);
-          }
+              const orderDoc = change.fullDocument;
+              const order = await orderRepo.getOrderById(
+                orderDoc._id.toString()
+              );
+              if (order) {
+                socketService.emitOrderCreated(
+                  order,
+                  SocketEventSource.CHANGE_STREAM
+                );
+              }
               break;
             }
             case "update": {
               // Order updated
-                        const orderDoc = change.fullDocument;
-          const order = await orderRepo.getOrderById(orderDoc._id.toString());
-          if (order) {
-            socketService.emitOrderUpdated(order, SocketEventSource.CHANGE_STREAM);
-          }
+              const orderDoc = change.fullDocument;
+              const order = await orderRepo.getOrderById(
+                orderDoc._id.toString()
+              );
+              if (order) {
+                socketService.emitOrderUpdated(
+                  order,
+                  SocketEventSource.CHANGE_STREAM
+                );
+              }
               break;
             }
             case "delete": {
               // Order deleted
-                        const orderId = change.documentKey._id.toString();
-          socketService.emitOrderDeleted(orderId, SocketEventSource.CHANGE_STREAM);
+              const orderId = change.documentKey._id.toString();
+              socketService.emitOrderDeleted(
+                orderId,
+                SocketEventSource.CHANGE_STREAM
+              );
               break;
             }
             default:
@@ -68,6 +93,9 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
       // Handle errors
       changeStream.on("error", (error) => {
         console.error("Error in order change stream:", error);
+        changeStream.close().catch((err) => {
+          console.error("Error closing change stream:", err);
+        });
         // Try to resume the change stream after a delay
         setTimeout(() => setupOrderChangeStream(socketService), 5000);
       });
@@ -75,9 +103,11 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
       return changeStream;
     } else {
       // Standalone MongoDB instance - fallback to repository-based events
-      console.log("MongoDB deployment does not support change streams (standalone server)");
+      console.log(
+        "MongoDB deployment does not support change streams (standalone server)"
+      );
       console.log("Using repository-based events as fallback mechanism");
-      
+
       // The socket events will be emitted directly from the repository methods
       // No change stream to return
       return null;
@@ -93,9 +123,16 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
  * Closes a MongoDB change stream
  * @param changeStream The change stream to close
  */
-export const closeChangeStream = async (changeStream: mongoose.mongo.ChangeStream | null) => {
+export const closeChangeStream = async (
+  changeStream: mongoose.mongo.ChangeStream | null
+) => {
   if (changeStream) {
-    await changeStream.close();
-    console.log("Change stream closed");
+    try {
+      await changeStream.close();
+      console.log("Change stream closed");
+    } catch (error) {
+      console.error("Error closing change stream:", error);
+      throw error;
+    }
   }
 };
