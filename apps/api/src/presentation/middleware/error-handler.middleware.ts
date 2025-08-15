@@ -1,6 +1,7 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { AppError } from "@application/errors";
 import { ApiResponseUtil } from "@application/utils";
+import { ErrorCode } from "@application/errors/error-codes";
 
 export const errorHandler = (
   err: Error,
@@ -17,7 +18,7 @@ export const errorHandler = (
     return ApiResponseUtil.sendError(
       res,
       err.message,
-      err.constructor.name.replace('Error', ''),
+      err.errorCode,
       err.statusCode,
       undefined,
       req.originalUrl
@@ -39,7 +40,7 @@ export const errorHandler = (
   return ApiResponseUtil.sendError(
     res,
     message,
-    'InternalServerError',
+    ErrorCode.INTERNAL_SERVER_ERROR,
     500,
     process.env.NODE_ENV !== "production" ? { stack: err.stack } : undefined,
     req.originalUrl
