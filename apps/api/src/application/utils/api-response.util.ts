@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response } from "express";
 
 export interface ApiSuccessResponse<T> {
   success: true;
@@ -17,29 +17,32 @@ export interface ApiSuccessResponse<T> {
 export interface ApiErrorResponse {
   success: false;
   error: {
-    code: string;       // Application-specific error code
-    message: string;    // User-friendly error message
-    details?: any;      // Additional error details (validation errors, etc.)
+    code: string; // Application-specific error code
+    message: string; // User-friendly error message
+    details?: any; // Additional error details (validation errors, etc.)
   };
-  timestamp: string;    // ISO timestamp of when the error occurred
-  path?: string;        // Request path that caused the error
+  timestamp: string; // ISO timestamp of when the error occurred
+  path?: string; // Request path that caused the error
 }
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 export class ApiResponseUtil {
-  static success<T>(data: T, meta?: Record<string, any>): ApiSuccessResponse<T> {
+  static success<T>(
+    data: T,
+    meta?: Record<string, any>
+  ): ApiSuccessResponse<T> {
     return {
       success: true,
       data,
-      ...(meta ? { meta } : {})
+      ...(meta ? { meta } : {}),
     };
   }
 
   static paginated<T>(
-    data: T[], 
-    page: number, 
-    limit: number, 
+    data: T[],
+    page: number,
+    limit: number,
     total: number,
     additionalMeta?: Record<string, any>
   ): ApiSuccessResponse<T[]> {
@@ -51,16 +54,16 @@ export class ApiResponseUtil {
           page,
           limit,
           total,
-          totalPages: Math.ceil(total / limit)
+          totalPages: Math.ceil(total / limit),
         },
-        ...(additionalMeta || {})
-      }
+        ...(additionalMeta || {}),
+      },
     };
   }
 
   static error(
-    message: string, 
-    code: string, 
+    message: string,
+    code: string,
     details?: any,
     path?: string
   ): ApiErrorResponse {
@@ -69,17 +72,22 @@ export class ApiResponseUtil {
       error: {
         code,
         message,
-        ...(details ? { details } : {})
+        ...(details ? { details } : {}),
       },
       timestamp: new Date().toISOString(),
-      ...(path ? { path } : {})
+      ...(path ? { path } : {}),
     };
   }
 
   /**
    * Send a success response
    */
-  static sendSuccess<T>(res: Response, data: T, statusCode: number = 200, meta?: Record<string, any>): Response {
+  static sendSuccess<T>(
+    res: Response,
+    data: T,
+    statusCode: number = 200,
+    meta?: Record<string, any>
+  ): Response {
     return res.status(statusCode).json(this.success(data, meta));
   }
 
@@ -87,15 +95,17 @@ export class ApiResponseUtil {
    * Send a paginated response
    */
   static sendPaginated<T>(
-    res: Response, 
-    data: T[], 
-    page: number, 
-    limit: number, 
-    total: number, 
+    res: Response,
+    data: T[],
+    page: number,
+    limit: number,
+    total: number,
     statusCode: number = 200,
     additionalMeta?: Record<string, any>
   ): Response {
-    return res.status(statusCode).json(this.paginated(data, page, limit, total, additionalMeta));
+    return res
+      .status(statusCode)
+      .json(this.paginated(data, page, limit, total, additionalMeta));
   }
 
   /**
@@ -109,9 +119,8 @@ export class ApiResponseUtil {
     details?: any,
     path?: string
   ): Response {
-    return res.status(statusCode).json(this.error(message, code, details, path));
+    return res
+      .status(statusCode)
+      .json(this.error(message, code, details, path));
   }
 }
-
-// Add to index.ts
-export * from './api-response.util';
