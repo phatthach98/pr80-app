@@ -1,5 +1,6 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { AppError } from "@application/errors";
+import { ApiResponseUtil } from "@application/utils";
 
 export const errorHandler = (
   err: Error,
@@ -13,9 +14,14 @@ export const errorHandler = (
 
   // Check if the error is a known, custom error from our application
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      message: err.message,
-    });
+    return ApiResponseUtil.sendError(
+      res,
+      err.message,
+      err.constructor.name.replace('Error', ''),
+      err.statusCode,
+      undefined,
+      req.originalUrl
+    );
   }
 
   // Fallback for unexpected or unhandled errors (Programmer/System Errors)
@@ -24,9 +30,18 @@ export const errorHandler = (
     process.env.NODE_ENV === "production"
       ? "An internal server error occurred"
       : err.message; // Show detailed message only in development
+  
   // Log the error stack for server-side observation
   if (err.stack) {
     console.error("Error stack:", err.stack);
   }
-  return res.status(500).json({ message });
+  
+  return ApiResponseUtil.sendError(
+    res,
+    message,
+    'InternalServerError',
+    500,
+    process.env.NODE_ENV !== "production" ? { stack: err.stack } : undefined,
+    req.originalUrl
+  );
 };

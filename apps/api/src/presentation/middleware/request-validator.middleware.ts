@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
+import { ApiResponseUtil } from "@application/utils";
 
 export const requestValidator = (
   req: Request,
@@ -8,7 +9,14 @@ export const requestValidator = (
 ) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return ApiResponseUtil.sendError(
+      res,
+      "Validation failed",
+      "ValidationError",
+      400,
+      errors.array(),
+      req.originalUrl
+    );
   }
   next();
 }; 
