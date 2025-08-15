@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { connectToDB } from "@infras/database/connection";
 import { authRouter } from "@presentation/router/auth.router";
 import { errorHandler } from "@presentation/middleware/error-handler.middleware";
+import { responseInterceptor } from "@presentation/middleware/response-interceptor.middleware";
 import { userRouter } from "@presentation/router/user.router";
 import { roleRouter } from "@presentation/router/role.router";
 import { settingRouter } from "@presentation/router/setting.router";
@@ -35,6 +36,10 @@ const authenticateRequest = authMiddlewareFactory(jwtService);
 const startServer = async () => {
   try {
     await connectToDB();
+    
+    // Apply the response interceptor middleware before routes
+    app.use(responseInterceptor);
+    
     app.use(`/api/health`, (req, res) => {
       res.send("OK");
     });
