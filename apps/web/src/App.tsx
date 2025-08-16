@@ -1,4 +1,4 @@
-import { Button, Input } from "@/components";
+import { Button, Input } from '@/components';
 
 const App = () => {
   return (
