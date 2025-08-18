@@ -13,7 +13,7 @@
   "aliases": {
     "components": "@/components",
     "utils": "@/tailwind/utils",
-    "ui": "components",
+    "ui": "@/components/ui",
     "lib": "@/tailwind",
     "hooks": "@/hooks"
   },

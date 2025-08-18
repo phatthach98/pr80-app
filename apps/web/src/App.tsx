@@ -1,12 +1,32 @@
-import { Button, Input } from '@/components';
+import { createRouter, RouterProvider } from '@tanstack/react-router';
+import { routeTree } from './routeTree.gen';
+import { AuthProvider, useAuth } from './presentation/providers';
+
+const router = createRouter({
+  routeTree,
+  defaultPreload: 'intent',
+  scrollRestoration: true,
+  context: {
+    auth: undefined!,
+  },
+});
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+const AppRouter = () => {
+  const auth = useAuth();
+  return <RouterProvider router={router} context={{ auth }} />;
+};
 
 const App = () => {
   return (
-    <div>
-      <h1>Hello World</h1>
-      <Button>Click me</Button>
-      <Input placeholder="Enter your name" />
-    </div>
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
   );
 };
 
