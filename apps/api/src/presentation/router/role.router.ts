@@ -4,7 +4,7 @@ import { RoleController } from "@presentation/role.controller";
 import {
   createRoleValidator,
   updateRolePermissionsValidator,
-} from "@presentation/dto/role.dto";
+} from "@presentation/validators/role.validator";
 import { requestValidator } from "@presentation/middleware/request-validator.middleware";
 
 export const roleRouter = Router();

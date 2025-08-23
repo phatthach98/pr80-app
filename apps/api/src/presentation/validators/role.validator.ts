@@ -1,17 +1,6 @@
 import { body, param } from "express-validator";
 import { Permission } from "@domain/entity/permission";
-import { ROLE_NAME, ROLE_NAME_VALUES } from "@domain/entity/role";
-
-export interface CreateRoleDto {
-  name: ROLE_NAME;
-  description: string;
-  permissions: string[];
-}
-
-export interface UpdateRolePermissionsDto {
-  roleId: string;
-  permissions: string[];
-}
+import { ROLE_NAME_VALUES } from "@pr80-app/shared-contracts";
 
 export const createRoleValidator = [
   body("name")
@@ -35,6 +24,7 @@ export const createRoleValidator = [
     .withMessage("At least one permission is required.")
     .custom((permissions: string[]) => {
       try {
+        // Domain validation logic stays in API layer
         permissions.forEach(Permission.fromString);
         return true;
       } catch (error: any) {
@@ -56,6 +46,7 @@ export const updateRolePermissionsValidator = [
     .withMessage("At least one permission is required.")
     .custom((permissions: string[]) => {
       try {
+        // Domain validation logic stays in API layer
         permissions.forEach(Permission.fromString);
         return true;
       } catch (error: any) {

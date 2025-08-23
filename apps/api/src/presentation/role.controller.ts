@@ -2,13 +2,13 @@ import { Request, Response } from "express";
 import { RoleUseCase } from "@application/use-case";
 import { container } from "@infras/di";
 import { ROLE_USE_CASE } from "@infras/di/tokens";
-import { CreateRoleDto, UpdateRolePermissionsDto } from "./dto/role.dto";
+import { CreateRoleRequestDTO, UpdateRolePermissionsRequestDTO } from "@pr80-app/shared-contracts";
 import { Permission } from "@domain/entity/permission";
 
 const roleUseCase = container.resolve<RoleUseCase>(ROLE_USE_CASE);
 
 export class RoleController {
-  static async createRole(req: Request<{}, {}, CreateRoleDto>, res: Response) {
+  static async createRole(req: Request<{}, {}, CreateRoleRequestDTO>, res: Response) {
     const { name, description, permissions } = req.body;
 
     const permissionEntities = permissions.map(Permission.fromString);
@@ -22,7 +22,7 @@ export class RoleController {
   }
 
   static async updatePermissions(
-    req: Request<{}, {}, UpdateRolePermissionsDto>,
+    req: Request<{}, {}, UpdateRolePermissionsRequestDTO>,
     res: Response
   ) {
     const { roleId, permissions } = req.body;

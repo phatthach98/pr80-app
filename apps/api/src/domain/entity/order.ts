@@ -1,5 +1,6 @@
 import { parseDecimalSafely } from "@application/utils";
 import { v4 as uuid } from "uuid";
+import { OrderStatus, OrderType } from "@pr80-app/shared-contracts";
 
 // Define the OrderDishItem interface
 export interface OrderDishItem {
@@ -14,21 +15,6 @@ export interface OrderDishItem {
     readonly extraPrice: string; // Make extraPrice readonly as well
   }[];
   takeAway: boolean;
-}
-
-// Define the OrderStatus enum
-export enum OrderStatus {
-  PENDING = "pending",
-  WAITING = "waiting",
-  COOKED = "cooked",
-  SERVED = "served",
-  PAID = "paid",
-}
-
-// Define the OrderType enum
-export enum OrderType {
-  MAIN = "main",
-  SUB = "sub",
 }
 
 export class Order {

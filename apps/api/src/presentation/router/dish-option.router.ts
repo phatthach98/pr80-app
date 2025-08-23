@@ -6,7 +6,7 @@ import {
   createDishOptionValidator, 
   updateDishOptionValidator, 
   dishOptionIdValidator 
-} from "../dto/dish-option.dto";
+} from "../validators/dish-option.validator";
 
 export const dishOptionRouter = Router();
 

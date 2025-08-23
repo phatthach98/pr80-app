@@ -1,22 +1,5 @@
-import { ROLE_NAME } from "@domain/entity/role";
+import { ROLE_NAME_VALUES } from "@pr80-app/shared-contracts";
 import { body, query } from "express-validator";
-
-export interface CreateUserDto {
-  name: string;
-  phoneNumber: string;
-  passCode: string;
-  roleIds: string[];
-}
-
-export interface AssignRoleDto {
-  userId: string;
-  roleName: ROLE_NAME;
-}
-
-export interface GetUsersDto {
-  page: number;
-  limit: number;
-}
 
 export const createUserValidator = [
   body("name")
@@ -47,9 +30,9 @@ export const assignRoleValidator = [
   body("roleName")
     .notEmpty()
     .withMessage("Role name is required.")
-    .isIn(Object.values(ROLE_NAME))
+    .isIn(ROLE_NAME_VALUES)
     .withMessage(
-      `Role name must be one of: ${Object.values(ROLE_NAME).join(", ")}`
+      `Role name must be one of: ${ROLE_NAME_VALUES.join(", ")}`
     ),
 ];
 
