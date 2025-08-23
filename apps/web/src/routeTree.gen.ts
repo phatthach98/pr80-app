@@ -8,11 +8,11 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as PublicRouteImport } from './routes/_public'
-import { Route as AuthRouteImport } from './routes/_auth'
-import { Route as PublicLoginRouteImport } from './routes/_public/login'
-import { Route as AuthOrdersRouteImport } from './routes/_auth/orders'
+import { Route as rootRouteImport } from './presentation/routes/__root'
+import { Route as PublicRouteImport } from './presentation/routes/_public'
+import { Route as AuthRouteImport } from './presentation/routes/_auth'
+import { Route as PublicLoginRouteImport } from './presentation/routes/_public/login'
+import { Route as AuthOrdersRouteImport } from './presentation/routes/_auth/orders'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
