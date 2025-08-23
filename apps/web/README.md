@@ -9,7 +9,7 @@ This web application follows **Clean Architecture** with **Domain-Driven Design*
 ```
 src/
 ├── domain/                    # 🏛️ Business Logic (Models & Domain Services)
-├── application/              # 🎯 Use Cases & Application Logic  
+├── application/              # 🎯 Use Cases & Application Logic
 ├── presentation/             # 🌐 UI Components & React Logic
 ├── infrastructure/           # ⚙️ External Services & Store Implementations
 └── shared/                   # 🔧 Shared Utilities & UI Components
@@ -24,6 +24,7 @@ Infrastructure → Application
 ```
 
 **Key Rules:**
+
 - Inner layers NEVER depend on outer layers
 - **Domain** has no external dependencies (pure business logic)
 - **Application** defines interfaces; **Infrastructure** implements them
@@ -32,6 +33,7 @@ Infrastructure → Application
 ## 📁 Detailed Structure Guide
 
 ### 🏛️ Domain Layer (`/domain`)
+
 **Pure business logic with zero external dependencies**
 
 ```
@@ -52,18 +54,21 @@ domain/
 ```
 
 **What belongs here:**
+
 - **Models**: Business entities with validation and business rules
 - **Domain Services**: Complex business logic spanning multiple models
 - **Business Rules**: Core validation and calculations
 - **Domain Types**: Enums and types specific to business logic
 
 **Key characteristics:**
+
 - No imports from outer layers
 - No framework dependencies (React, API calls, etc.)
 - Pure TypeScript/JavaScript business logic
 - Contains core business rules and validation
 
 ### 🎯 Application Layer (`/application`)
+
 **Orchestrates business workflows and defines external contracts**
 
 ```
@@ -73,7 +78,7 @@ application/
 │   │   ├── IOrderStore.ts
 │   │   ├── IUserStore.ts
 │   │   └── IProductStore.ts
-│   ├── repositories/       # Repository contracts  
+│   ├── repositories/       # Repository contracts
 │   │   ├── IOrderRepository.ts
 │   │   ├── IUserRepository.ts
 │   │   └── IProductRepository.ts
@@ -96,12 +101,14 @@ application/
 ```
 
 **What belongs here:**
+
 - **Interfaces**: All contracts for repositories and external services
 - **Use Cases**: Application-specific business workflows
 - **Business Workflows**: User stories and application operations
 - **Dependency Contracts**: What the application needs from external world
 
 **Key characteristics:**
+
 - Defines what the application needs from external systems
 - Orchestrates domain models and services
 - Contains application-specific business rules
@@ -109,6 +116,7 @@ application/
 - Use cases receive dependencies via dependency injection
 
 ### 🌐 Presentation Layer (`/presentation`)
+
 **React components and UI logic**
 
 ```
@@ -146,6 +154,7 @@ presentation/
 ```
 
 **What belongs here:**
+
 - **Hooks**: Connect use cases to React components
 - **Components**: Feature-specific React components
 - **Pages**: Top-level page components that compose features
@@ -153,12 +162,14 @@ presentation/
 - **React Providers**: Context providers for cross-cutting concerns
 
 **Key characteristics:**
+
 - Handles React-specific concerns (state, effects, rendering)
 - Formats data for display and handles user interactions
 - Calls use cases through dependency injection
 - No direct business logic - delegates to application layer
 
 ### ⚙️ Infrastructure Layer (`/infrastructure`)
+
 **External system implementations and concrete services**
 
 ```
@@ -186,18 +197,21 @@ infrastructure/
 ```
 
 **What belongs here:**
+
 - **Store Implementations**: Concrete state management (Zustand, Redux, etc.)
 - **Repository Implementations**: Actual API communication
 - **External Services**: Third-party integrations
 - **Configuration**: App configuration and setup
 
 **Key characteristics:**
+
 - Implements interfaces defined in application layer
 - Contains all external system integrations
 - Framework-specific code (HTTP clients, state libraries)
 - Most likely to change when switching technologies
 
 ### 🔧 Shared Layer (`/shared`)
+
 **Reusable utilities and UI components**
 
 ```
@@ -221,6 +235,7 @@ shared/
 ### Setup
 
 Install dependencies:
+
 ```bash
 pnpm install
 ```
@@ -228,6 +243,7 @@ pnpm install
 ### Development
 
 Start the dev server:
+
 ```bash
 pnpm dev
 ```
@@ -235,11 +251,13 @@ pnpm dev
 ### Build
 
 Build for production:
+
 ```bash
 pnpm build
 ```
 
 Preview production build:
+
 ```bash
 pnpm preview
 ```
@@ -251,6 +269,7 @@ pnpm preview
 Follow this step-by-step workflow to maintain Clean Architecture principles:
 
 #### 1. **Start with Domain Model** 🏛️
+
 Create the core business entity with validation rules and business methods.
 
 ```bash
@@ -264,7 +283,7 @@ export class Product {
     public readonly id: string,
     public name: string,
     public price: number,
-    public stockQuantity: number = 0
+    public stockQuantity: number = 0,
   ) {
     this.validateProduct();
   }
@@ -286,6 +305,7 @@ export class Product {
 ```
 
 #### 2. **Define Application Interfaces** 🎯
+
 Create contracts for external dependencies.
 
 ```bash
@@ -294,6 +314,7 @@ touch src/application/interfaces/repositories/IProductRepository.ts
 ```
 
 #### 3. **Create Use Case** 🎯
+
 Implement the business workflow with dependency injection.
 
 ```bash
@@ -314,7 +335,7 @@ export class CreateProductUseCase {
   async execute(data: CreateProductData): Promise<Product> {
     // Business logic using domain models
     const product = new Product(generateId(), data.name, data.price);
-    
+
     // Orchestrate external services
     this.deps.productStore.setLoading(true);
     try {
@@ -330,6 +351,7 @@ export class CreateProductUseCase {
 ```
 
 #### 4. **Create React Hook** 🌐
+
 Connect the use case to React components.
 
 ```bash
@@ -340,25 +362,29 @@ touch src/presentation/hooks/useProducts.ts
 // src/presentation/hooks/useProducts.ts
 export const useProducts = () => {
   const { createProductUseCase, productStore } = useContainer();
-  
-  const createProduct = useCallback(async (data: ProductFormData) => {
-    // Handle UI concerns: validation, formatting, error handling
-    const errors = validateProductForm(data);
-    if (errors.length > 0) return { errors };
-    
-    const product = await createProductUseCase.execute(data);
-    return { product };
-  }, [createProductUseCase]);
+
+  const createProduct = useCallback(
+    async (data: ProductFormData) => {
+      // Handle UI concerns: validation, formatting, error handling
+      const errors = validateProductForm(data);
+      if (errors.length > 0) return { errors };
+
+      const product = await createProductUseCase.execute(data);
+      return { product };
+    },
+    [createProductUseCase],
+  );
 
   return {
     products: productStore.getProducts(),
     loading: productStore.isLoading(),
-    createProduct
+    createProduct,
   };
 };
 ```
 
 #### 5. **Create React Component** 🌐
+
 Build the UI component that uses the hook.
 
 ```bash
@@ -366,6 +392,7 @@ touch src/presentation/components/products/ProductForm.tsx
 ```
 
 #### 6. **Implement Infrastructure** ⚙️
+
 Create concrete implementations for stores and repositories.
 
 ```bash
@@ -374,6 +401,7 @@ touch src/infrastructure/repositories/ProductRepository.ts
 ```
 
 #### 7. **Wire Dependencies** 🔧
+
 Add dependencies to the DI container.
 
 ```typescript
@@ -383,14 +411,15 @@ export const container = {
   createProductUseCase: new CreateProductUseCase({
     productStore,
     productRepository,
-    notificationService
-  })
+    notificationService,
+  }),
 };
 ```
 
 ## 🧪 Testing Strategy
 
 ### Testing Each Layer
+
 - **Domain Models**: Test business rules and validation in isolation
 - **Use Cases**: Test with mocked dependencies (stores/repositories/services)
 - **Hooks**: Test UI logic with mocked use cases
@@ -398,6 +427,7 @@ export const container = {
 - **Infrastructure**: Integration tests with real external systems
 
 ### Test Structure
+
 ```bash
 src/
 ├── domain/models/__tests__/
@@ -410,6 +440,7 @@ src/
 ## 🎯 Best Practices
 
 ### ✅ DO
+
 - Keep domain models pure (no external dependencies)
 - Inject dependencies through interfaces
 - Use dependency injection for loose coupling
@@ -418,6 +449,7 @@ src/
 - Use TypeScript for better type safety
 
 ### ❌ DON'T
+
 - Import infrastructure in domain/application layers
 - Put business logic in React components or hooks
 - Create "God" classes with too many responsibilities

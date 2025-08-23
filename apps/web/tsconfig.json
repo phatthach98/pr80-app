@@ -18,11 +18,9 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/components": ["components/index"],
-      "@/lib/*": ["./lib/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]
