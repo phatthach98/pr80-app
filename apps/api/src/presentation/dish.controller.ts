@@ -3,23 +3,23 @@ import { DishUseCase } from "@application/use-case";
 import { DISH_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
 import {
-  CreateDishRequest,
-  DishResponse,
-  DishWithOptionsResponse,
-  UpdateDishRequest,
-} from "./dto/dish.dto";
+  CreateDishRequestDTO,
+  DishResponseDTO,
+  DishWithOptionsResponseDTO,
+  UpdateDishRequestDTO,
+} from "@pr80-app/shared-contracts";
 
 const dishUseCase = container.resolve<DishUseCase>(DISH_USE_CASE);
 
 export class DishController {
-  static async getDishes(req: Request, res: Response<DishResponse[]>) {
+  static async getDishes(req: Request, res: Response<DishResponseDTO[]>) {
     const dishes = await dishUseCase.getDishes();
     res.json(dishes ? dishes.map((dish) => dish.toJSON()) : []);
   }
 
   static async getDishById(
     req: Request<{ id: string }, {}, {}, { includeOptions?: string }>,
-    res: Response<DishResponse | DishWithOptionsResponse>
+    res: Response<DishResponseDTO | DishWithOptionsResponseDTO>
   ) {
     const { id } = req.params;
     const includeOptions = req.query.includeOptions === 'true';
@@ -36,8 +36,8 @@ export class DishController {
   }
 
   static async createDish(
-    req: Request<{}, {}, CreateDishRequest>,
-    res: Response<DishResponse>
+    req: Request<{}, {}, CreateDishRequestDTO>,
+    res: Response<DishResponseDTO>
   ) {
     const { name, description, price, options } = req.body;
     const dish = await dishUseCase.createDish(
@@ -50,8 +50,8 @@ export class DishController {
   }
 
   static async updateDish(
-    req: Request<{ id: string }, {}, UpdateDishRequest>,
-    res: Response<DishResponse>
+    req: Request<{ id: string }, {}, UpdateDishRequestDTO>,
+    res: Response<DishResponseDTO>
   ) {
     const { id } = req.params;
     const dish = await dishUseCase.updateDish(id, req.body);
@@ -66,7 +66,7 @@ export class DishController {
 
   static async addOptionToDish(
     req: Request<{ id: string; optionId: string }>,
-    res: Response<DishResponse>
+    res: Response<DishResponseDTO>
   ) {
     const { id, optionId } = req.params;
     const dish = await dishUseCase.addOptionToDish(id, optionId);
@@ -75,7 +75,7 @@ export class DishController {
 
   static async removeOptionFromDish(
     req: Request<{ id: string; optionId: string }>,
-    res: Response<DishResponse>
+    res: Response<DishResponseDTO>
   ) {
     const { id, optionId } = req.params;
     const dish = await dishUseCase.removeOptionFromDish(id, optionId);

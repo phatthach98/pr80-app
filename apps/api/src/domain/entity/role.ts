@@ -1,13 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { Permission } from "./permission";
-
-export enum ROLE_NAME {
-  ADMIN = "admin",
-  WAITER = "waiter",
-  CHEF = "chef",
-}
-
-export const ROLE_NAME_VALUES = Object.values(ROLE_NAME);
+import { ROLE_NAME } from "@pr80-app/shared-contracts";
 
 export class Role {
   public id: string;

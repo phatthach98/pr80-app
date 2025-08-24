@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { SelectOptionWithPrice } from "../../types";
+import { SelectOptionWithPrice } from "@pr80-app/shared-contracts";
 
 export class DishOption {
   public id: string;

@@ -4,15 +4,15 @@ import { container } from "@infras/di";
 
 import { Request, Response } from "express";
 import {
-  AssignRoleDto,
-  CreateUserDto,
-  GetUsersDto,
-} from "@presentation/dto/user.dto";
+  AssignRoleRequestDTO,
+  CreateUserRequestDTO,
+  GetUsersRequestDTO,
+} from "@pr80-app/shared-contracts";
 
 const userUseCase = container.resolve<UserUseCase>(USER_USE_CASE);
 
 export class UserController {
-  static async create(req: Request<{}, {}, CreateUserDto>, res: Response) {
+  static async create(req: Request<{}, {}, CreateUserRequestDTO>, res: Response) {
     const { phoneNumber, passCode, roleIds, name } = req.body;
 
     const user = await userUseCase.createUser(
@@ -26,7 +26,7 @@ export class UserController {
     res.status(201).json(user.toJSON());
   }
 
-  static async assignRole(req: Request<{}, {}, AssignRoleDto>, res: Response) {
+  static async assignRole(req: Request<{}, {}, AssignRoleRequestDTO>, res: Response) {
     const { userId, roleName } = req.body;
 
     await userUseCase.assignRoleToUser(userId, roleName);
@@ -34,7 +34,7 @@ export class UserController {
     res.status(200).json({ message: "Role assigned successfully" });
   }
 
-  static async getAll(req: Request<{}, {}, GetUsersDto>, res: Response) {
+  static async getAll(req: Request<{}, {}, GetUsersRequestDTO>, res: Response) {
     const { page = 1, limit = 20 } = req.query;
 
     const users = await userUseCase.getUsers(Number(page), Number(limit));

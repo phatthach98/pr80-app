@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { asyncHandler } from "@presentation/middleware/async-handler.middleware";
 import { DishController } from "@presentation/dish.controller";
-import { createDishValidator, updateDishValidator } from "@presentation/dto/dish.dto";
+import { createDishValidator, updateDishValidator } from "@presentation/validators/dish.validator";
 import { requestValidator } from "@presentation/middleware/request-validator.middleware";
 
 export const dishRouter = Router();

@@ -2,29 +2,29 @@ import { Request, Response } from "express";
 import { OrderUseCase } from "@application/use-case";
 import { ORDER_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
-import { OrderStatus, OrderType } from "@domain/entity/order";
+import { OrderStatus, OrderType } from "@pr80-app/shared-contracts";
 import {
-  OrderResponse,
-  CreateOrderRequest,
-  UpdateOrderRequest,
-  CreateAdditionalOrderRequest,
-  AddOrderItemRequest,
-  UpdateOrderItemQuantityRequest,
-} from "./dto/order.dto";
+  OrderResponseDTO,
+  CreateOrderRequestDTO,
+  UpdateOrderRequestDTO,
+  CreateAdditionalOrderRequestDTO,
+  AddOrderItemRequestDTO,
+  UpdateOrderItemQuantityRequestDTO,
+} from "@pr80-app/shared-contracts";
 import { NotFoundError, UnauthorizedError } from "@application/errors";
 
 // Resolve use case at the top level outside the class
 const orderUseCase = container.resolve<OrderUseCase>(ORDER_USE_CASE);
 
 export class OrderController {
-  static async getAllOrders(req: Request, res: Response<OrderResponse[]>) {
+  static async getAllOrders(req: Request, res: Response<OrderResponseDTO[]>) {
     const orders = await orderUseCase.getOrders();
     res.json(orders ? orders.map((order) => order.toJSON()) : []);
   }
 
   static async getOrderById(
     req: Request<{ orderId: string }>,
-    res: Response<OrderResponse>
+    res: Response<OrderResponseDTO>
   ) {
     const { orderId } = req.params;
     const order = await orderUseCase.getOrderById(orderId);
@@ -36,7 +36,7 @@ export class OrderController {
 
   static async getOrdersByStatus(
     req: Request<{}, {}, {}, { status: OrderStatus }>,
-    res: Response<OrderResponse[]>
+    res: Response<OrderResponseDTO[]>
   ) {
     const { status } = req.query;
     const orders = await orderUseCase.getOrdersByStatus(status);
@@ -45,7 +45,7 @@ export class OrderController {
 
   static async getOrdersByType(
     req: Request<{}, {}, {}, { type: OrderType }>,
-    res: Response<OrderResponse[]>
+    res: Response<OrderResponseDTO[]>
   ) {
     const { type } = req.query;
     const orders = await orderUseCase.getOrdersByType(type);
@@ -54,7 +54,7 @@ export class OrderController {
 
   static async getOrdersByCreatedBy(
     req: Request<{}, {}, {}, { userId: string }>,
-    res: Response<OrderResponse[]>
+    res: Response<OrderResponseDTO[]>
   ) {
     const { userId } = req.query;
     const orders = await orderUseCase.getOrdersByCreatedBy(userId);
@@ -63,7 +63,10 @@ export class OrderController {
 
   static async getOrderWithLinkedOrders(
     req: Request<{ orderId: string }>,
-    res: Response<{ mainOrder: OrderResponse; linkedOrders: OrderResponse[] }>
+    res: Response<{
+      mainOrder: OrderResponseDTO;
+      linkedOrders: OrderResponseDTO[];
+    }>
   ) {
     const { orderId } = req.params;
     const result = await orderUseCase.getOrderWithLinkedOrders(orderId);
@@ -75,8 +78,8 @@ export class OrderController {
   }
 
   static async createOrder(
-    req: Request<{}, {}, CreateOrderRequest>,
-    res: Response<OrderResponse>
+    req: Request<{}, {}, CreateOrderRequestDTO>,
+    res: Response<OrderResponseDTO>
   ) {
     const { table, type, dishes = [], linkedOrderId, note } = req.body;
     // Get user ID from authenticated request
@@ -113,8 +116,8 @@ export class OrderController {
   }
 
   static async createAdditionalOrder(
-    req: Request<{}, {}, CreateAdditionalOrderRequest>,
-    res: Response<OrderResponse>
+    req: Request<{}, {}, CreateAdditionalOrderRequestDTO>,
+    res: Response<OrderResponseDTO>
   ) {
     const { originalOrderId, dishes, note } = req.body;
     // Get user ID from authenticated request
@@ -135,8 +138,8 @@ export class OrderController {
   }
 
   static async updateOrder(
-    req: Request<{ orderId: string }, {}, UpdateOrderRequest>,
-    res: Response<OrderResponse>
+    req: Request<{ orderId: string }, {}, UpdateOrderRequestDTO>,
+    res: Response<OrderResponseDTO>
   ) {
     const { orderId } = req.params;
     const changes = req.body;
@@ -151,7 +154,7 @@ export class OrderController {
 
   static async updateOrderStatus(
     req: Request<{ orderId: string }, {}, { status: OrderStatus }>,
-    res: Response<OrderResponse>
+    res: Response<OrderResponseDTO>
   ) {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -166,7 +169,7 @@ export class OrderController {
 
   static async updateOrderTable(
     req: Request<{ orderId: string }, {}, { table: string }>,
-    res: Response<OrderResponse>
+    res: Response<OrderResponseDTO>
   ) {
     const { orderId } = req.params;
     const { table } = req.body;
@@ -189,8 +192,8 @@ export class OrderController {
   }
 
   static async addOrUpdateOrderItem(
-    req: Request<{ orderId?: string }, {}, AddOrderItemRequest>,
-    res: Response<OrderResponse>
+    req: Request<{ orderId?: string }, {}, AddOrderItemRequestDTO>,
+    res: Response<OrderResponseDTO>
   ) {
     // Get orderId from URL params if available, otherwise from body for backward compatibility
     const orderId = req.params.orderId || req.body.orderId;
@@ -211,7 +214,7 @@ export class OrderController {
 
   static async removeOrderItem(
     req: Request<{ orderId: string; dishItemId: string }>,
-    res: Response<OrderResponse>
+    res: Response<OrderResponseDTO>
   ) {
     const { orderId, dishItemId } = req.params;
 
@@ -223,9 +226,9 @@ export class OrderController {
     req: Request<
       { orderId: string; dishItemId: string },
       {},
-      UpdateOrderItemQuantityRequest
+      UpdateOrderItemQuantityRequestDTO
     >,
-    res: Response<OrderResponse>
+    res: Response<OrderResponseDTO>
   ) {
     const { orderId, dishItemId } = req.params;
     const { quantity } = req.body;

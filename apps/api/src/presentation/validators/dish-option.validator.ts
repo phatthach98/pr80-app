@@ -1,29 +1,4 @@
 import { body, param } from "express-validator";
-import { SelectOptionWithPrice } from "../../types";
-
-export interface DishOptionDto {
-  id: string;
-  name: string;
-  description: string;
-  options: SelectOptionWithPrice[];
-}
-
-export interface CreateDishOptionDto {
-  name: string;
-  description: string;
-  options: SelectOptionWithPrice[];
-}
-
-export interface UpdateDishOptionDto {
-  name?: string;
-  description?: string;
-  options?: SelectOptionWithPrice[];
-}
-
-export interface DishOptionResponseDto {
-  success: boolean;
-  message: string;
-}
 
 export const createDishOptionValidator = [
   body("name").isString().notEmpty().withMessage("Name is required"),

@@ -5,7 +5,7 @@ import {
   assignRoleValidator,
   createUserValidator,
   getAllUserValidator,
-} from "@presentation/dto/user.dto";
+} from "@presentation/validators/user.validator";
 import { requestValidator } from "@presentation/middleware/request-validator.middleware";
 
 export const userRouter = Router();

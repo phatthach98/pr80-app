@@ -1,10 +1,5 @@
 import { body } from "express-validator";
 
-export interface LoginDto {
-  phoneNumber: string;
-  passCode: string;
-}
-
 export const loginValidator = [
   body("phoneNumber")
     .notEmpty()

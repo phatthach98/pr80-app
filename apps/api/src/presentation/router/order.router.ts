@@ -12,7 +12,7 @@ import {
   updateOrderTableValidator,
   orderIdParamValidator,
   dishItemIdParamValidator
-} from "@presentation/dto/order.dto";
+} from "@presentation/validators/order.validator";
 
 export const orderRouter = Router();
 
