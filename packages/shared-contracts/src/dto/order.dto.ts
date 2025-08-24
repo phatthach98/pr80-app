@@ -38,7 +38,7 @@ export interface OrderResponseDTO {
   createdBy: string;
   status: OrderStatus;
   table: string;
-  totalAmount: number;
+  totalAmount: string;
   type: OrderType;
   note: string;
   dishes: OrderDishItemResponseDTO[];
