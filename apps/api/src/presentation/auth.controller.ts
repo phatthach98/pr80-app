@@ -31,6 +31,6 @@ export class AuthController {
       throw new UnauthorizedError("Unauthorized");
     }
     const user = await userUseCase.getUserDetail(userId);
-    res.status(200).json(user);
+    res.status(200).json(user.toJSON());
   }
 }

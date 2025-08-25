@@ -22,16 +22,9 @@ export class UserRepoImpl implements UserRepository {
     };
 
     const createdUserDoc = await UserModel.create(userToSave);
-    const populatedUser = await createdUserDoc.populate("populatedRoles");
+    const populatedUserDoc = await createdUserDoc.populate("populatedRoles");
 
-    if (populatedUser && populatedUser.roles) {
-      populatedUser.roles.forEach((roleDoc: any) => {
-        const role = this.mapDocToRole(roleDoc);
-        newUser.addRole(role);
-      });
-    }
-
-    return newUser;
+    return this.mapDocToUser(populatedUserDoc);
   }
 
   async addRole(userId: string, roleId: string): Promise<{ roleId: string }> {
@@ -59,7 +52,6 @@ export class UserRepoImpl implements UserRepository {
     const userDoc = await UserModel.findById(userId)
       .populate("populatedRoles")
       .lean();
-    console.log("🚀 ~ UserRepoImpl ~ findUserById ~ userDoc:", userDoc);
 
     if (!userDoc) {
       return null;

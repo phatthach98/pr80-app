@@ -56,7 +56,7 @@ export class UserController {
   ) {
     const { userId } = req.params;
     if (!userId) {
-      throw new UnauthorizedError("User not found");
+      throw new UnauthorizedError("Missing user id");
     }
 
     const user = await userUseCase.getUserDetail(userId);
