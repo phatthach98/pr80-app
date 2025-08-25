@@ -5,6 +5,7 @@ import {
   assignRoleValidator,
   createUserValidator,
   getAllUserValidator,
+  getUserDetailValidator,
 } from "@presentation/validators/user.validator";
 import { requestValidator } from "@presentation/middleware/request-validator.middleware";
 
@@ -15,6 +16,13 @@ userRouter.get(
   getAllUserValidator,
   requestValidator,
   asyncHandler(UserController.getAll)
+);
+
+userRouter.get(
+  "/users/:userId",
+  getUserDetailValidator,
+  requestValidator,
+  asyncHandler(UserController.getUserDetail)
 );
 
 userRouter.post(

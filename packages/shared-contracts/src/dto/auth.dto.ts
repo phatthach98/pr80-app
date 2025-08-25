@@ -4,3 +4,8 @@ export interface LoginRequestDTO {
   phoneNumber: string;
   passCode: string;
 }
+
+export interface LoginResponseDTO {
+  token: string;
+  refreshToken: string;
+}

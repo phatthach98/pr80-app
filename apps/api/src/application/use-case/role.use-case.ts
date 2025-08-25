@@ -1,7 +1,8 @@
 import { BadRequestError, NotFoundError } from "@application/errors";
 import { RoleRepository } from "@application/interface/repository";
 import { Permission } from "@domain/entity/permission";
-import { Role, ROLE_NAME } from "@domain/entity/role";
+import { Role } from "@domain/entity/role";
+import { ROLE_NAME } from "@pr80-app/shared-contracts";
 
 export class RoleUseCase {
   constructor(private readonly roleRepository: RoleRepository) {}

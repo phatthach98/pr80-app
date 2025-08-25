@@ -1,5 +1,5 @@
 import { ROLE_NAME_VALUES } from "@pr80-app/shared-contracts";
-import { body, query } from "express-validator";
+import { body, param, query } from "express-validator";
 
 export const createUserValidator = [
   body("name")
@@ -21,6 +21,14 @@ export const createUserValidator = [
   body("roleIds.*").isString().withMessage("Each roleId must be a string."),
 ];
 
+export const getUserDetailValidator = [
+  param("userId")
+    .notEmpty()
+    .withMessage("User ID is required.")
+    .isString()
+    .withMessage("User ID must be a string."),
+];
+
 export const assignRoleValidator = [
   body("userId")
     .notEmpty()
@@ -31,9 +39,7 @@ export const assignRoleValidator = [
     .notEmpty()
     .withMessage("Role name is required.")
     .isIn(ROLE_NAME_VALUES)
-    .withMessage(
-      `Role name must be one of: ${ROLE_NAME_VALUES.join(", ")}`
-    ),
+    .withMessage(`Role name must be one of: ${ROLE_NAME_VALUES.join(", ")}`),
 ];
 
 export const getAllUserValidator = [

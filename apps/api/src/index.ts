@@ -36,16 +36,16 @@ const authenticateRequest = authMiddlewareFactory(jwtService);
 const startServer = async () => {
   try {
     await connectToDB();
-    
+
     // Apply the response interceptor middleware before routes
     app.use(responseInterceptor);
-    
+
     app.use(`/api/health`, (req, res) => {
       res.send("OK");
     });
 
     // Public routes that do not require authentication
-    app.use("/api/auth", authRouter);
+    app.use("/api/auth", authenticateRequest, authRouter);
 
     // Apply the authentication middleware to all user and role routes.
     app.use("/api", authenticateRequest, userRouter);

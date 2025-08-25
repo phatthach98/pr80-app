@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-import { OrderStatus, OrderType } from "@domain/entity/order";
 import { formatDecimal, parseDecimal } from "../utils/mongodb.util";
+import { OrderStatus, OrderType } from "@pr80-app/shared-contracts";
 
 // Define the OrderDishItem schema
 const OrderDishItemSchema = new Schema(

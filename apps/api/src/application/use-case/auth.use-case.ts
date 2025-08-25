@@ -38,4 +38,6 @@ export class AuthUseCase {
 
     return { token, refreshToken };
   }
+
+  async getMe() {}
 }

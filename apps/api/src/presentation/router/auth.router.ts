@@ -12,3 +12,5 @@ authRouter.post(
   requestValidator,
   asyncHandler(AuthController.login)
 );
+
+authRouter.get("/me", asyncHandler(AuthController.getMe));

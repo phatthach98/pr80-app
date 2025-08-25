@@ -6,13 +6,18 @@ import { Request, Response } from "express";
 import {
   AssignRoleRequestDTO,
   CreateUserRequestDTO,
+  GetUserDetailRequestDTO,
   GetUsersRequestDTO,
 } from "@pr80-app/shared-contracts";
+import { UnauthorizedError } from "@application/errors";
 
 const userUseCase = container.resolve<UserUseCase>(USER_USE_CASE);
 
 export class UserController {
-  static async create(req: Request<{}, {}, CreateUserRequestDTO>, res: Response) {
+  static async create(
+    req: Request<{}, {}, CreateUserRequestDTO>,
+    res: Response
+  ) {
     const { phoneNumber, passCode, roleIds, name } = req.body;
 
     const user = await userUseCase.createUser(
@@ -26,7 +31,10 @@ export class UserController {
     res.status(201).json(user.toJSON());
   }
 
-  static async assignRole(req: Request<{}, {}, AssignRoleRequestDTO>, res: Response) {
+  static async assignRole(
+    req: Request<{}, {}, AssignRoleRequestDTO>,
+    res: Response
+  ) {
     const { userId, roleName } = req.body;
 
     await userUseCase.assignRoleToUser(userId, roleName);
@@ -40,5 +48,19 @@ export class UserController {
     const users = await userUseCase.getUsers(Number(page), Number(limit));
 
     res.status(200).json(users.map((user) => user.toJSON()));
+  }
+
+  static async getUserDetail(
+    req: Request<GetUserDetailRequestDTO, {}, {}>,
+    res: Response
+  ) {
+    const { userId } = req.params;
+    if (!userId) {
+      throw new UnauthorizedError("User not found");
+    }
+
+    const user = await userUseCase.getUserDetail(userId);
+
+    res.status(200).json(user.toJSON());
   }
 }

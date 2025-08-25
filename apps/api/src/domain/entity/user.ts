@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid";
-import { Role, ROLE_NAME } from "./role";
+import { Role } from "./role";
 import { Permission } from "./permission";
+import { ROLE_NAME } from "@pr80-app/shared-contracts";
 
 export class User {
   public id: string;
