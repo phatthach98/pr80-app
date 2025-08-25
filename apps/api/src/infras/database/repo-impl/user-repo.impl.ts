@@ -1,8 +1,9 @@
 import { UserRepository } from "@application/interface/repository/user-repo.interface";
 import { Permission } from "@domain/entity/permission";
-import { Role, ROLE_NAME } from "@domain/entity/role";
+import { Role } from "@domain/entity/role";
 import { User } from "@domain/entity/user";
 import { UserModel } from "@infras/database/schemas";
+import { ROLE_NAME } from "@pr80-app/shared-contracts";
 
 export class UserRepoImpl implements UserRepository {
   async create(
@@ -21,16 +22,9 @@ export class UserRepoImpl implements UserRepository {
     };
 
     const createdUserDoc = await UserModel.create(userToSave);
-    const populatedUser = await createdUserDoc.populate("roles");
+    const populatedUserDoc = await createdUserDoc.populate("populatedRoles");
 
-    if (populatedUser && populatedUser.roles) {
-      populatedUser.roles.forEach((roleDoc: any) => {
-        const role = this.mapDocToRole(roleDoc);
-        newUser.addRole(role);
-      });
-    }
-
-    return newUser;
+    return this.mapDocToUser(populatedUserDoc);
   }
 
   async addRole(userId: string, roleId: string): Promise<{ roleId: string }> {
@@ -55,7 +49,9 @@ export class UserRepoImpl implements UserRepository {
   }
 
   async findUserById(userId: string): Promise<User | null> {
-    const userDoc = await UserModel.findById(userId).populate("roles").lean();
+    const userDoc = await UserModel.findById(userId)
+      .populate("populatedRoles")
+      .lean();
 
     if (!userDoc) {
       return null;
@@ -82,7 +78,7 @@ export class UserRepoImpl implements UserRepository {
       userDoc.passCode
     );
 
-    if (userDoc.roles) {
+    if (userDoc.populatedRoles) {
       userDoc.populatedRoles.forEach((roleDoc: Role) => {
         const role = this.mapDocToRole(roleDoc);
         user.addRole(role);

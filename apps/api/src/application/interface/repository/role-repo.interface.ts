@@ -1,4 +1,5 @@
-import { Role, ROLE_NAME } from "@domain/entity/role";
+import { Role } from "@domain/entity/role";
+import { ROLE_NAME } from "@pr80-app/shared-contracts";
 
 export interface RoleRepository {
   create(roleData: Role): Promise<Role>;

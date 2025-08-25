@@ -2,7 +2,7 @@ import { User } from "@domain/entity/user";
 import { UserRepository } from "@application/interface/repository/user-repo.interface";
 import { BadRequestError, NotFoundError } from "@application/errors";
 import { RoleRepository } from "@application/interface/repository";
-import { ROLE_NAME } from "@domain/entity/role";
+import { ROLE_NAME } from "@pr80-app/shared-contracts";
 
 export class UserUseCase {
   constructor(
@@ -43,5 +43,14 @@ export class UserUseCase {
 
   async getUsers(page: number = 1, limit: number = 20): Promise<User[]> {
     return this.userRepository.findUsers(page, limit);
+  }
+
+  async getUserDetail(userId: string): Promise<User> {
+    const user = await this.userRepository.findUserById(userId);
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return user;
   }
 }

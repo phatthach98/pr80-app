@@ -1,4 +1,5 @@
 // Enums
+export * from './enums/error-codes.enum';
 export * from './enums/order-status.enum';
 export * from './enums/role-name.enum';
 

@@ -1,7 +1,8 @@
 import { RoleRepository } from "@application/interface/repository/role-repo.interface";
-import { Role, ROLE_NAME } from "@domain/entity/role";
+import { Role } from "@domain/entity/role";
 import { Permission } from "@domain/entity/permission";
 import { RoleModel } from "@infras/database/schemas";
+import { ROLE_NAME } from "@pr80-app/shared-contracts";
 
 export class RoleRepoImpl implements RoleRepository {
   async create(roleData: Role): Promise<Role> {
