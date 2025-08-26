@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/presentation/components/ui';
+} from '@/components/ui';
 
 export function NavProjects({
   projects,

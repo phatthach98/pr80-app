@@ -1,12 +1,10 @@
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/presentation/components/ui';
+} from '@/components/ui';
 
 export function OrdersPage() {
   return (

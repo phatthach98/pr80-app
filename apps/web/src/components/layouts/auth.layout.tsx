@@ -1,5 +1,5 @@
-import { AppSidebar, SiteHeader } from '@/presentation/components';
-import { SidebarInset, SidebarProvider } from '@/presentation/components/ui';
+import { AppSidebar, SiteHeader } from '@/components';
+import { SidebarInset, SidebarProvider } from '@/components/ui';
 import { Outlet } from '@tanstack/react-router';
 
 export function AuthLayout() {

@@ -1,7 +1,7 @@
 import { GalleryVerticalEnd } from 'lucide-react';
 
 import { cn } from '@/tailwind/utils';
-import { Button, Input, Label } from '@/presentation/components/ui';
+import { Button, Input, Label } from '@/components/ui';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   return (

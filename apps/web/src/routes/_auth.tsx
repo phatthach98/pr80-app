@@ -1,4 +1,4 @@
-import { AuthLayout } from '@/presentation/components/layouts';
+import { AuthLayout } from '@/components/layouts';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_auth')({

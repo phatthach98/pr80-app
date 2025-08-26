@@ -14,7 +14,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from '@/presentation/components/ui';
+} from '@/components/ui';
 
 export function NavMain({
   items,
