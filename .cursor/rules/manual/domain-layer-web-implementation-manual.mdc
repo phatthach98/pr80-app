@@ -1,0 +1,643 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+# Domain Layer Web Implementation from API Response DTOs
+
+## Context
+
+- Apply when implementing domain models in web frontend applications that consume API responses
+- Use when transforming API response DTOs from shared contracts into rich domain entities
+- Apply for creating domain models with encapsulated business logic from API data
+- Use when establishing domain entities in React/TypeScript web applications consuming backend APIs
+- Apply when building pure domain objects that are framework-agnostic and contain business rules
+
+## Domain Layer Critical Rules
+
+- **Response-to-Domain Mapping**: Transform API response DTOs into rich domain entities with business logic
+- **Domain Purity**: Domain entities MUST have zero external dependencies (no React, no API clients, no frameworks)
+- **Shared DTO Usage**: Use response DTOs from shared-contracts package as the data source for domain entities
+- **Business Logic Encapsulation**: Domain entities contain business rules, validation, and computed properties
+- **Bidirectional Mapping**: Use private static methods for DTO-to-domain mapping and public instance methods for domain-to-request DTO mapping
+- **Immutable by Default**: Domain entities should be immutable with methods returning new instances
+- **Type Safety**: Leverage TypeScript for compile-time safety between DTOs and domain models
+- **No Direct DTO Usage**: Never use response DTOs directly in React components - always map to domain first
+- **CRUD Request Mapping**: Domain entities provide methods to convert to specific request DTOs (Create, Update, etc.)
+- **Pure Request Mapping**: Request DTO mapping methods should be pure functions with no side effects or state mutations
+- **Lazy Computation**: Use getters with memoization for expensive computed properties
+- **Object Freezing**: Freeze domain objects to enforce immutability at runtime
+- **Validation Caching**: Cache validation results to avoid repeated computations
+- **Selective Mapping**: Only map fields that are actually needed for specific operations
+- **Memory Efficiency**: Use readonly properties and avoid unnecessary object creation
+- **Factory Methods**: Use static factory methods for creating domain entities from DTOs
+- **Value Objects**: Use value objects for complex data types within entities
+- **Standard Base Functions**: Always implement core functions: response mapping, request mapping, and validation
+- **Simple Entity Structure**: Keep entities focused with essential methods only
+- **CRUD Request Support**: Provide methods for Create, Read, Update, Delete request DTOs
+- **Validation Pipeline**: Validate both domain rules and request data
+
+## Domain Layer Structure
+
+### Directory Structure
+```
+src/
+├── domain/
+│   └── entities/           # Pure domain objects with business logic
+│       ├── order.ts
+│       ├── user.ts
+│       ├── dish.ts
+│       └── index.ts
+└── shared-contracts/       # Shared DTOs (usually separate package)
+    ├── dto/
+    │   ├── order.dto.ts
+    │   ├── user.dto.ts
+    │   └── index.ts
+    └── enums/
+        ├── order-status.enum.ts
+        └── index.ts
+```
+
+### Domain Entity Base Functions (Required)
+Every domain entity must implement these core functions:
+
+1. **Response Mapping**: `static fromResponseDTO(dto)` - Transform API response to domain entity
+2. **Request Mapping**: `toCreateRequestDTO()`, `toUpdateRequestDTO()`, `toDeleteRequestDTO()` - Convert to API request DTOs
+3. **Validation**: `isValid()`, `validateForCreate()`, `validateForUpdate()` - Validate entity and request data
+4. **Business Logic**: Core business rules and computed properties
+5. **Immutable Operations**: `with*()` methods for state changes
+6. **Basic Getters**: Essential derived values with caching
+
+## Examples
+
+<example>
+  // ✅ Valid: Simple domain entity with required base functions
+  import { 
+    OrderResponseDTO,
+    CreateOrderRequestDTO,
+    UpdateOrderRequestDTO,
+    DeleteOrderRequestDTO
+  } from '@shared/dto/order.dto';
+  import { OrderStatus, OrderType } from '@shared/enums/order-status.enum';
+
+  export class Order {
+    private _totalItemCount?: number; // Memoization cache
+    private _isValid?: boolean; // Validation cache
+
+    constructor(
+      public readonly id: string,
+      public readonly createdBy: string,
+      public readonly status: OrderStatus,
+      public readonly table: string,
+      public readonly totalAmount: number,
+      public readonly dishes: readonly OrderDishItem[],
+      public readonly type: OrderType,
+      public readonly note: string,
+      public readonly createdAt?: Date
+    ) {
+      Object.freeze(this.dishes);
+      Object.freeze(this);
+    }
+
+    // ✅ Base Function 1: Response mapping
+    static fromResponseDTO(dto: OrderResponseDTO): Order {
+      const dishes = dto.dishes?.map(dishDto => OrderDishItem.fromResponseDTO(dishDto)) || [];
+      
+      return new Order(
+        dto.id,
+        dto.createdBy,
+        dto.status,
+        dto.table,
+        dto.totalAmount,
+        dishes,
+        dto.type,
+        dto.note || '',
+        dto.createdAt ? new Date(dto.createdAt) : undefined
+      );
+    }
+
+    // ✅ Base Function 2: CRUD request mapping
+    toCreateRequestDTO(): CreateOrderRequestDTO {
+      return {
+        table: this.table,
+        type: this.type,
+        dishes: this.dishes.map(dish => dish.toRequestDTO()),
+        note: this.note
+      };
+    }
+
+    toUpdateRequestDTO(): UpdateOrderRequestDTO {
+      return {
+        table: this.table,
+        status: this.status,
+        type: this.type,
+        note: this.note
+      };
+    }
+
+    toDeleteRequestDTO(): DeleteOrderRequestDTO {
+      return {
+        id: this.id,
+        reason: 'User requested deletion'
+      };
+    }
+
+    // ✅ Base Function 3: Validation
+    isValid(): boolean {
+      if (this._isValid === undefined) {
+        this._isValid = this.validateForUpdate().isValid;
+      }
+      return this._isValid;
+    }
+
+    validateForCreate(): { isValid: boolean; errors: string[] } {
+      const errors: string[] = [];
+      
+      if (!this.table?.trim()) errors.push('Table is required');
+      if (!this.dishes || this.dishes.length === 0) errors.push('At least one dish is required');
+      if (!this.createdBy?.trim()) errors.push('Created by is required');
+      
+      return { isValid: errors.length === 0, errors };
+    }
+
+    validateForUpdate(): { isValid: boolean; errors: string[] } {
+      const errors: string[] = [];
+      
+      if (!this.table?.trim()) errors.push('Table is required');
+      if (this.totalAmount <= 0) errors.push('Total amount must be positive');
+      
+      return { isValid: errors.length === 0, errors };
+    }
+
+    // ✅ Base Function 4: Essential business logic
+    canBeModified(): boolean {
+      return this.status === OrderStatus.PENDING || this.status === OrderStatus.PREPARING;
+    }
+
+    // ✅ Base Function 5: Basic getters with caching
+    getTotalItemCount(): number {
+      if (this._totalItemCount === undefined) {
+        this._totalItemCount = this.dishes.reduce((sum, dish) => sum + dish.quantity, 0);
+      }
+      return this._totalItemCount;
+    }
+
+    // ✅ Base Function 6: Immutable operations
+    withStatus(newStatus: OrderStatus): Order {
+      if (this.status === newStatus) return this;
+      
+      return new Order(
+        this.id,
+        this.createdBy,
+        newStatus,
+        this.table,
+        this.totalAmount,
+        this.dishes,
+        this.type,
+        this.note,
+        this.createdAt
+      );
+    }
+
+    withTable(newTable: string): Order {
+      if (this.table === newTable) return this;
+      
+      return new Order(
+        this.id,
+        this.createdBy,
+        this.status,
+        newTable,
+        this.totalAmount,
+        this.dishes,
+        this.type,
+        this.note,
+        this.createdAt
+      );
+    }
+  }
+
+  // ✅ Valid: Value objects for complex domain data
+  export class Money {
+    constructor(
+      public readonly amount: number,
+      public readonly currency: string = 'USD'
+    ) {
+      if (amount < 0) {
+        throw new Error('Money amount cannot be negative');
+      }
+      Object.freeze(this);
+    }
+
+    add(other: Money): Money {
+      if (this.currency !== other.currency) {
+        throw new Error('Cannot add money with different currencies');
+      }
+      return new Money(this.amount + other.amount, this.currency);
+    }
+
+    multiply(factor: number): Money {
+      return new Money(this.amount * factor, this.currency);
+    }
+
+    toString(): string {
+      return `${this.currency} ${this.amount.toFixed(2)}`;
+    }
+
+    equals(other: Money): boolean {
+      return this.amount === other.amount && this.currency === other.currency;
+    }
+  }
+
+  // ✅ Valid: Simple value object with base functions
+  export class OrderDishItem {
+    constructor(
+      public readonly dishId: string,
+      public readonly dishName: string,
+      public readonly unitPrice: number,
+      public readonly quantity: number,
+      public readonly options: readonly string[],
+      public readonly specialInstructions?: string
+    ) {
+      if (quantity <= 0) {
+        throw new Error('Quantity must be positive');
+      }
+      Object.freeze(this.options);
+      Object.freeze(this);
+    }
+
+    // ✅ Base Function 1: Response mapping
+    static fromResponseDTO(dto: OrderDishItemResponseDTO): OrderDishItem {
+      return new OrderDishItem(
+        dto.dishId,
+        dto.dishName,
+        dto.unitPrice,
+        dto.quantity,
+        dto.options || [],
+        dto.specialInstructions
+      );
+    }
+
+    // ✅ Base Function 2: Request mapping
+    toRequestDTO(): OrderDishItemRequestDTO {
+      return {
+        dishId: this.dishId,
+        quantity: this.quantity,
+        options: [...this.options],
+        specialInstructions: this.specialInstructions
+      };
+    }
+
+    // ✅ Base Function 3: Validation
+    isValid(): boolean {
+      return this.dishId?.trim().length > 0 && 
+             this.quantity > 0 && 
+             this.unitPrice >= 0;
+    }
+
+    // ✅ Base Function 4: Business logic
+    getTotal(): number {
+      return this.unitPrice * this.quantity;
+    }
+
+    // ✅ Base Function 5: Immutable operations
+    withQuantity(newQuantity: number): OrderDishItem {
+      if (this.quantity === newQuantity) return this;
+      
+      return new OrderDishItem(
+        this.dishId,
+        this.dishName,
+        this.unitPrice,
+        newQuantity,
+        this.options,
+        this.specialInstructions
+      );
+    }
+  }
+
+  // ✅ Valid: Simple entity template to follow for new entities
+  export class EntityTemplate {
+    constructor(
+      public readonly id: string,
+      public readonly name: string,
+      public readonly status: string,
+      // ... other readonly properties
+    ) {
+      Object.freeze(this);
+    }
+
+    // ✅ REQUIRED: Response mapping
+    static fromResponseDTO(dto: EntityResponseDTO): EntityTemplate {
+      return new EntityTemplate(
+        dto.id,
+        dto.name,
+        dto.status
+        // ... map other properties
+      );
+    }
+
+    // ✅ REQUIRED: CRUD request mapping
+    toCreateRequestDTO(): CreateEntityRequestDTO {
+      return {
+        name: this.name,
+        // ... only include fields needed for creation
+      };
+    }
+
+    toUpdateRequestDTO(): UpdateEntityRequestDTO {
+      return {
+        name: this.name,
+        status: this.status,
+        // ... include fields that can be updated
+      };
+    }
+
+    toDeleteRequestDTO(): DeleteEntityRequestDTO {
+      return {
+        id: this.id,
+        reason: 'User requested deletion'
+      };
+    }
+
+    // ✅ REQUIRED: Validation
+    isValid(): boolean {
+      return this.validateForUpdate().isValid;
+    }
+
+    validateForCreate(): { isValid: boolean; errors: string[] } {
+      const errors: string[] = [];
+      if (!this.name?.trim()) errors.push('Name is required');
+      return { isValid: errors.length === 0, errors };
+    }
+
+    validateForUpdate(): { isValid: boolean; errors: string[] } {
+      const errors: string[] = [];
+      if (!this.name?.trim()) errors.push('Name is required');
+      return { isValid: errors.length === 0, errors };
+    }
+
+    // ✅ REQUIRED: Essential business logic
+    canBeModified(): boolean {
+      return this.status !== 'COMPLETED';
+    }
+
+    // ✅ REQUIRED: Immutable operations for key properties
+    withStatus(newStatus: string): EntityTemplate {
+      if (this.status === newStatus) return this;
+      return new EntityTemplate(this.id, this.name, newStatus);
+    }
+
+    withName(newName: string): EntityTemplate {
+      if (this.name === newName) return this;
+      return new EntityTemplate(this.id, newName, this.status);
+    }
+  }
+
+  // ✅ Valid: Simple usage example in React component
+  const OrderCard: React.FC<{ orderDto: OrderResponseDTO }> = ({ orderDto }) => {
+    // Transform DTO to domain entity
+    const order = Order.fromResponseDTO(orderDto);
+
+    const handleStatusUpdate = async (newStatus: OrderStatus) => {
+      // Use domain business rules
+      if (!order.canBeModified()) {
+        alert('Order cannot be modified in current status');
+        return;
+      }
+
+      // Create updated domain entity
+      const updatedOrder = order.withStatus(newStatus);
+      
+      // Convert to request DTO for API call
+      const requestDto = updatedOrder.toUpdateRequestDTO();
+      
+      // Make API call (this would typically be in a service/use case)
+      await fetch(`/api/orders/${order.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(requestDto),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    };
+
+    return (
+      <div className={`order-card ${order.canBeModified() ? 'editable' : 'readonly'}`}>
+        <h3>Table {order.table}</h3>
+        <p>Status: {order.status}</p>
+        <p>Total: ${order.totalAmount}</p>
+        <p>Items: {order.getTotalItemCount()}</p>
+        
+        {order.canBeModified() && (
+          <div className="actions">
+            <button onClick={() => handleStatusUpdate(OrderStatus.PREPARING)}>
+              Start Preparing
+            </button>
+            <button onClick={() => handleStatusUpdate(OrderStatus.READY)}>
+              Mark Ready
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ✅ Valid: Domain error types for business rule violations
+  export class DomainError extends Error {
+    constructor(
+      message: string,
+      public readonly code: string,
+      public readonly details?: any
+    ) {
+      super(message);
+      this.name = 'DomainError';
+    }
+  }
+
+  export class OrderValidationError extends DomainError {
+    constructor(message: string, details?: any) {
+      super(message, 'ORDER_VALIDATION_ERROR', details);
+      this.name = 'OrderValidationError';
+    }
+  }
+
+  export class BusinessRuleError extends DomainError {
+    constructor(message: string, details?: any) {
+      super(message, 'BUSINESS_RULE_ERROR', details);
+      this.name = 'BusinessRuleError';
+    }
+  }
+
+
+</example>
+
+<example type="invalid">
+  // ❌ Invalid: Using response DTO directly in React component
+  import { OrderResponseDTO } from '@shared/dto/order.dto';
+
+  const OrderCard: React.FC<{ order: OrderResponseDTO }> = ({ order }) => {
+    // ❌ Business logic scattered in component instead of domain entity
+    const canModify = order.status === 'PENDING' || order.status === 'PREPARING';
+    const totalItems = order.dishes.reduce((sum, dish) => sum + dish.quantity, 0);
+    
+    return <div>...</div>;
+  };
+
+  // ❌ Invalid: Domain entity with external dependencies
+  import { apiClient } from '../infrastructure/api-client';
+
+  export class Order {
+    constructor(public id: string, public status: string) {}
+
+    async updateStatus(newStatus: string) {
+      // ❌ Infrastructure dependency in domain layer
+      await apiClient.patch(`/orders/${this.id}`, { status: newStatus });
+      this.status = newStatus;
+    }
+  }
+
+  // ❌ Invalid: Mutable domain entity with public setters
+  export class Order {
+    public id: string;
+    public status: OrderStatus;
+    public table: string;
+    public dishes: OrderDishItem[]; // ❌ Mutable array
+
+    // ❌ Public setters violate immutability
+    setStatus(newStatus: OrderStatus): void {
+      this.status = newStatus;
+    }
+
+    setTable(newTable: string): void {
+      this.table = newTable;
+    }
+
+    // ❌ Allows external mutation of internal state
+    addDish(dish: OrderDishItem): void {
+      this.dishes.push(dish);
+    }
+  }
+
+  // ❌ Invalid: Mapping method with side effects
+  export class Order {
+    static fromResponseDTO(dto: OrderResponseDTO): Order {
+      console.log('Mapping order:', dto.id); // ❌ Side effect
+      localStorage.setItem('lastOrder', dto.id); // ❌ Side effect
+      return new Order(dto.id, dto.status);
+    }
+
+    private static mapFromDTO(dto: OrderResponseDTO): Order {
+      // ❌ Should be pure function with no side effects
+      analytics.track('order_mapped', { orderId: dto.id });
+      return new Order(dto.id, dto.status);
+    }
+
+    // ❌ Invalid: Request DTO mapping with side effects
+    toUpdateRequestDTO(): UpdateOrderRequestDTO {
+      console.log('Converting to update DTO:', this.id); // ❌ Side effect
+      this.lastModified = new Date(); // ❌ Mutating state during mapping
+      return {
+        table: this.table,
+        status: this.status
+      };
+    }
+  }
+
+  // ❌ Invalid: Inefficient computation without memoization
+  export class Order {
+    getTotalItemCount(): number {
+      // ❌ Recalculates every time, even if dishes haven't changed
+      return this.dishes.reduce((sum, dish) => sum + dish.quantity, 0);
+    }
+
+    getTotalAmount(): number {
+      // ❌ Expensive calculation without caching
+      return this.dishes.reduce((sum, dish) => {
+        return sum + (dish.unitPrice * dish.quantity);
+      }, 0);
+    }
+  }
+
+  // ❌ Invalid: Creating unnecessary objects
+  export class Order {
+    withStatus(newStatus: OrderStatus): Order {
+      // ❌ Always creates new instance even if status is the same
+      return new Order(this.id, this.createdBy, newStatus, this.table, this.dishes, this.type, this.note);
+    }
+
+    withTable(newTable: string): Order {
+      // ❌ No check if value actually changed
+      return new Order(this.id, this.createdBy, this.status, newTable, this.dishes, this.type, this.note);
+    }
+  }
+
+  // ❌ Invalid: Domain entity with weak typing
+  export class Order {
+    constructor(
+      public id: string,
+      public status: string, // ❌ Should use enum instead of string
+      public table: any, // ❌ Should be strongly typed
+      public totalAmount: string, // ❌ Should be number or Money value object
+      public dishes: any[] // ❌ Should be strongly typed array
+    ) {}
+
+    // ❌ Weak business logic without proper validation
+    canBeModified(): boolean {
+      return this.status !== 'completed'; // ❌ Magic string instead of enum
+    }
+  }
+
+  // ❌ Invalid: Missing required base functions
+  export class Order {
+    constructor(
+      public id: string,
+      public status: string,
+      public table: string
+    ) {}
+
+    // ❌ Missing response mapping function
+    // static fromResponseDTO(dto: OrderResponseDTO): Order - NOT IMPLEMENTED
+
+    // ❌ Missing CRUD request mapping functions
+    // toCreateRequestDTO(): CreateOrderRequestDTO - NOT IMPLEMENTED
+    // toUpdateRequestDTO(): UpdateOrderRequestDTO - NOT IMPLEMENTED
+    // toDeleteRequestDTO(): DeleteOrderRequestDTO - NOT IMPLEMENTED
+
+    // ❌ Missing validation functions
+    // isValid(): boolean - NOT IMPLEMENTED
+    // validateForCreate(): ValidationResult - NOT IMPLEMENTED
+    // validateForUpdate(): ValidationResult - NOT IMPLEMENTED
+
+    // ❌ Missing business logic
+    // canBeModified(): boolean - NOT IMPLEMENTED
+
+    // ❌ Missing immutable operations
+    // withStatus(newStatus: string): Order - NOT IMPLEMENTED
+  }
+
+  // ❌ Invalid: Incomplete base functions
+  export class Order {
+    static fromResponseDTO(dto: OrderResponseDTO): Order {
+      // ❌ No validation of input DTO
+      return new Order(dto.id, dto.status, dto.table);
+    }
+
+    // ❌ Only implements one CRUD method, missing others
+    toUpdateRequestDTO(): UpdateOrderRequestDTO {
+      return { status: this.status };
+    }
+    // Missing: toCreateRequestDTO(), toDeleteRequestDTO()
+
+    // ❌ No validation logic
+    isValid(): boolean {
+      return true; // ❌ Always returns true
+    }
+    // Missing: validateForCreate(), validateForUpdate()
+  }
+
+  // ❌ Invalid: Not using readonly for arrays and objects
+  export class Order {
+    constructor(
+      public dishes: OrderDishItem[], // ❌ Mutable array allows external modification
+      public metadata: { [key: string]: any } // ❌ Mutable object
+    ) {}
+  }
+</example>
