@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { apiClient, tokenStorage } from '../../infras/api/api-client';
+import { apiClient, tokenStorage } from '@/api/api-client';
 
 export interface User {
   id: string;
@@ -54,29 +54,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = React.useCallback(async (phoneNumber: string, passCode: string) => {
     setLoading(true);
     try {
-      const result = await apiClient.post<{ token: string; refreshToken: string; user: User }>('/api/auth/login', {
-        phoneNumber,
-        passCode,
-      });
+      const result = await apiClient.post<{ token: string; refreshToken: string; user: User }>(
+        '/api/auth/login',
+        {
+          phoneNumber,
+          passCode,
+        },
+      );
 
       if (result.success && result.data) {
         const { token, refreshToken, user: userData } = result.data;
-        
+
         // Store tokens
         tokenStorage.setTokens(token, refreshToken);
-        
+
         // Store user data
         setStoredUser(userData);
         setUser(userData);
-        
+
         return { success: true };
       } else {
         return { success: false, error: result.error || 'Login failed' };
       }
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'An unexpected error occurred' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'An unexpected error occurred',
       };
     } finally {
       setLoading(false);
@@ -97,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   React.useEffect(() => {
     const storedUser = getStoredUser();
     const token = tokenStorage.getToken();
-    
+
     if (storedUser && token) {
       setUser(storedUser);
     } else if (!token) {

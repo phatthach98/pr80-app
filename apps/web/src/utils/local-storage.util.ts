@@ -1,4 +1,4 @@
-class LocalStorageService {
+class LocalStorageUtil {
   private readonly storage: Storage | null;
   private _localStorage: { [key: string]: string } = {};
   private _isLocalStorageAvailable: boolean = false;
@@ -23,7 +23,7 @@ class LocalStorageService {
       const testKey = '__localStorage_test__';
       window.localStorage.setItem(testKey, 'test');
       window.localStorage.removeItem(testKey);
-      
+
       this._isLocalStorageAvailable = true;
       return window.localStorage;
     } catch (error) {
@@ -95,4 +95,4 @@ class LocalStorageService {
   }
 }
 
-export const customLocalStorage = new LocalStorageService();
+export const localStorageUtil = new LocalStorageUtil();
