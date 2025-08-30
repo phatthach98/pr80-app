@@ -18,7 +18,7 @@ export class UserController {
     req: Request<{}, {}, CreateUserRequestDTO>,
     res: Response
   ) {
-    const { phoneNumber, passCode, roleIds, name } = req.body;
+    const { phoneNumber, passCode, roleIds = [], name } = req.body;
 
     const user = await userUseCase.createUser(
       {

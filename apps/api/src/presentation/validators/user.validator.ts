@@ -11,14 +11,12 @@ export const createUserValidator = [
     .notEmpty()
     .withMessage("Phone number is required.")
     .isString()
-    .withMessage("Phone number must be a string."),
+    .withMessage("Phone number must be a string.")
+    .isMobilePhone("vi-VN")
+    .withMessage("Phone number must be a valid phone number."),
   body("passCode")
     .isLength({ min: 4, max: 4 })
     .withMessage("Passcode must be 4 digits."),
-  body("roleIds")
-    .isArray({ min: 1 })
-    .withMessage("At least one roleId is required."),
-  body("roleIds.*").isString().withMessage("Each roleId must be a string."),
 ];
 
 export const getUserDetailValidator = [
