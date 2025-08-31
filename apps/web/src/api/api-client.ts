@@ -5,7 +5,7 @@ import axios, {
   InternalAxiosRequestConfig,
   AxiosRequestConfig,
 } from 'axios';
-import { getErrorMessage } from './error-message-mapper';
+import { ErrorCode } from '@pr80-app/shared-contracts';
 import { localStorageUtil } from '@/utils';
 
 // Types matching the backend API response format
@@ -133,7 +133,7 @@ export class ApiClient {
    * Centralized error handler for API requests
    * Handles two main categories: API errors and Network/Timeout errors
    */
-  private handleError(error: unknown): { data: null; error: string; success: false } {
+  private handleError(error: unknown): ApiErrorResponse {
     // Log error for debugging (in development)
     if (process.env.NODE_ENV === 'development') {
       console.error('API Error:', error);
@@ -151,21 +151,24 @@ export class ApiClient {
 
     // Handle non-axios errors (unexpected errors)
     return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred',
       success: false,
+      error: {
+        code: ErrorCode.UNEXPECTED_ERROR,
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      },
+      timestamp: new Date().toISOString(),
     };
   }
 
   /**
    * Handle server responses (both API errors and non-API responses)
    */
-  private handleServerResponse(error: AxiosError): { data: null; error: string; success: false } {
+  private handleServerResponse(error: AxiosError): ApiErrorResponse {
     const response = error.response!;
 
     // Check if response has proper API error format
     if (response.data && typeof response.data === 'object' && 'error' in response.data) {
-      return this.handleApiError(response.data as ApiErrorResponse);
+      return response.data as ApiErrorResponse;
     }
 
     // Handle non-API error responses (HTML error pages, plain text, etc.)
@@ -175,149 +178,160 @@ export class ApiClient {
   /**
    * Handle HTTP status errors when server doesn't return proper API format
    */
-  private handleHttpStatusError(status: number): { data: null; error: string; success: false } {
+  private handleHttpStatusError(status: number): ApiErrorResponse {
     switch (status) {
       case 400:
         return {
-          data: null,
-          error: 'Bad request. Please check your input and try again.',
           success: false,
+          error: {
+            code: ErrorCode.BAD_REQUEST,
+            message: 'Bad request. Please check your input and try again.',
+          },
+          timestamp: new Date().toISOString(),
         };
       case 401:
         return {
-          data: null,
-          error: 'Authentication required. Please log in again.',
           success: false,
+          error: {
+            code: ErrorCode.UNAUTHORIZED,
+            message: 'Authentication required. Please log in again.',
+          },
+          timestamp: new Date().toISOString(),
         };
       case 403:
         return {
-          data: null,
-          error: 'Access denied. You do not have permission to perform this action.',
           success: false,
+          error: {
+            code: ErrorCode.FORBIDDEN,
+            message: 'Access denied. You do not have permission to perform this action.',
+          },
+          timestamp: new Date().toISOString(),
         };
       case 404:
         return {
-          data: null,
-          error: 'The requested resource was not found.',
           success: false,
+          error: {
+            code: ErrorCode.NOT_FOUND,
+            message: 'The requested resource was not found.',
+          },
+          timestamp: new Date().toISOString(),
         };
       case 429:
         return {
-          data: null,
-          error: 'Too many requests. Please wait a moment and try again.',
           success: false,
+          error: {
+            code: ErrorCode.TOO_MANY_REQUESTS,
+            message: 'Too many requests. Please wait a moment and try again.',
+          },
+          timestamp: new Date().toISOString(),
         };
       case 500:
         return {
-          data: null,
-          error: 'Internal server error. Please try again later.',
           success: false,
+          error: {
+            code: ErrorCode.INTERNAL_SERVER_ERROR,
+            message: 'Internal server error. Please try again later.',
+          },
+          timestamp: new Date().toISOString(),
         };
       case 502:
         return {
-          data: null,
-          error: 'Bad gateway. The server is temporarily unavailable.',
           success: false,
+          error: {
+            code: ErrorCode.BAD_GATEWAY,
+            message: 'Bad gateway. The server is temporarily unavailable.',
+          },
+          timestamp: new Date().toISOString(),
         };
       case 503:
         return {
-          data: null,
-          error: 'Service temporarily unavailable. Please try again later.',
           success: false,
+          error: {
+            code: ErrorCode.SERVICE_UNAVAILABLE,
+            message: 'Service temporarily unavailable. Please try again later.',
+          },
+          timestamp: new Date().toISOString(),
         };
       case 504:
         return {
-          data: null,
-          error: 'Gateway timeout. The server took too long to respond.',
           success: false,
+          error: {
+            code: ErrorCode.GATEWAY_TIMEOUT,
+            message: 'Gateway timeout. The server took too long to respond.',
+          },
+          timestamp: new Date().toISOString(),
         };
       default:
         return {
-          data: null,
-          error: `Server error (${status}). Please try again later.`,
           success: false,
+          error: {
+            code: ErrorCode.SERVER_ERROR,
+            message: `Server error (${status}). Please try again later.`,
+          },
+          timestamp: new Date().toISOString(),
         };
     }
-  }
-
-  /**
-   * Handle API errors with proper error codes and messages
-   */
-  private handleApiError(apiError: ApiErrorResponse): {
-    data: null;
-    error: string;
-    success: false;
-  } {
-    const errorCode = apiError.error?.code;
-
-    if (errorCode) {
-      // Use the error message mapper for consistent messaging
-      let errorMessage = getErrorMessage(errorCode, apiError.error?.message);
-
-      // Special handling for validation errors with details
-      if (errorCode === 'VALIDATION_ERROR' && apiError.error.details) {
-        errorMessage = `Validation failed: ${JSON.stringify(apiError.error.details)}`;
-      }
-
-      return {
-        data: null,
-        error: errorMessage,
-        success: false,
-      };
-    }
-
-    // Fallback to original message if no error code
-    return {
-      data: null,
-      error: apiError.error?.message || 'An error occurred',
-      success: false,
-    };
   }
 
   /**
    * Handle network, timeout, and connection errors
    */
-  private handleNetworkError(error: AxiosError): { data: null; error: string; success: false } {
+  private handleNetworkError(error: AxiosError): ApiErrorResponse {
     // Check for specific error types
     if (error.code === 'ECONNABORTED') {
       return {
-        data: null,
-        error: 'Request timed out. Please try again.',
         success: false,
+        error: {
+          code: ErrorCode.REQUEST_TIMEOUT,
+          message: 'Request timed out. Please try again.',
+        },
+        timestamp: new Date().toISOString(),
       };
     }
 
     if (error.code === 'ERR_NETWORK') {
       return {
-        data: null,
-        error: 'Network error. Please check your internet connection and try again.',
         success: false,
+        error: {
+          code: ErrorCode.NETWORK_ERROR,
+          message: 'Network error. Please check your internet connection and try again.',
+        },
+        timestamp: new Date().toISOString(),
       };
     }
 
     if (error.code === 'ERR_CANCELED') {
       return {
-        data: null,
-        error: 'Request was cancelled.',
         success: false,
+        error: {
+          code: ErrorCode.REQUEST_CANCELED,
+          message: 'Request was cancelled.',
+        },
+        timestamp: new Date().toISOString(),
       };
     }
 
     // Network error (no response received) - server unreachable, DNS issues, etc.
     if (error.request) {
       return {
-        data: null,
-        error:
-          'Unable to connect to the server. Please check your internet connection and try again.',
         success: false,
+        error: {
+          code: ErrorCode.CONNECTION_ERROR,
+          message:
+            'Unable to connect to the server. Please check your internet connection and try again.',
+        },
+        timestamp: new Date().toISOString(),
       };
     }
 
     // Request configuration error
     return {
-      data: null,
-      error: 'Request configuration error. Please try again.',
       success: false,
+      error: {
+        code: ErrorCode.REQUEST_CONFIG_ERROR,
+        message: 'Request configuration error. Please try again.',
+      },
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -326,26 +340,30 @@ export class ApiClient {
    */
   private async request<T>(
     requestFn: () => Promise<AxiosResponse<ApiResponse<T>>>,
-  ): Promise<{ data: T | null; error: string | null; success: boolean }> {
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await requestFn();
       const apiResponse = response.data;
 
       if (apiResponse.success) {
         return {
-          data: apiResponse.data,
-          error: null,
           success: true,
+          data: apiResponse.data,
         };
       } else {
         return {
-          data: null,
-          error: apiResponse.error.message,
           success: false,
+          error: apiResponse.error,
+          timestamp: new Date().toISOString(),
         };
       }
     } catch (error) {
-      return this.handleError(error);
+      const apiError = this.handleError(error);
+      return {
+        success: false,
+        error: apiError.error,
+        timestamp: new Date().toISOString(),
+      };
     }
   }
 
@@ -400,4 +418,4 @@ export class ApiClient {
 }
 
 // Create and export a default instance
-export const apiClient = new ApiClient();
+export const apiClient = new ApiClient('http://localhost:3000/api');

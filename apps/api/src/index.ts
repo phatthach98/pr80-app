@@ -21,14 +21,15 @@ import {
 } from "@application/interface/service";
 import { authMiddlewareFactory } from "@presentation/middleware/request-authenticator.middleware";
 import { setupOrderChangeStream } from "@infras/database/utils/change-stream.util";
-import { SocketAddress } from "net";
+import cors from "cors";
 
 dotenv.config();
 const app: Express = express();
 // Create HTTP server for Express and Socket.io
 const server = http.createServer(app);
+app.use(cors());
 app.use(express.json());
-
+// sleep 1 second
 const jwtService = container.resolve<JwtTokenService>(JWT_TOKEN_SERVICE);
 const socketService = container.resolve<SocketService>(SOCKET_SERVICE);
 const authenticateRequest = authMiddlewareFactory(jwtService);
@@ -39,7 +40,11 @@ const startServer = async () => {
 
     // Apply the response interceptor middleware before routes
     app.use(responseInterceptor);
-
+    // TODO: This used for testing purposes - remove it later
+    app.use(async (req, res, next) => {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      next();
+    });
     app.use(`/api/health`, (req, res) => {
       res.send("OK");
     });

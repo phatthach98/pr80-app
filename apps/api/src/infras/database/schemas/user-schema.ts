@@ -52,12 +52,7 @@ const UserSchema = new Schema(
           },
         },
       ],
-      required: [true, "At least one role is required"],
-      validate: {
-        validator: (roles: { id: string }[]) =>
-          Array.isArray(roles) && roles.length > 0,
-        message: "User must have at least one role.",
-      },
+      default: [],
     },
   },
   {

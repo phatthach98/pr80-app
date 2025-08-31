@@ -3,7 +3,7 @@ import * as jwt from "jsonwebtoken";
 
 export class JwtServiceImpl implements JwtTokenService {
   private readonly secret = process.env.JWT_SECRET || "your-super-secret-key";
-  private readonly expiresIn = process.env.JWT_EXPIRES_IN || "1h";
+  private readonly expiresIn = process.env.JWT_EXPIRES_IN || "7d";
 
   generateToken(
     payload: { userId: string },

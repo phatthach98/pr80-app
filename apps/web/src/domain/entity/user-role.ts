@@ -1,6 +1,6 @@
 import { UserRoleResponseDTO } from '@pr80-app/shared-contracts';
 
-export class UserRole {
+export class UserRoleEntity {
   private constructor(
     public readonly id: string,
     public readonly name: string
@@ -8,11 +8,11 @@ export class UserRole {
     Object.freeze(this);
   }
 
-  static fromResponseDTO(dto: UserRoleResponseDTO): UserRole {
-    return new UserRole(dto.id, dto.name);
+  static fromResponseDTO(dto: UserRoleResponseDTO): UserRoleEntity {
+    return new UserRoleEntity(dto.id, dto.name);
   }
 
-  static fromResponseDTOList(dtos: UserRoleResponseDTO[]): UserRole[] {
+  static fromResponseDTOList(dtos: UserRoleResponseDTO[]): UserRoleEntity[] {
     return dtos.map(dto => this.fromResponseDTO(dto));
   }
 }
