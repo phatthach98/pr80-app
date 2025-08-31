@@ -4,7 +4,6 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 export const Route = createFileRoute('/')({
   component: RouteComponent,
   beforeLoad: () => {
-    console.log('beforeLoad index route');
     if (authLocalStorageUtil.getToken()) {
       throw redirect({
         to: '/orders',
