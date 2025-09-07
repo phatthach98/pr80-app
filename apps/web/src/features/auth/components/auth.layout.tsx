@@ -14,7 +14,6 @@ export function AuthLayout() {
   useEffect(() => {
     const initAuth = async () => {
       const userDetail = await getMe();
-      console.log('userDetail', userDetail);
       if (!userDetail) {
         navigate({
           to: '/login',
@@ -49,14 +48,6 @@ export function AuthLayout() {
       const isSuccess = await getRefreshToken();
       if (isSuccess) {
         onRefreshComplete(authLocalStorageUtil.getToken());
-        // const userDetail = await getMe();
-        // console.log('userDetail', userDetail);
-        // if (!userDetail) {
-        //   navigate({
-        //     to: '/login',
-        //     replace: true,
-        //   });
-        // }
       } else {
         onRefreshComplete(null);
         logout();

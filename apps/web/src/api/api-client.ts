@@ -57,7 +57,6 @@ export class ApiClient {
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         const token = authLocalStorageUtil.getToken();
-        console.log('config.url', config.url);
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }

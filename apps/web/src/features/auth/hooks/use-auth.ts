@@ -72,7 +72,6 @@ export const useAuth = (): UseAuthType => {
   };
 
   const refreshToken = async (): Promise<boolean> => {
-    console.log('refreshToken', authLocalStorageUtil.getRefreshToken());
     const response = await apiClient.post<LoginResponseDTO>('/auth/refresh-token', {
       refreshToken: authLocalStorageUtil.getRefreshToken(),
     });

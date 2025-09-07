@@ -30,7 +30,6 @@ export const authMiddlewareFactory = (jwtService: JwtTokenService) => {
 
       next();
     } catch (error) {
-      console.log("error", error);
       throw new UnauthorizedError("Unauthorized");
     }
   };
