@@ -10,3 +10,11 @@ export const loginValidator = [
     .isLength({ min: 4, max: 4 })
     .withMessage("Passcode must be 4 digits."),
 ];
+
+export const refreshTokenValidator = [
+  body("refreshToken")
+    .notEmpty()
+    .withMessage("Refresh token is required.")
+    .isString()
+    .withMessage("Refresh token must be a string."),
+];

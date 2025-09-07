@@ -33,4 +33,11 @@ export class AuthController {
     const user = await userUseCase.getUserDetail(userId);
     res.status(200).json(user.toJSON());
   }
+
+  static async refreshToken(req: Request, res: Response<LoginResponseDTO>) {
+    const { refreshToken } = req.body;
+    const { token: newToken, refreshToken: newRefreshToken } =
+      await authUseCase.refreshToken(refreshToken);
+    res.status(200).json({ token: newToken, refreshToken: newRefreshToken });
+  }
 }

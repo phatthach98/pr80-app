@@ -1,6 +1,14 @@
 import { SettingUseCase } from "@application/use-case/setting.use-case";
 import { container } from "@infras/di";
 import { SETTING_USE_CASE } from "@infras/di/tokens";
+import {
+  getSettingConfigResponseDTO,
+  getSettingOptionsResponseDTO,
+  postSettingConfigRequestDTO,
+  postSettingConfigResponseDTO,
+  postSettingOptionsRequestDTO,
+  postSettingOptionsResponseDTO,
+} from "@pr80-app/shared-contracts";
 import { NextFunction, Request, Response } from "express";
 
 const settingUseCase = container.resolve<SettingUseCase>(SETTING_USE_CASE);
@@ -8,7 +16,7 @@ const settingUseCase = container.resolve<SettingUseCase>(SETTING_USE_CASE);
 export class SettingController {
   static getOption = async (
     req: Request,
-    res: Response,
+    res: Response<getSettingOptionsResponseDTO>,
     next: NextFunction
   ) => {
     const options = await settingUseCase.getSelectionOptions();
@@ -17,7 +25,7 @@ export class SettingController {
 
   static getConfig = async (
     req: Request,
-    res: Response,
+    res: Response<getSettingConfigResponseDTO>,
     next: NextFunction
   ) => {
     const config = await settingUseCase.getSettingConfig();
@@ -25,8 +33,8 @@ export class SettingController {
   };
 
   static createConfig = async (
-    req: Request,
-    res: Response,
+    req: Request<{}, {}, postSettingConfigRequestDTO>,
+    res: Response<postSettingConfigResponseDTO>,
     next: NextFunction
   ) => {
     const { key, data } = req.body;
@@ -35,8 +43,8 @@ export class SettingController {
   };
 
   static createTableOptions = async (
-    req: Request,
-    res: Response,
+    req: Request<{}, {}, postSettingOptionsRequestDTO>,
+    res: Response<postSettingOptionsResponseDTO>,
     next: NextFunction
   ) => {
     const { options } = req.body;
@@ -45,8 +53,8 @@ export class SettingController {
   };
 
   static createOrderStatusOptions = async (
-    req: Request,
-    res: Response,
+    req: Request<{}, {}, postSettingOptionsRequestDTO>,
+    res: Response<postSettingOptionsResponseDTO>,
     next: NextFunction
   ) => {
     const { options } = req.body;

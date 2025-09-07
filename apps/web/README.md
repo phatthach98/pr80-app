@@ -1,36 +1,71 @@
-# PR80 Web App - Clean Architecture
+# PR80 Web App - Feature-Based Clean Architecture
 
-A React application built with **Clean Architecture** principles, providing clear separation of concerns and maintainable code structure.
+A React application built with **Clean Architecture** principles and **Feature-Based Organization**, providing clear separation of concerns and maintainable code structure.
 
 ## 🏗️ Architecture Overview
 
-This web application follows **Clean Architecture** with **Domain-Driven Design** concepts, adapted specifically for frontend development. The architecture consists of 4 distinct layers:
+This web application follows **Clean Architecture** with **Feature-Based Organization**, adapted specifically for frontend development. The architecture combines clean architecture layers with feature-based modularity:
 
 ```
 src/
-├── domain/                    # 🏛️ Business Logic (Models & Domain Services)
-├── application/              # 🎯 Use Cases & Application Logic
-├── presentation/             # 🌐 UI Components & React Logic
-├── infrastructure/           # ⚙️ External Services & Store Implementations
-└── shared/                   # 🔧 Shared Utilities & UI Components
+├── features/                 # 🎯 Feature-Based Organization
+│   ├── auth/                # Authentication feature
+│   ├── orders/              # Order management feature
+│   └── dishes/              # Dish management feature (prepared)
+├── domain/                  # 🏛️ Business Logic (Models & Domain Services)
+├── components/              # 🔧 Shared UI Components
+├── hooks/                   # 🔗 Shared React Hooks
+├── utils/                   # 🛠️ Shared Utilities
+├── api/                     # 🌐 API Client & Communication
+└── routes/                  # 🛣️ Application Routing
 ```
 
 ### 🔄 Dependency Flow
 
 ```
-Presentation → Application → Domain
-     ↓              ↓
-Infrastructure → Application
+Features → Domain → Shared Components/Hooks/Utils
+   ↓
+Routes → Features
 ```
 
 **Key Rules:**
 
-- Inner layers NEVER depend on outer layers
-- **Domain** has no external dependencies (pure business logic)
-- **Application** defines interfaces; **Infrastructure** implements them
-- **Presentation** only imports from **Application** and **Shared**
+- **Features** are self-contained with their own components, hooks, pages and utils
+- **Domain** contains pure business logic with zero external dependencies
+- **Shared** components, hooks, and utils are reusable across features
+- **Routes** import from features to compose pages
+- Features can import from domain and shared layers
 
 ## 📁 Detailed Structure Guide
+
+### 🎯 Features Layer (`/features`)
+
+**Feature-based organization with self-contained modules**
+
+```
+features/
+├── auth/                    # Authentication feature
+│   ├── components/         # Auth-specific components
+│   │   ├── login-form.tsx  # Login form component
+│   │   └── auth.layout.tsx # Authentication layout
+│   ├── hooks/              # Auth-specific hooks
+│   │   └── use-auth.ts     # Authentication logic & state
+│   ├── pages/              # Auth pages
+│   │   └── login.page.tsx  # Login page component
+│   └── index.ts            # Feature exports
+├── orders/                  # Order management feature
+│   ├── components/         # Order-specific components (ready for expansion)
+│   ├── hooks/              # Order-specific hooks
+│   │   └── use-order-config.ts # Order configuration hook
+│   ├── pages/              # Order pages
+│   │   └── orders.page.tsx # Orders listing page
+│   └── index.ts            # Feature exports
+└── dishes/                  # Dish management feature (prepared)
+    ├── components/         # Dish-specific components
+    ├── hooks/              # Dish-specific hooks
+    ├── pages/              # Dish pages
+    └── index.ts            # Feature exports
+```
 
 ### 🏛️ Domain Layer (`/domain`)
 
@@ -38,25 +73,17 @@ Infrastructure → Application
 
 ```
 domain/
-├── models/                   # Data models with business logic
-│   ├── User.ts              # User entity with validation & methods
-│   ├── Order.ts             # Order entity with business rules
-│   ├── Product.ts           # Product entity with calculations
-│   └── Payment.ts           # Payment entity with validation
-├── services/                # Cross-model business logic
-│   ├── OrderCalculationService.ts
-│   ├── PricingService.ts
-│   └── ValidationService.ts
-└── types/                   # Domain types and enums
-    ├── OrderStatus.ts
-    ├── PaymentMethod.ts
-    └── UserRole.ts
+├── entity/                  # Business entities
+│   ├── user.ts             # User entity with validation & methods
+│   └── user-role.ts        # User role entity
+└── services/               # Cross-entity business logic
+    └── index.ts            # Domain services exports
 ```
 
 **What belongs here:**
 
-- **Models**: Business entities with validation and business rules
-- **Domain Services**: Complex business logic spanning multiple models
+- **Entities**: Business entities with validation and business rules
+- **Domain Services**: Complex business logic spanning multiple entities
 - **Business Rules**: Core validation and calculations
 - **Domain Types**: Enums and types specific to business logic
 
@@ -67,168 +94,93 @@ domain/
 - Pure TypeScript/JavaScript business logic
 - Contains core business rules and validation
 
-### 🎯 Application Layer (`/application`)
+### 🔧 Shared Components (`/components`)
 
-**Orchestrates business workflows and defines external contracts**
-
-```
-application/
-├── interfaces/              # Contracts for external dependencies
-│   ├── stores/             # Store contracts
-│   │   ├── IOrderStore.ts
-│   │   ├── IUserStore.ts
-│   │   └── IProductStore.ts
-│   ├── repositories/       # Repository contracts
-│   │   ├── IOrderRepository.ts
-│   │   ├── IUserRepository.ts
-│   │   └── IProductRepository.ts
-│   └── services/           # External service contracts
-│       ├── IApiClient.ts
-│       ├── INotificationService.ts
-│       └── IStorageService.ts
-└── use-cases/              # Business workflows
-    ├── auth/
-    │   ├── loginUser.ts
-    │   ├── registerUser.ts
-    │   └── updateProfile.ts
-    ├── orders/
-    │   ├── createOrder.ts
-    │   ├── updateOrder.ts
-    │   └── cancelOrder.ts
-    └── products/
-        ├── searchProducts.ts
-        └── getProductDetails.ts
-```
-
-**What belongs here:**
-
-- **Interfaces**: All contracts for repositories and external services
-- **Use Cases**: Application-specific business workflows
-- **Business Workflows**: User stories and application operations
-- **Dependency Contracts**: What the application needs from external world
-
-**Key characteristics:**
-
-- Defines what the application needs from external systems
-- Orchestrates domain models and services
-- Contains application-specific business rules
-- Depends only on domain layer
-- Use cases receive dependencies via dependency injection
-
-### 🌐 Presentation Layer (`/presentation`)
-
-**React components and UI logic**
+**Reusable UI components across features**
 
 ```
-presentation/
-├── hooks/                  # Connect use cases to components
-│   ├── useAuth.ts         # Authentication logic & state
-│   ├── useOrders.ts       # Order management logic
-│   ├── useProducts.ts     # Product listing & search logic
-│   └── useFormValidation.ts # Form handling utilities
-├── components/            # Feature-specific components
-│   ├── auth/
-│   │   ├── LoginForm.tsx
-│   │   ├── RegisterForm.tsx
-│   │   └── UserProfile.tsx
-│   ├── orders/
-│   │   ├── OrderList.tsx
-│   │   ├── OrderForm.tsx
-│   │   └── OrderSummary.tsx
-│   └── products/
-│       ├── ProductList.tsx
-│       ├── ProductCard.tsx
-│       └── ProductDetail.tsx
-├── pages/                 # Top-level page components
-│   ├── HomePage.tsx
-│   ├── LoginPage.tsx
-│   ├── OrdersPage.tsx
-│   └── ProductsPage.tsx
-├── layouts/               # Layout components
-│   ├── MainLayout.tsx
-│   └── AuthLayout.tsx
-└── providers/             # React context providers
-    ├── AuthProvider.tsx
-    ├── ThemeProvider.tsx
-    └── NotificationProvider.tsx
+components/
+├── ui/                     # Base UI component library
+│   ├── button.tsx         # Button component
+│   ├── input.tsx          # Input component
+│   ├── card.tsx           # Card component
+│   ├── sidebar.tsx        # Sidebar component
+│   └── ...                # Other UI components
+├── app-sidebar.tsx        # Application sidebar
+├── nav-main.tsx           # Main navigation
+├── nav-user.tsx           # User navigation
+├── site-header.tsx        # Site header
+└── index.ts               # Component exports
 ```
 
-**What belongs here:**
+### 🔗 Shared Hooks (`/hooks`)
 
-- **Hooks**: Connect use cases to React components
-- **Components**: Feature-specific React components
-- **Pages**: Top-level page components that compose features
-- **UI Logic**: Form handling, data formatting, event handling
-- **React Providers**: Context providers for cross-cutting concerns
-
-**Key characteristics:**
-
-- Handles React-specific concerns (state, effects, rendering)
-- Formats data for display and handles user interactions
-- Calls use cases through dependency injection
-- No direct business logic - delegates to application layer
-
-### ⚙️ Infrastructure Layer (`/infrastructure`)
-
-**External system implementations and concrete services**
+**Reusable React hooks across features**
 
 ```
-infrastructure/
-├── stores/                # State management implementations
-│   ├── OrderStore.ts     # Order state management (Zustand/Redux)
-│   ├── UserStore.ts      # User state management
-│   └── ProductStore.ts   # Product state management
-├── repositories/          # API repository implementations
-│   ├── OrderRepository.ts # Order API calls
-│   ├── UserRepository.ts  # User API calls
-│   └── ProductRepository.ts # Product API calls
-├── api/                  # API client implementations
-│   ├── apiClient.ts      # HTTP client configuration
-│   ├── auth-api.ts       # Authentication endpoints
-│   ├── orders-api.ts     # Order endpoints
-│   └── products-api.ts   # Product endpoints
-├── services/             # External service implementations
-│   ├── NotificationService.ts # Toast notifications
-│   ├── StorageService.ts     # Local/session storage
-│   └── AnalyticsService.ts   # Analytics tracking
-└── config/               # Configuration
-    ├── api-config.ts     # API configuration
-    └── app-config.ts     # App-wide configuration
+hooks/
+├── use-mobile.ts          # Mobile device detection hook
+└── index.ts               # Hook exports
 ```
 
-**What belongs here:**
+### 🛠️ Shared Utilities (`/utils`)
 
-- **Store Implementations**: Concrete state management (Zustand, Redux, etc.)
-- **Repository Implementations**: Actual API communication
-- **External Services**: Third-party integrations
-- **Configuration**: App configuration and setup
-
-**Key characteristics:**
-
-- Implements interfaces defined in application layer
-- Contains all external system integrations
-- Framework-specific code (HTTP clients, state libraries)
-- Most likely to change when switching technologies
-
-### 🔧 Shared Layer (`/shared`)
-
-**Reusable utilities and UI components**
+**Reusable utility functions across features**
 
 ```
-shared/
-├── ui/                   # Reusable UI components (Design System)
-│   ├── Button/
-│   ├── Input/
-│   ├── Table/
-│   └── Modal/
-├── utils/                # Pure utility functions
-│   ├── validation.ts
-│   ├── formatting.ts
-│   └── helpers.ts
-├── types/                # Shared TypeScript types
-├── constants/            # Application constants
-└── validators/           # Validation schemas (Zod, Yup, etc.)
+utils/
+├── auth-local-storage.util.ts  # Authentication storage utilities
+├── local-storage.util.ts       # General local storage utilities
+└── index.ts                    # Utility exports
 ```
+
+### 🌐 API Layer (`/api`)
+
+**API client and communication layer**
+
+```
+api/
+├── api-client.ts          # HTTP client configuration
+└── error-message-mapper.ts # Error message mapping
+```
+
+### 🛣️ Routes Layer (`/routes`)
+
+**Application routing and navigation**
+
+```
+routes/
+├── __root.tsx             # Root route component
+├── _auth.tsx              # Authenticated routes layout
+├── _public.tsx            # Public routes layout
+├── _auth/                 # Authenticated route pages
+│   ├── orders.index.tsx   # Orders listing route
+│   └── orders.$orderId.tsx # Order detail route
+├── _public/               # Public route pages
+│   └── login.tsx          # Login route
+└── index.tsx              # Home route
+```
+
+## 🎯 Current Features
+
+### ✅ Implemented Features
+
+- **Authentication Feature** (`/features/auth/`)
+  - Login form with phone number and passcode
+  - Authentication layout with sidebar and header
+  - User authentication state management
+  - Protected route handling
+
+- **Orders Feature** (`/features/orders/`)
+  - Orders listing page
+  - Order configuration hook (ready for expansion)
+  - Prepared structure for order management components
+
+### 🚧 Prepared Features
+
+- **Dishes Feature** (`/features/dishes/`)
+  - Complete directory structure ready for dish management
+  - Prepared for menu management functionality
 
 ## 🚀 Getting Started
 
@@ -266,18 +218,26 @@ pnpm preview
 
 ### Adding a New Feature
 
-Follow this step-by-step workflow to maintain Clean Architecture principles:
+Follow this step-by-step workflow to maintain Feature-Based Clean Architecture principles:
 
-#### 1. **Start with Domain Model** 🏛️
+#### 1. **Create Feature Directory** 🎯
+
+Create the feature structure with all necessary subdirectories.
+
+```bash
+mkdir -p src/features/your-feature/{components,hooks,pages,services,types}
+```
+
+#### 2. **Start with Domain Model** 🏛️
 
 Create the core business entity with validation rules and business methods.
 
 ```bash
-touch src/domain/models/YourEntity.ts
+touch src/domain/entity/YourEntity.ts
 ```
 
 ```typescript
-// src/domain/models/Product.ts
+// src/domain/entity/Product.ts
 export class Product {
   constructor(
     public readonly id: string,
@@ -304,194 +264,204 @@ export class Product {
 }
 ```
 
-#### 2. **Define Application Interfaces** 🎯
+#### 3. **Create Feature Hook** 🔗
 
-Create contracts for external dependencies.
-
-```bash
-touch src/application/interfaces/stores/IProductStore.ts
-touch src/application/interfaces/repositories/IProductRepository.ts
-```
-
-#### 3. **Create Use Case** 🎯
-
-Implement the business workflow with dependency injection.
+Create the feature-specific hook that handles business logic.
 
 ```bash
-touch src/application/use-cases/products/createProduct.ts
+touch src/features/your-feature/hooks/use-your-feature.ts
 ```
 
 ```typescript
-// src/application/use-cases/products/createProduct.ts
-interface CreateProductDependencies {
-  productStore: IProductStore;
-  productRepository: IProductRepository;
-  notificationService: INotificationService;
-}
-
-export class CreateProductUseCase {
-  constructor(private deps: CreateProductDependencies) {}
-
-  async execute(data: CreateProductData): Promise<Product> {
-    // Business logic using domain models
-    const product = new Product(generateId(), data.name, data.price);
-
-    // Orchestrate external services
-    this.deps.productStore.setLoading(true);
-    try {
-      const savedProduct = await this.deps.productRepository.create(product);
-      this.deps.productStore.addProduct(savedProduct);
-      this.deps.notificationService.showSuccess('Product created!');
-      return savedProduct;
-    } finally {
-      this.deps.productStore.setLoading(false);
-    }
-  }
-}
-```
-
-#### 4. **Create React Hook** 🌐
-
-Connect the use case to React components.
-
-```bash
-touch src/presentation/hooks/useProducts.ts
-```
-
-```typescript
-// src/presentation/hooks/useProducts.ts
+// src/features/products/hooks/use-products.ts
 export const useProducts = () => {
-  const { createProductUseCase, productStore } = useContainer();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const createProduct = useCallback(
-    async (data: ProductFormData) => {
-      // Handle UI concerns: validation, formatting, error handling
-      const errors = validateProductForm(data);
-      if (errors.length > 0) return { errors };
-
-      const product = await createProductUseCase.execute(data);
-      return { product };
-    },
-    [createProductUseCase],
-  );
+  const createProduct = useCallback(async (data: ProductFormData) => {
+    setLoading(true);
+    try {
+      // Business logic using domain models
+      const product = new Product(generateId(), data.name, data.price);
+      
+      // API call
+      const savedProduct = await apiClient.post('/products', product);
+      setProducts(prev => [...prev, savedProduct]);
+      
+      return { product: savedProduct };
+    } catch (error) {
+      return { error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return {
-    products: productStore.getProducts(),
-    loading: productStore.isLoading(),
+    products,
+    loading,
     createProduct,
   };
 };
 ```
 
-#### 5. **Create React Component** 🌐
+#### 4. **Create Feature Components** 🌐
 
-Build the UI component that uses the hook.
-
-```bash
-touch src/presentation/components/products/ProductForm.tsx
-```
-
-#### 6. **Implement Infrastructure** ⚙️
-
-Create concrete implementations for stores and repositories.
+Build the UI components specific to your feature.
 
 ```bash
-touch src/infrastructure/stores/ProductStore.ts
-touch src/infrastructure/repositories/ProductRepository.ts
+touch src/features/your-feature/components/YourComponent.tsx
 ```
-
-#### 7. **Wire Dependencies** 🔧
-
-Add dependencies to the DI container.
 
 ```typescript
-// app/container.ts
-export const container = {
-  // ... existing dependencies
-  createProductUseCase: new CreateProductUseCase({
-    productStore,
-    productRepository,
-    notificationService,
-  }),
+// src/features/products/components/ProductForm.tsx
+import { useProducts } from '../hooks/use-products';
+
+export const ProductForm = () => {
+  const { createProduct, loading } = useProducts();
+  
+  const handleSubmit = async (data: ProductFormData) => {
+    const result = await createProduct(data);
+    if (result.error) {
+      // Handle error
+    } else {
+      // Handle success
+    }
+  };
+
+  return (
+    // Your form JSX
+  );
 };
+```
+
+#### 5. **Create Feature Pages** 📄
+
+Create page components that compose your feature components.
+
+```bash
+touch src/features/your-feature/pages/YourPage.tsx
+```
+
+#### 6. **Export Feature** 📦
+
+Create feature exports for easy importing.
+
+```typescript
+// src/features/your-feature/index.ts
+export * from './components';
+export * from './hooks';
+export * from './pages';
+```
+
+#### 7. **Add Routes** 🛣️
+
+Create routes that use your feature pages.
+
+```bash
+touch src/routes/_auth/your-feature.tsx
+```
+
+```typescript
+// src/routes/_auth/products.tsx
+import { ProductsPage } from '@/features/products/pages';
+import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/_auth/products')({
+  component: ProductsPage,
+});
 ```
 
 ## 🧪 Testing Strategy
 
 ### Testing Each Layer
 
-- **Domain Models**: Test business rules and validation in isolation
-- **Use Cases**: Test with mocked dependencies (stores/repositories/services)
-- **Hooks**: Test UI logic with mocked use cases
-- **Components**: Test rendering and user interactions
-- **Infrastructure**: Integration tests with real external systems
+- **Domain Entities**: Test business rules and validation in isolation
+- **Feature Hooks**: Test business logic with mocked dependencies
+- **Feature Components**: Test rendering and user interactions
+- **Shared Components**: Test reusable UI components
+- **API Layer**: Integration tests with mocked API responses
 
 ### Test Structure
 
 ```bash
 src/
-├── domain/models/__tests__/
-├── application/use-cases/__tests__/
-├── presentation/hooks/__tests__/
-├── presentation/components/__tests__/
-└── infrastructure/__tests__/
+├── features/
+│   ├── auth/
+│   │   ├── hooks/__tests__/
+│   │   ├── components/__tests__/
+│   │   └── pages/__tests__/
+│   └── orders/
+│       ├── hooks/__tests__/
+│       ├── components/__tests__/
+│       └── pages/__tests__/
+├── domain/entity/__tests__/
+├── components/__tests__/
+├── hooks/__tests__/
+└── api/__tests__/
 ```
 
 ## 🎯 Best Practices
 
 ### ✅ DO
 
-- Keep domain models pure (no external dependencies)
-- Inject dependencies through interfaces
-- Use dependency injection for loose coupling
-- Put business logic in appropriate layers
-- Write tests for each layer independently
+- Keep features self-contained and focused on single responsibility
+- Keep domain entities pure (no external dependencies)
+- Use feature-specific hooks for business logic
+- Import shared components, hooks, and utils across features
+- Write tests for each feature independently
 - Use TypeScript for better type safety
+- Follow consistent naming conventions across features
 
 ### ❌ DON'T
 
-- Import infrastructure in domain/application layers
-- Put business logic in React components or hooks
-- Create "God" classes with too many responsibilities
-- Skip dependency injection in use cases
-- Tightly couple layers
+- Cross-import between features (use shared layer instead)
+- Put business logic directly in React components
+- Create "God" components with too many responsibilities
+- Mix feature-specific logic in shared components
+- Tightly couple features together
 
 ## 🎨 Code Style & Conventions
 
 - **File Naming**: Use PascalCase for components, camelCase for utilities
-- **Directory Structure**: Keep flat structure within each layer
-- **Import Order**: Domain → Application → Infrastructure → Shared
+- **Feature Structure**: Keep consistent structure across all features
+- **Import Order**: Domain → Features → Shared (Components/Hooks/Utils) → External
 - **Component Size**: Keep components small and focused
-- **Hook Responsibility**: Handle only UI concerns in hooks
+- **Hook Responsibility**: Handle feature-specific business logic in feature hooks
+- **Feature Exports**: Always export through feature index files
 
 ## 🔧 Technology Stack
 
 - **Frontend Framework**: React 18
 - **Build Tool**: Rsbuild
+- **Routing**: TanStack Router
 - **Styling**: Tailwind CSS
-- **State Management**: Zustand (in Infrastructure layer)
+- **State Management**: TanStack Store (in feature hooks)
 - **HTTP Client**: Fetch API / Axios
 - **Type Safety**: TypeScript
 - **Testing**: Jest + React Testing Library
 
 ## 📚 Architecture Benefits
 
-1. **Enhanced Maintainability**: Easy to locate and fix issues in specific layers
-2. **Increased Modularity**: Reusable code and easier feature development
-3. **Enhanced Readability**: Clear separation makes code easier to understand
-4. **Improved Scalability**: Easy to add features without affecting other parts
-5. **Better Testability**: Each layer can be tested independently
-6. **Technology Flexibility**: Easy to swap implementations (store, API client, etc.)
+1. **Enhanced Maintainability**: Easy to locate and fix issues within specific features
+2. **Increased Modularity**: Self-contained features with clear boundaries
+3. **Enhanced Readability**: Feature-based organization makes code easier to understand
+4. **Improved Scalability**: Easy to add new features without affecting existing ones
+5. **Better Testability**: Each feature can be tested independently
+6. **Team Collaboration**: Multiple developers can work on different features simultaneously
+7. **Code Reusability**: Shared components, hooks, and utils across features
+8. **Technology Flexibility**: Easy to refactor individual features without affecting others
 
 ## 🤝 Contributing
 
 When contributing to this project:
 
-1. Follow the clean architecture principles
-2. Ensure proper layer separation
-3. Write tests for new features
-4. Update documentation as needed
-5. Use dependency injection for external dependencies
+1. Follow the feature-based clean architecture principles
+2. Keep features self-contained and focused
+3. Use shared components, hooks, and utils for reusable code
+4. Write tests for new features within their respective feature directories
+5. Update documentation as needed
+6. Follow consistent naming conventions across features
+7. Export all feature functionality through feature index files
 
 ## 📖 Further Reading
 

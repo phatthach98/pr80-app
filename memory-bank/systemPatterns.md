@@ -59,52 +59,60 @@ flowchart TB
    - Input validation and response formatting
 
 ## Frontend Architecture
-The web application follows a clean architecture adapted for frontend development:
+The web application follows a **Feature-Based Clean Architecture** adapted for frontend development:
 
 ```mermaid
 flowchart TB
     subgraph "PR80 Web Architecture"
         direction TB
-        D[Domain Layer] --> A[Application Layer]
-        A --> P[Presentation Layer]
-        A --> I[Infrastructure Layer]
-        I -.-> A
-        P -.-> A
-        P --> S[Shared Layer]
+        F[Features Layer] --> D[Domain Layer]
+        F --> C[Shared Components]
+        F --> H[Shared Hooks]
+        F --> U[Shared Utils]
+        R[Routes Layer] --> F
+        A[API Layer] --> F
     end
 ```
 
-1. **Domain Layer** (`/domain`) - Business logic and models
+1. **Features Layer** (`/features`) - Feature-based organization
+   - Self-contained feature modules (auth, orders, dishes)
+   - Each feature has: components, hooks, pages, services, types
+   - Feature-specific business logic and UI components
+   - Clean boundaries between different features
+   - Easy to develop, test, and maintain independently
+
+2. **Domain Layer** (`/domain`) - Business logic and models
    - Business entities with validation and business rules
    - Domain services for complex cross-entity logic
    - Pure TypeScript/JavaScript with no framework dependencies
    - No imports from outer layers
 
-2. **Application Layer** (`/application`) - Use cases and interfaces
-   - Business workflows (use cases)
-   - Interface definitions for stores, repositories, and services
-   - Dependency contracts for what the app needs from external systems
-   - Orchestrates domain models and services
-
-3. **Presentation Layer** (`/presentation`) - React components and UI logic
-   - React components organized by feature
-   - Custom hooks connecting use cases to components
-   - Pages as top-level route components
-   - UI logic (form handling, events, formatting)
-   - Layout components and providers
-
-4. **Infrastructure Layer** (`/infrastructure`) - External implementations
-   - Store implementations (state management)
-   - Repository implementations (API communication)
-   - Service implementations (notifications, storage, etc.)
-   - API client configuration
-   - Most likely to change when switching technologies
-
-5. **Shared Layer** (`/shared`) - Reusable utilities and components
+3. **Shared Components** (`/components`) - Reusable UI components
    - UI component library (design system)
-   - Utility functions
-   - Shared types and constants
-   - Validation schemas
+   - Navigation components (sidebar, header, navigation)
+   - Layout components used across features
+   - Base UI components (buttons, inputs, cards, etc.)
+
+4. **Shared Hooks** (`/hooks`) - Reusable React hooks
+   - Cross-feature React hooks
+   - Utility hooks (mobile detection, etc.)
+   - Hooks that don't belong to specific features
+
+5. **Shared Utils** (`/utils`) - Utility functions
+   - Pure utility functions
+   - Storage utilities
+   - Authentication utilities
+   - Helper functions used across features
+
+6. **API Layer** (`/api`) - External communication
+   - API client configuration
+   - Error handling and mapping
+   - HTTP communication layer
+
+7. **Routes Layer** (`/routes`) - Application routing
+   - TanStack Router configuration
+   - Route definitions and navigation
+   - Protected and public route handling
 
 ## Design Patterns
 - **Repository Pattern** - Data access abstraction
@@ -134,13 +142,14 @@ flowchart TB
 - Skip input validation in controllers
 
 ### Frontend Development Guidelines
-- Keep domain models pure (no React or external dependencies)
-- Inject dependencies through interfaces
-- Put business logic in appropriate layers, not in React components
-- Use hooks to connect use cases to React components
-- Organize components by feature, not by type
+- Keep domain entities pure (no React or external dependencies)
+- Organize code by feature, with each feature being self-contained
+- Put business logic in feature-specific hooks, not in React components
+- Use shared components, hooks, and utils for cross-feature functionality
+- Keep features independent - avoid cross-feature imports
 - Use TypeScript for better type safety
-- Import order: Domain → Application → Infrastructure → Shared
+- Import order: Domain → Features → Shared (Components/Hooks/Utils) → External
+- Export all feature functionality through feature index files
 
 ## Domain Entity Relationships
 ```mermaid

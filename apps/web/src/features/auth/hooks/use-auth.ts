@@ -8,6 +8,7 @@ type UseAuthType = {
   login: (phoneNumber: string, passCode: string) => Promise<boolean>;
   getMe: () => Promise<UserEntity | null>;
   logout: () => Promise<void>;
+  getRefreshToken: () => Promise<boolean>;
 };
 
 type AuthStoreType = {
@@ -22,6 +23,14 @@ export const authStore = new Store<AuthStoreType>({
   isAuthenticated: false,
 });
 
+export const resetAuthStore = () => {
+  authStore.setState({
+    userDetail: null,
+    isLoading: false,
+    isAuthenticated: false,
+  });
+};
+
 export const useAuth = (): UseAuthType => {
   const login = async (phoneNumber: string, passCode: string): Promise<boolean> => {
     const response = await apiClient.post<LoginResponseDTO>('/auth/login', {
@@ -34,6 +43,7 @@ export const useAuth = (): UseAuthType => {
       return true;
     }
 
+    authLocalStorageUtil.resetTokens();
     return false;
   };
 
@@ -58,7 +68,41 @@ export const useAuth = (): UseAuthType => {
 
   const logout = async (): Promise<void> => {
     authLocalStorageUtil.resetTokens();
+    resetAuthStore();
   };
 
-  return { login, getMe, logout };
+  const refreshToken = async (): Promise<boolean> => {
+    console.log('refreshToken', authLocalStorageUtil.getRefreshToken());
+    const response = await apiClient.post<LoginResponseDTO>('/auth/refresh-token', {
+      refreshToken: authLocalStorageUtil.getRefreshToken(),
+    });
+
+    if (response.success) {
+      authLocalStorageUtil.setTokens(response.data.token, response.data.refreshToken);
+      return true;
+    }
+    authLocalStorageUtil.resetTokens();
+    return false;
+  };
+
+  const refreshTokenClosure = (): (() => Promise<boolean>) => {
+    let isPending = false;
+    let refreshTokenPromise: Promise<boolean> | null = null;
+
+    return async (): Promise<boolean> => {
+      if (isPending && refreshTokenPromise) {
+        return await refreshTokenPromise;
+      }
+      isPending = true;
+      refreshTokenPromise = new Promise(async (resolve) => {
+        const result = await refreshToken();
+        isPending = false;
+        refreshTokenPromise = null;
+        resolve(result);
+      });
+      return await refreshTokenPromise;
+    };
+  };
+
+  return { login, getMe, logout, getRefreshToken: refreshTokenClosure() };
 };

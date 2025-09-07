@@ -1,17 +1,15 @@
 import { SidebarIcon } from 'lucide-react';
-
-import { SearchForm } from '@/components/search-form';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
   Button,
   Separator,
   useSidebar,
 } from '@/components/ui';
+import { OrderStatusSelect, MakeOrderForm } from '@/features/orders/components';
+import { Link } from '@tanstack/react-router';
 
 export function SiteHeader() {
   const { toggleSidebar } = useSidebar();
@@ -26,15 +24,16 @@ export function SiteHeader() {
         <Breadcrumb className="hidden sm:block">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="#">Building Your Application</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+              <BreadcrumbLink asChild>
+                <Link to="/orders">Danh sách đơn hàng</Link>
+              </BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <SearchForm className="w-full sm:ml-auto sm:w-auto" />
+        <div className="flex w-full items-center justify-end gap-2 sm:ml-auto sm:w-auto">
+          <OrderStatusSelect />
+          <MakeOrderForm />
+        </div>
       </div>
     </header>
   );

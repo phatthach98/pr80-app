@@ -6,13 +6,13 @@ export interface SettingRepository {
    * The result is a map where the key is the setting ID (e.g., 'orderStatuses')
    * and the value is the array of options.
    */
-  getOption(): Promise<Record<string, SelectOption[]> | null>;
+  getOption(): Promise<Record<"tables" | "orderStatuses", SelectOption[]>>;
 
   /**
    * Retrieves a specific configuration setting by its key.
    * @param key The unique identifier for the configuration.
    */
-  getConfig<T>(): Promise<Record<string, T> | null>;
+  getConfig(): Promise<Record<string, SelectOption[]>>;
 
   createOptions(
     key: string,
