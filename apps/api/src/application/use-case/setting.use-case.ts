@@ -5,14 +5,16 @@ import { SelectOption } from "../../types";
 export class SettingUseCase {
   constructor(private readonly settingRepository: SettingRepository) {}
 
-  async getSelectionOptions(): Promise<Record<string, SelectOption[]>> {
+  async getSelectionOptions(): Promise<
+    Record<"tables" | "orderStatuses", SelectOption[]>
+  > {
     const options = await this.settingRepository.getOption();
-    return options || {};
+    return options || { tables: [], orderStatuses: [] };
   }
 
-  async getSettingConfig<T>(): Promise<Record<string, T>> {
-    const config = await this.settingRepository.getConfig<T>();
-    return config || {};
+  async getSettingConfig(): Promise<Record<string, SelectOption[]>> {
+    const config = await this.settingRepository.getConfig();
+    return config;
   }
 
   async createTableOptions(options: SelectOption[]): Promise<void> {

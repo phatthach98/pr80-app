@@ -12,4 +12,5 @@ export * from './dto/dish.dto';
 export * from './dto/dish-option.dto';
 export * from './dto/order.dto';
 export * from './dto/role.dto';
+export * from './dto/setting.dto';
 export * from './dto/user.dto';

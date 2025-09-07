@@ -5,7 +5,10 @@ import { UnauthorizedError } from "@application/errors";
 export const authMiddlewareFactory = (jwtService: JwtTokenService) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
-    if (req.originalUrl.includes("/auth/login")) {
+    if (
+      req.originalUrl.includes("/auth/login") ||
+      req.originalUrl.includes("/auth/refresh-token")
+    ) {
       return next();
     }
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -26,7 +29,7 @@ export const authMiddlewareFactory = (jwtService: JwtTokenService) => {
       req.user = { userId: decoded.userId, roleIds: decoded.roleIds };
 
       next();
-    } catch {
+    } catch (error) {
       throw new UnauthorizedError("Unauthorized");
     }
   };

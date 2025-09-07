@@ -4,9 +4,9 @@ import { cn } from '@/tailwind/utils';
 import { Button, Input, Label } from '@/components/ui';
 import { Controller, useForm } from 'react-hook-form';
 import { LoginRequestDTO } from '@pr80-app/shared-contracts';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/features/auth/hooks';
 import { useState } from 'react';
-import { useNavigate } from 'node_modules/@tanstack/react-router/dist/esm/useNavigate';
+import { useNavigate } from '@tanstack/react-router';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const { login } = useAuth();
@@ -63,7 +63,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
               />
             </div>
             <Button type="submit" className="w-full" isLoading={isLoading}>
-              Login
+              Đăng nhập
             </Button>
           </div>
         </div>

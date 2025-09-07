@@ -6,7 +6,7 @@ import axios, {
   AxiosRequestConfig,
 } from 'axios';
 import { ErrorCode } from '@pr80-app/shared-contracts';
-import { localStorageUtil } from '@/utils';
+import { authLocalStorageUtil } from '@/utils/auth-local-storage.util';
 
 // Types matching the backend API response format
 export interface ApiSuccessResponse<T> {
@@ -36,10 +36,6 @@ export interface ApiErrorResponse {
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
-// Token storage keys
-const TOKEN_KEY = 'pr-80.auth.token';
-const REFRESH_TOKEN_KEY = 'pr-80.auth.refreshToken';
-
 export class ApiClient {
   private client: AxiosInstance;
 
@@ -60,7 +56,7 @@ export class ApiClient {
     // Request interceptor to add authentication token
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        const token = localStorageUtil.getItem(TOKEN_KEY);
+        const token = authLocalStorageUtil.getToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -76,11 +72,17 @@ export class ApiClient {
       (response: AxiosResponse) => {
         return response;
       },
-      async (error: AxiosError) => {
+      async (error: AxiosError<ApiErrorResponse>) => {
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-
         // Don't retry if request was cancelled
         if (error.code === 'ERR_CANCELED') {
+          return Promise.reject(error);
+        }
+
+        if (
+          error.response?.statusText === 'Unauthorized' &&
+          error.response?.data.path?.includes('/auth/refresh-token')
+        ) {
           return Promise.reject(error);
         }
 
@@ -88,39 +90,32 @@ export class ApiClient {
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
 
-          const refreshToken = localStorageUtil.getItem(REFRESH_TOKEN_KEY);
-          if (refreshToken) {
-            try {
-              // Attempt to refresh the token
-              const refreshResponse = await axios.post(
-                `${this.client.defaults.baseURL}/api/auth/refresh`,
-                {
-                  refreshToken,
+          // Create a refresh token promise
+          const refreshPromise = new Promise<string | null>((resolve) => {
+            // Dispatch event with resolver function
+            window.dispatchEvent(
+              new CustomEvent('auth:unauthorized', {
+                detail: {
+                  // Pass a callback that the auth layout can call with the new token
+                  onRefreshComplete: (newToken: string | null) => {
+                    resolve(newToken);
+                  },
+                  // Pass the original request for debugging purposes
+                  originalRequest,
                 },
-              );
+              }),
+            );
+          });
 
-              const { token, refreshToken: newRefreshToken } = refreshResponse.data.data;
-              localStorageUtil.setItem(TOKEN_KEY, token);
-              localStorageUtil.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
-
-              // Emit event for token refresh so auth provider can update user data
-              window.dispatchEvent(new CustomEvent('auth:token-refreshed'));
-
-              // Retry the original request with the new token
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              return this.client(originalRequest);
-            } catch (refreshError) {
-              // Refresh failed, clear tokens and redirect to login
-              localStorageUtil.removeItem(TOKEN_KEY);
-              localStorageUtil.removeItem(REFRESH_TOKEN_KEY);
-              window.dispatchEvent(new CustomEvent('auth:logout'));
-              return Promise.reject(refreshError);
-            }
+          // Wait for the auth layout to resolve the promise
+          const newToken = await refreshPromise;
+          if (newToken) {
+            // If we got a new token, retry the original request
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return this.client(originalRequest);
           } else {
-            // No refresh token available, clear tokens and redirect to login
-            localStorageUtil.removeItem(TOKEN_KEY);
-            localStorageUtil.removeItem(REFRESH_TOKEN_KEY);
-            window.dispatchEvent(new CustomEvent('auth:logout'));
+            // If token refresh failed, reject the original request
+            return Promise.reject(error);
           }
         }
 

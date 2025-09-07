@@ -18,7 +18,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/features/auth/hooks/use-auth';
 import { useNavigate } from '@tanstack/react-router';
 
 export function NavUser({
