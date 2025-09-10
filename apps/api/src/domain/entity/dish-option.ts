@@ -5,26 +5,26 @@ export class DishOption {
   public id: string;
   public name: string;
   public description: string;
-  public options: SelectOptionWithPrice[];
+  public optionItems: SelectOptionWithPrice[];
 
   constructor(
     id: string,
     name: string,
     description: string,
-    options: SelectOptionWithPrice[]
+    optionItems: SelectOptionWithPrice[]
   ) {
     this.id = id;
     this.name = name;
     this.description = description;
-    this.options = options;
+    this.optionItems = optionItems;
   }
 
   static create(
     name: string,
     description: string,
-    options: SelectOptionWithPrice[]
+    optionItems: SelectOptionWithPrice[]
   ): DishOption {
-    return new DishOption(uuid(), name, description, options);
+    return new DishOption(uuid(), name, description, optionItems);
   }
 
   public toJSON() {
@@ -32,7 +32,7 @@ export class DishOption {
       id: this.id,
       name: this.name,
       description: this.description,
-      options: this.options.length > 0 ? this.options : [],
+      optionItems: this.optionItems.length > 0 ? this.optionItems : [],
     };
   }
 }

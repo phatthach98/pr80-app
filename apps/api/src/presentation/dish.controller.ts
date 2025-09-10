@@ -22,7 +22,7 @@ export class DishController {
     res: Response<DishResponseDTO | DishWithOptionsResponseDTO>
   ) {
     const { id } = req.params;
-    const includeOptions = req.query.includeOptions === 'true';
+    const includeOptions = req.query.includeOptions === "true";
 
     let result;
     if (includeOptions) {
@@ -39,11 +39,11 @@ export class DishController {
     req: Request<{}, {}, CreateDishRequestDTO>,
     res: Response<DishResponseDTO>
   ) {
-    const { name, description, price, options } = req.body;
+    const { name, description, basePrice, options } = req.body;
     const dish = await dishUseCase.createDish(
       name,
       description,
-      price,
+      basePrice,
       options || []
     );
     res.status(201).json(dish.toJSON());

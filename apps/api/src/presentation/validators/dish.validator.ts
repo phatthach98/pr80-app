@@ -10,13 +10,13 @@ export const createDishValidator = [
     .optional()
     .isString()
     .withMessage("Description must be a string."),
-  body("price")
+  body("basePrice")
     .notEmpty()
-    .withMessage("Price is required.")
+    .withMessage("Base price is required.")
     .isString()
-    .withMessage("Price must be a string.")
+    .withMessage("Base price must be a string.")
     .matches(/^\d+(\.\d{1,2})?$/)
-    .withMessage("Price must be a numeric string (e.g. '10' or '10.99')."),
+    .withMessage("Base price must be a numeric string (e.g. '10' or '10.99')."),
   body("options").optional().isArray().withMessage("Options must be an array."),
 ];
 
@@ -26,12 +26,12 @@ export const updateDishValidator = [
     .optional()
     .isString()
     .withMessage("Description must be a string."),
-  body("price")
+  body("basePrice")
     .optional()
     .isString()
-    .withMessage("Price must be a string.")
-    .if(body("price").exists())
+    .withMessage("Base price must be a string.")
+    .if(body("basePrice").exists())
     .matches(/^\d+(\.\d{1,2})?$/)
-    .withMessage("Price must be a numeric string (e.g. '10' or '10.99')."),
+    .withMessage("Base price must be a numeric string (e.g. '10' or '10.99')."),
   body("options").optional().isArray().withMessage("Options must be an array."),
 ];

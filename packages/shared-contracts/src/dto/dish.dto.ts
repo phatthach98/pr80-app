@@ -1,5 +1,4 @@
-import { SelectOptionWithPrice } from '../types/selection-option.types';
-import { DishOptionResponseDTO } from './dish-option.dto';
+import { DishOptionResponseDTO } from "./dish-option.dto";
 
 // Pure DTO interfaces - no domain entity imports
 
@@ -7,7 +6,7 @@ export interface DishResponseDTO {
   id: string;
   name: string;
   description: string;
-  price: string;
+  basePrice: string;
   options: { id: string }[];
 }
 
@@ -18,13 +17,13 @@ export interface DishWithOptionsResponseDTO extends DishResponseDTO {
 export interface CreateDishRequestDTO {
   name: string;
   description: string;
-  price: string;
+  basePrice: string;
   options?: { id: string }[];
 }
 
 export interface UpdateDishRequestDTO {
   name?: string;
   description?: string;
-  price?: string;
+  basePrice?: string;
   options?: { id: string }[];
 }

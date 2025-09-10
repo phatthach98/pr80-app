@@ -4,30 +4,30 @@ export class Dish {
   public id: string;
   public name: string;
   public description: string;
-  public price: string;
+  public basePrice: string;
   public options: { id: string }[];
 
   constructor(
     id: string,
     name: string,
     description: string,
-    price: string,
+    basePrice: string,
     options: { id: string }[] = []
   ) {
     this.id = id;
     this.name = name;
     this.description = description;
-    this.price = price;
+    this.basePrice = basePrice;
     this.options = options;
   }
 
   static create(
     name: string,
     description: string,
-    price: string,
+    basePrice: string,
     options: { id: string }[] = []
   ): Dish {
-    return new Dish(uuid(), name, description, price, options);
+    return new Dish(uuid(), name, description, basePrice, options);
   }
 
   public addOption(optionId: string): void {
@@ -44,9 +44,9 @@ export class Dish {
     return this.options.some((option) => option.id === optionId);
   }
 
-  public updatePrice(newPrice: string): void {
+  public updateTotalPrice(newPrice: string): void {
     // Ensure price is stored with 2 decimal places for multi-region support
-    this.price = newPrice;
+    this.basePrice = newPrice;
   }
 
   public updateName(newName: string): void {
@@ -62,7 +62,7 @@ export class Dish {
       id: this.id,
       name: this.name,
       description: this.description,
-      price: this.price,
+      basePrice: this.basePrice,
       options: this.options.map((option) => {
         // Create a new object with only the id property
         const { id } = option;

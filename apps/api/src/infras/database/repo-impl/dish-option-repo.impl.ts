@@ -15,17 +15,17 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         return null;
       }
 
-      return dishOptions.map((option) => {
-        const formattedOptions = option.options.map((o) => {
+      return dishOptions.map((dishOption) => {
+        const formattedOptions = dishOption.optionItems.map((o) => {
           return {
             ...o,
             extraPrice: formatDecimal(o.extraPrice),
           };
         });
         return new DishOption(
-          option._id.toString(), // Use _id as id in domain model
-          option.name,
-          option.description,
+          dishOption._id.toString(), // Use _id as id in domain model
+          dishOption.name,
+          dishOption.description,
           formattedOptions
         );
       });
@@ -41,7 +41,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         _id: dishOption.id, // Map domain id to MongoDB _id
         name: dishOption.name,
         description: dishOption.description,
-        options: dishOption.options,
+        optionItems: dishOption.optionItems,
       });
 
       return dishOption;
@@ -74,7 +74,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         throw new Error(`Dish option with id ${id} not found`);
       }
 
-      const formattedOptions = (updatedDishOption.options ?? []).map(
+      const formattedOptions = (updatedDishOption.optionItems ?? []).map(
         (option) => {
           return {
             ...option,
@@ -103,8 +103,8 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
       if (!dishOption) {
         return null;
       }
-
-      const formattedOptions = dishOption.options.map((option) => {
+      console.log("dishOption", dishOption);
+      const formattedOptions = dishOption.optionItems.map((option) => {
         return {
           ...option,
           extraPrice: formatDecimal(option.extraPrice),
@@ -132,7 +132,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
 
       // Map the database objects to domain entities
       return dishOptions.map((dishOption) => {
-        const formattedOptions = (dishOption.options ?? []).map((o) => {
+        const formattedOptions = (dishOption.optionItems ?? []).map((o) => {
           return {
             ...o,
             extraPrice: formatDecimal(o.extraPrice),

@@ -1,15 +1,17 @@
+import { localStorageUtil } from './local-storage.util';
+
 const TOKEN_KEY = 'pr-80.auth.token';
 const REFRESH_TOKEN_KEY = 'pr-80.auth.refreshToken';
 
 export const authLocalStorageUtil = {
-  getToken: () => localStorage.getItem(TOKEN_KEY),
-  getRefreshToken: () => localStorage.getItem(REFRESH_TOKEN_KEY),
+  getToken: () => localStorageUtil.getItem(TOKEN_KEY),
+  getRefreshToken: () => localStorageUtil.getItem(REFRESH_TOKEN_KEY),
   setTokens: (token: string, refreshToken: string) => {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    localStorageUtil.setItem(TOKEN_KEY, token);
+    localStorageUtil.setItem(REFRESH_TOKEN_KEY, refreshToken);
   },
   resetTokens: () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorageUtil.removeItem(TOKEN_KEY);
+    localStorageUtil.removeItem(REFRESH_TOKEN_KEY);
   },
 };

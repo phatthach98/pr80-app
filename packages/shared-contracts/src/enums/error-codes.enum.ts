@@ -7,7 +7,7 @@
  * This enum is shared between frontend and backend to ensure consistency.
  */
 
-export enum ErrorCode {
+export enum EErrorCode {
   // Authentication & Authorization Errors (1000-1999)
   UNAUTHORIZED = "UNAUTHORIZED",
   FORBIDDEN = "FORBIDDEN",

@@ -42,7 +42,7 @@ const startServer = async () => {
     app.use(responseInterceptor);
     // TODO: This used for testing purposes - remove it later
     app.use(async (req, res, next) => {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       next();
     });
     app.use(`/api/health`, (req, res) => {

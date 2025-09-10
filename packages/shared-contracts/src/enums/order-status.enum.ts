@@ -1,4 +1,5 @@
-export enum OrderStatus {
+export enum EOrderStatus {
+  DRAFT = "draft",
   PENDING = "pending",
   WAITING = "waiting",
   COOKED = "cooked",
@@ -6,7 +7,7 @@ export enum OrderStatus {
   PAID = "paid",
 }
 
-export enum OrderType {
+export enum EOrderType {
   MAIN = "main",
   SUB = "sub",
 }

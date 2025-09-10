@@ -1,4 +1,4 @@
-// Export order-related components
-// TODO: Add order components as they are created
-export * from './make-order-form.component';
+export * from './add-dish-order-form';
 export * from './order-status-select.component';
+export * from './create-table-form.component';
+export * from './submit-order-button.component';

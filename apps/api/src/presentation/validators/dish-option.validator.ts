@@ -6,16 +6,16 @@ export const createDishOptionValidator = [
     .isString()
     .notEmpty()
     .withMessage("Description is required"),
-  body("options").isArray().withMessage("Options must be an array"),
-  body("options.*.label")
+  body("optionItems").isArray().withMessage("Options must be an array"),
+  body("optionItems.*.label")
     .isString()
     .notEmpty()
     .withMessage("Option label is required"),
-  body("options.*.value")
+  body("optionItems.*.value")
     .isString()
     .notEmpty()
     .withMessage("Option value is required"),
-  body("options.*.extraPrice")
+  body("optionItems.*.extraPrice")
     .isString()
     .withMessage("Extra price must be a string"),
 ];
@@ -30,16 +30,20 @@ export const updateDishOptionValidator = [
     .optional()
     .isString()
     .withMessage("Description must be a string"),
-  body("options").optional().isArray().withMessage("Options must be an array"),
-  body("options.*.label")
+  body("optionItems")
+    .optional()
+    .isArray()
+    .withMessage("Options must be an array"),
+  body("optionItems.*.label")
     .optional()
     .isString()
     .withMessage("Option label must be a string"),
-  body("options.*.value")
+  body("optionItems.*.value")
     .optional()
     .isString()
     .withMessage("Option value must be a string"),
-  body("options.*.extraPrice")
+  body("optionItems.*.extraPrice")
+    .optional()
     .isString()
     .withMessage("Extra price must be a string"),
 ];

@@ -1,19 +1,19 @@
 import { parseDecimalSafely } from "@application/utils";
 import { v4 as uuid } from "uuid";
-import { OrderStatus, OrderType } from "@pr80-app/shared-contracts";
+import {
+  EOrderStatus,
+  EOrderType,
+  SelectedOptionRequestDTO,
+} from "@pr80-app/shared-contracts";
 
-// Define the OrderDishItem interface
 export interface OrderDishItem {
   id: string; // Unique identifier for this specific dish item in the order
   dishId: string;
   name: string;
   quantity: number;
-  readonly price: string; // Make price readonly to prevent direct manipulation
-  selectedOptions: {
-    name: string;
-    value: string;
-    readonly extraPrice: string; // Make extraPrice readonly as well
-  }[];
+  readonly totalPrice: string; // Make price readonly to prevent direct manipulation
+  readonly basePrice: string;
+  selectedOptions: SelectedOptionRequestDTO[];
   takeAway: boolean;
 }
 
@@ -21,10 +21,10 @@ export class Order {
   public id: string;
   public linkedOrderId: string | null;
   public createdBy: string;
-  public status: OrderStatus;
+  public status: EOrderStatus;
   public table: string;
   public totalAmount: string;
-  public type: OrderType;
+  public type: EOrderType;
   public note: string;
   public dishes: OrderDishItem[];
 
@@ -32,8 +32,8 @@ export class Order {
     id: string,
     createdBy: string,
     table: string,
-    status: OrderStatus = OrderStatus.PENDING,
-    type: OrderType = OrderType.MAIN,
+    status: EOrderStatus = EOrderStatus.PENDING,
+    type: EOrderType = EOrderType.MAIN,
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
     note: string = "",
@@ -62,7 +62,7 @@ export class Order {
   static create(
     createdBy: string,
     table: string,
-    type: OrderType = OrderType.MAIN,
+    type: EOrderType = EOrderType.MAIN,
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
     note: string = ""
@@ -71,7 +71,7 @@ export class Order {
       uuid(),
       createdBy,
       table,
-      OrderStatus.PENDING,
+      EOrderStatus.PENDING,
       type,
       dishes,
       linkedOrderId,
@@ -83,7 +83,7 @@ export class Order {
     // Ensure we're using the correct price for each dish
     const total = this.dishes.reduce((sum, dish) => {
       // Calculate the base price plus any extra from options
-      const dishPrice = parseDecimalSafely(dish.price);
+      const dishPrice = parseDecimalSafely(dish.totalPrice);
 
       // Validate that the price is a positive number
       if (typeof dishPrice !== "number" || dishPrice < 0) {
@@ -102,7 +102,7 @@ export class Order {
     return this.totalAmount;
   }
 
-  public updateStatus(newStatus: OrderStatus): void {
+  public updateStatus(newStatus: EOrderStatus): void {
     this.status = newStatus;
   }
 
@@ -110,7 +110,7 @@ export class Order {
     this.table = newTable;
   }
 
-  public updateType(newType: OrderType): void {
+  public updateType(newType: EOrderType): void {
     this.type = newType;
   }
 

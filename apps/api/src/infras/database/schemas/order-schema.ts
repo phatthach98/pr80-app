@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { formatDecimal, parseDecimal } from "../utils/mongodb.util";
-import { OrderStatus, OrderType } from "@pr80-app/shared-contracts";
+import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
 
 // Define the OrderDishItem schema
 const OrderDishItemSchema = new Schema(
@@ -9,7 +9,13 @@ const OrderDishItemSchema = new Schema(
     dishId: { type: String, required: true },
     name: { type: String, required: true },
     quantity: { type: Number, required: true },
-    price: {
+    totalPrice: {
+      type: mongoose.Schema.Types.Decimal128,
+      required: true,
+      get: formatDecimal,
+      set: parseDecimal,
+    },
+    basePrice: {
       type: mongoose.Schema.Types.Decimal128,
       required: true,
       get: formatDecimal,
@@ -17,8 +23,10 @@ const OrderDishItemSchema = new Schema(
     },
     selectedOptions: [
       {
-        name: { type: String, required: true },
-        value: { type: String, required: true },
+        dishOptionId: { type: String, required: true },
+        dishOptionName: { type: String, required: true },
+        itemLabel: { type: String, required: true },
+        itemValue: { type: String, required: true },
         extraPrice: {
           type: mongoose.Schema.Types.Decimal128,
           required: true,
@@ -44,9 +52,9 @@ const OrderSchemaDefinition = new Schema(
     createdBy: { type: String, required: true },
     status: {
       type: String,
-      enum: Object.values(OrderStatus),
+      enum: Object.values(EOrderStatus),
       required: true,
-      default: OrderStatus.PENDING,
+      default: EOrderStatus.PENDING,
     },
     table: { type: String, required: true },
     totalAmount: {
@@ -57,9 +65,9 @@ const OrderSchemaDefinition = new Schema(
     },
     type: {
       type: String,
-      enum: Object.values(OrderType),
+      enum: Object.values(EOrderType),
       required: true,
-      default: OrderType.MAIN,
+      default: EOrderType.MAIN,
     },
     note: { type: String, default: "" },
     dishes: [OrderDishItemSchema],

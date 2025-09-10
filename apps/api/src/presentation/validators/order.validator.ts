@@ -1,5 +1,5 @@
 import { body, param } from "express-validator";
-import { OrderStatus, OrderType } from "@pr80-app/shared-contracts";
+import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
 
 // Validators
 export const createOrderValidator = [
@@ -10,7 +10,7 @@ export const createOrderValidator = [
     .withMessage("Table must be a string."),
   body("type")
     .optional()
-    .isIn(Object.values(OrderType))
+    .isIn(Object.values(EOrderType))
     .withMessage("Type must be a valid OrderType."),
   body("dishes")
     .isArray({ min: 1 })
@@ -27,11 +27,11 @@ export const createOrderValidator = [
     .optional()
     .isArray()
     .withMessage("Selected options must be an array."),
-  body("dishes.*.selectedOptions.*.name")
+  body("dishes.*.selectedOptions.*.dishOptionId")
     .optional()
     .isString()
     .withMessage("Option name must be a string."),
-  body("dishes.*.selectedOptions.*.value")
+  body("dishes.*.selectedOptions.*.itemValue")
     .optional()
     .isString()
     .withMessage("Option value must be a string."),
@@ -71,11 +71,11 @@ export const createAdditionalOrderValidator = [
     .optional()
     .isArray()
     .withMessage("Selected options must be an array."),
-  body("dishes.*.selectedOptions.*.name")
+  body("dishes.*.selectedOptions.*.dishOptionId")
     .optional()
     .isString()
     .withMessage("Option name must be a string."),
-  body("dishes.*.selectedOptions.*.value")
+  body("dishes.*.selectedOptions.*.itemValue")
     .optional()
     .isString()
     .withMessage("Option value must be a string."),
@@ -90,16 +90,16 @@ export const updateOrderValidator = [
   body("table").optional().isString().withMessage("Table must be a string."),
   body("status")
     .optional()
-    .isIn(Object.values(OrderStatus))
+    .isIn(Object.values(EOrderStatus))
     .withMessage("Status must be a valid OrderStatus."),
   body("type")
     .optional()
-    .isIn(Object.values(OrderType))
+    .isIn(Object.values(EOrderType))
     .withMessage("Type must be a valid OrderType."),
   body("note").optional().isString().withMessage("Note must be a string."),
 ];
 
-export const addOrderItemValidator = [ 
+export const addOrderItemValidator = [
   body("dishId")
     .notEmpty()
     .withMessage("Dish ID is required.")
@@ -114,11 +114,11 @@ export const addOrderItemValidator = [
     .optional()
     .isArray()
     .withMessage("Selected options must be an array."),
-  body("selectedOptions.*.name")
+  body("selectedOptions.*.dishOptionId")
     .optional()
     .isString()
     .withMessage("Option name must be a string."),
-  body("selectedOptions.*.value")
+  body("selectedOptions.*.itemValue")
     .optional()
     .isString()
     .withMessage("Option value must be a string."),
@@ -141,7 +141,7 @@ export const updateOrderStatusValidator = [
   body("status")
     .notEmpty()
     .withMessage("Status is required.")
-    .isIn(Object.values(OrderStatus))
+    .isIn(Object.values(EOrderStatus))
     .withMessage("Status must be a valid OrderStatus."),
 ];
 

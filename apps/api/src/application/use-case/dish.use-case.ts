@@ -36,11 +36,10 @@ export class DishUseCase {
       id: dish.id,
       name: dish.name,
       description: dish.description,
-      price: dish.price,
+      basePrice: dish.basePrice,
       options: dish.options,
       optionDetails: [] as DishOption[],
     };
-
     // Fetch option details if there are options
     if (dish.options && dish.options.length > 0) {
       // Extract all option IDs

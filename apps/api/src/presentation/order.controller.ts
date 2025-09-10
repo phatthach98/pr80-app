@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { OrderUseCase } from "@application/use-case";
 import { ORDER_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
-import { OrderStatus, OrderType } from "@pr80-app/shared-contracts";
+import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
 import {
   OrderResponseDTO,
   CreateOrderRequestDTO,
@@ -35,7 +35,7 @@ export class OrderController {
   }
 
   static async getOrdersByStatus(
-    req: Request<{}, {}, {}, { status: OrderStatus }>,
+    req: Request<{}, {}, {}, { status: EOrderStatus }>,
     res: Response<OrderResponseDTO[]>
   ) {
     const { status } = req.query;
@@ -44,7 +44,7 @@ export class OrderController {
   }
 
   static async getOrdersByType(
-    req: Request<{}, {}, {}, { type: OrderType }>,
+    req: Request<{}, {}, {}, { type: EOrderType }>,
     res: Response<OrderResponseDTO[]>
   ) {
     const { type } = req.query;
@@ -99,10 +99,11 @@ export class OrderController {
           dish.quantity,
           dish.takeAway
         );
+
         processedDishes.push(processedDish);
       }
     }
-
+    console.log("processedDishes", processedDishes[0].selectedOptions);
     const order = await orderUseCase.createOrder(
       userId,
       table,
@@ -153,7 +154,7 @@ export class OrderController {
   }
 
   static async updateOrderStatus(
-    req: Request<{ orderId: string }, {}, { status: OrderStatus }>,
+    req: Request<{ orderId: string }, {}, { status: EOrderStatus }>,
     res: Response<OrderResponseDTO>
   ) {
     const { orderId } = req.params;

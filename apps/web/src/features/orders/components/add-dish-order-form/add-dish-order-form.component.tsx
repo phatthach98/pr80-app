@@ -1,0 +1,90 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { PlusIcon } from 'lucide-react';
+import { Dish } from '@/domain/entity';
+import { DishList } from './dish-list/dish-list.component';
+import { DishOptions } from './dish-options/dish-options.component';
+import { useTables } from '../../hooks';
+import { SelectOptionWithPrice } from '@pr80-app/shared-contracts';
+
+export function AddDishOrderForm() {
+  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { selectedOrder, updateSelectedOrderToStore } = useTables();
+  const handleSelectDish = (dish: Dish) => {
+    setSelectedDish(dish);
+  };
+
+  const handleBack = () => {
+    setSelectedDish(null);
+  };
+
+  const handleAddDishToOrder = (
+    dish: Dish,
+    selectedOption: Record<string, SelectOptionWithPrice[]>,
+    quantity: number,
+    takeAway: boolean,
+  ) => {
+    if (!selectedOrder) return;
+    const updatedOrder = selectedOrder.addDish(dish, selectedOption, quantity, takeAway);
+    console.log(updatedOrder.toCreateOrderDTO());
+    updateSelectedOrderToStore(updatedOrder);
+    setIsDialogOpen(false);
+    setSelectedDish(null);
+  };
+
+  return (
+    <Dialog
+      open={isDialogOpen}
+      onOpenChange={(open) => {
+        setIsDialogOpen(open);
+        if (!open) setSelectedDish(null);
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
+          <PlusIcon className="mr-2 size-4" />
+          Thêm món
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{selectedDish ? 'Tuỳ chọn món' : 'Chọn món'}</DialogTitle>
+          <DialogDescription>
+            {selectedDish ? 'Chọn các tuỳ chọn cho món này' : 'Chọn món để thêm vào đơn hàng'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-4">
+          {selectedDish ? (
+            <DishOptions
+              dish={selectedDish}
+              onBack={handleBack}
+              handleAddDishToOrder={handleAddDishToOrder}
+            />
+          ) : (
+            <DishList onSelectDish={handleSelectDish} />
+          )}
+        </div>
+
+        {!selectedDish && (
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Huỷ</Button>
+            </DialogClose>
+          </DialogFooter>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,4 +1,4 @@
-import { ROLE_NAME } from '../enums/role-name.enum';
+import { E_ROLE_NAME } from "../enums/role-name.enum";
 
 // Pure DTO interfaces - no domain entity imports
 
@@ -10,13 +10,13 @@ export interface PermissionResponseDTO {
 
 export interface RoleResponseDTO {
   id: string;
-  name: ROLE_NAME;
+  name: E_ROLE_NAME;
   description: string;
   permissions: string[];
 }
 
 export interface CreateRoleRequestDTO {
-  name: ROLE_NAME;
+  name: E_ROLE_NAME;
   description: string;
   permissions: string[];
 }
