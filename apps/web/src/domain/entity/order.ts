@@ -10,6 +10,7 @@ import {
 import { DishOption } from './dish-option';
 import { Dish } from './dish';
 import { OrderDish } from './order-dish';
+import { formatCurrency } from '@/utils/currency';
 
 /**
  * Order entity representing both draft tables from local storage and orders from API
@@ -244,18 +245,6 @@ export class Order {
   }
 
   /**
-   * Update the total amount with the value from the backend
-   * @param totalAmount - The new total amount from the backend
-   * @returns The updated order
-   */
-  updateTotalAmount(totalAmount: string): Order {
-    return new Order({
-      ...this,
-      totalAmount,
-    });
-  }
-
-  /**
    * Convert the order to a CreateOrderRequestDTO for API requests
    * @returns CreateOrderRequestDTO
    */
@@ -270,5 +259,12 @@ export class Order {
       linkedOrderId: this.linkedOrderId || undefined,
       note: this.note || undefined,
     };
+  }
+
+  calculateTotalAmount(): string {
+    const totalAmount = this.dishes.reduce((sum, dish) => {
+      return sum + Number(dish.totalPrice) * dish.quantity;
+    }, 0);
+    return formatCurrency(totalAmount);
   }
 }
