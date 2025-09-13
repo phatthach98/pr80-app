@@ -1,2 +1,2 @@
 export * from './tables.page';
-export * from './order-detail.page';
+export * from './table-create.page';

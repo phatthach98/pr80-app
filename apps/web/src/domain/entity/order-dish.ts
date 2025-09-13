@@ -12,7 +12,7 @@ export class OrderDish {
     public readonly dishId: string,
     public readonly name: string,
     public readonly description: string,
-    public readonly price: string,
+    public readonly totalPrice: string,
     public readonly options: readonly DishOption[],
     public readonly quantity: number,
     public readonly takeAway: boolean,
@@ -70,7 +70,7 @@ export class OrderDish {
       dto.dishId,
       dto.name,
       '', // Description not available in OrderDishItemResponseDTO
-      dto.basePrice,
+      dto.totalPrice,
       dishOptions,
       dto.quantity,
       dto.takeAway,
@@ -81,17 +81,10 @@ export class OrderDish {
    * Convert to OrderItemRequestDTO for API create/update requests
    */
   toCreateRequestDTO(): OrderItemRequestDTO {
-    console.log('this.options', this.options);
-    // Convert to the format expected by the API for creating/updating orders
     return {
       dishId: this.dishId,
       quantity: this.quantity,
-      selectedOptions: this.options.map((opt) => ({
-        dishOptionId: opt.id,
-        dishOptionName: opt.name,
-        itemValue: opt.options[0]?.value || '',
-        itemLabel: opt.options[0]?.label || '',
-      })),
+      selectedOptions: this.options.map((opt) => opt.toSelectedOptionRequestDTO()),
       takeAway: this.takeAway,
     };
   }
@@ -101,7 +94,7 @@ export class OrderDish {
    * actual prices which are handled by the backend
    */
   getDisplayPrice(): string {
-    return this.price;
+    return this.totalPrice;
   }
 
   /**
@@ -115,7 +108,7 @@ export class OrderDish {
       this.dishId,
       this.name,
       this.description,
-      this.price,
+      this.totalPrice,
       this.options,
       quantity,
       this.takeAway,
@@ -133,7 +126,7 @@ export class OrderDish {
       this.dishId,
       this.name,
       this.description,
-      this.price,
+      this.totalPrice,
       this.options,
       this.quantity,
       takeAway,
@@ -149,7 +142,7 @@ export class OrderDish {
       this.dishId,
       this.name,
       this.description,
-      this.price,
+      this.totalPrice,
       options,
       this.quantity,
       this.takeAway,

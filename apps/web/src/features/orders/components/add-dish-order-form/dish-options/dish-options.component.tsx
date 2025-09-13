@@ -114,7 +114,7 @@ export function DishOptions({ dish, onBack, handleAddDishToOrder }: DishOptionsP
             <CardContent>
               {/* Simplified option selection - we'll implement proper UI components later */}
               <div className="space-y-2">
-                {option.options.map((selection) => (
+                {option.dishOptionItems.map((selection) => (
                   <div
                     key={selection.value}
                     className={`cursor-pointer rounded-md border p-2 ${

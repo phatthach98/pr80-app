@@ -1,25 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useTables } from '@/features/orders/hooks/use-tables';
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
-import { EOrderStatus, EOrderType } from '@pr80-app/shared-contracts';
 import { Order } from '@/domain/entity';
-import { useEffect } from 'react';
+import { ordersStore } from '../store';
+import { EOrderStatus, EOrderType } from '@pr80-app/shared-contracts';
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { useStore } from '@tanstack/react-store';
 
-export const Route = createFileRoute('/_auth/tables/$tableId')({
-  component: RouteComponent,
-});
+export const TableCreatePage = () => {
+  const { currentDraftOrder } = useStore(ordersStore);
 
-function RouteComponent() {
-  const { setSelectedOrderId, selectedOrder } = useTables();
-  const { tableId } = Route.useParams();
-  useEffect(() => {
-    setSelectedOrderId(tableId);
-  }, []);
-
-  if (!selectedOrder) {
+  if (!currentDraftOrder) {
     return <div>Không tìm thấy đơn hàng</div>;
   }
-
   // Helper function to determine if a dish is newly added (no ID means it's not saved to DB yet)
   const isNewDish = (dish: Order['dishes'][number]) => !dish.id;
 
@@ -95,24 +85,19 @@ function RouteComponent() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-2xl">Bàn {selectedOrder.table}</CardTitle>
+            <CardTitle className="text-2xl">Bàn {currentDraftOrder.table}</CardTitle>
             <div className="mt-2 flex space-x-2">
-              {getStatusBadge(selectedOrder.status)}
-              {getOrderTypeBadge(selectedOrder.type)}
-              {selectedOrder.source === 'local' && (
-                <Badge variant="outline" className="bg-orange-100 text-orange-800">
-                  Chưa lưu
-                </Badge>
-              )}
+              {getStatusBadge(currentDraftOrder.status)}
+              {getOrderTypeBadge(currentDraftOrder.type)}
             </div>
           </div>
           <div className="text-right">
             <div className="text-muted-foreground text-sm">
-              {selectedOrder.customerCount > 0 && `${selectedOrder.customerCount} khách`}
+              {currentDraftOrder.customerCount > 0 && `${currentDraftOrder.customerCount} khách`}
             </div>
-            {selectedOrder.createdAt && (
+            {currentDraftOrder.createdAt && (
               <div className="text-muted-foreground text-sm">
-                {new Date(selectedOrder.createdAt).toLocaleString('vi-VN')}
+                {new Date(currentDraftOrder.createdAt).toLocaleString('vi-VN')}
               </div>
             )}
           </div>
@@ -123,12 +108,12 @@ function RouteComponent() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h3 className="font-medium">Tổng tiền:</h3>
-                <p className="text-lg font-bold">{formatPrice(selectedOrder.totalAmount)}</p>
+                <p className="text-lg font-bold">{formatPrice(currentDraftOrder.totalAmount)}</p>
               </div>
-              {selectedOrder.note && (
+              {currentDraftOrder.note && (
                 <div>
                   <h3 className="font-medium">Ghi chú:</h3>
-                  <p>{selectedOrder.note}</p>
+                  <p>{currentDraftOrder.note}</p>
                 </div>
               )}
             </div>
@@ -137,10 +122,10 @@ function RouteComponent() {
             <div className="mt-6">
               <h3 className="mb-4 text-lg font-medium">Danh sách món</h3>
               <div className="space-y-4">
-                {selectedOrder.dishes.length === 0 ? (
+                {currentDraftOrder.dishes.length === 0 ? (
                   <p className="text-muted-foreground">Chưa có món nào</p>
                 ) : (
-                  selectedOrder.dishes.map((dish) => (
+                  currentDraftOrder.dishes.map((dish) => (
                     <Card
                       key={dish.id || dish.dishId}
                       className={`${isNewDish(dish) ? 'border-2 border-green-500' : ''}`}
@@ -173,12 +158,12 @@ function RouteComponent() {
                                     >
                                       <span>{option.name}: </span>
                                       <span className="ml-1">
-                                        {option.options.map((opt) => opt.label).join(', ')}
+                                        {option.dishOptionItems.map((opt) => opt.label).join(', ')}
                                       </span>
-                                      {option.options[0]?.extraPrice &&
-                                        Number(option.options[0].extraPrice) > 0 && (
+                                      {option.dishOptionItems[0]?.extraPrice &&
+                                        Number(option.dishOptionItems[0].extraPrice) > 0 && (
                                           <span className="ml-1">
-                                            (+{formatPrice(option.options[0].extraPrice)})
+                                            (+{formatPrice(option.dishOptionItems[0].extraPrice)})
                                           </span>
                                         )}
                                     </li>
@@ -204,4 +189,4 @@ function RouteComponent() {
       </Card>
     </div>
   );
-}
+};

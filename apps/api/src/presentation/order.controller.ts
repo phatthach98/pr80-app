@@ -103,7 +103,6 @@ export class OrderController {
         processedDishes.push(processedDish);
       }
     }
-    console.log("processedDishes", processedDishes[0].selectedOptions);
     const order = await orderUseCase.createOrder(
       userId,
       table,

@@ -21,8 +21,9 @@ import {
 import { useSettingOptionsQuery } from '@/hooks/query';
 import { PlusIcon } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
-import { EOrderStatus, EOrderType } from '@pr80-app/shared-contracts';
-import { useTables } from '../hooks/use-tables';
+import { setCurrentDraftOrder } from '../store';
+import { Order } from '@/domain/entity';
+import { useNavigate } from '@tanstack/react-router';
 
 type CreateTableFormData = {
   table: string;
@@ -38,21 +39,19 @@ export function CreateTableForm() {
     },
   });
   const { data: tableOptions } = useSettingOptionsQuery();
-  const { addLocalTable } = useTables();
+  const navigate = useNavigate();
 
   const createTable = async (data: CreateTableFormData) => {
-    addLocalTable({
-      id: data.table,
-      tableNumber: data.table,
-      customerCount: Number(data.customerCount),
-      status: EOrderStatus.DRAFT,
-      source: 'local',
-      totalAmount: '0',
-      relatedOrderIds: [],
-      type: EOrderType.MAIN,
-    });
-    setOpen(false);
+    setCurrentDraftOrder(
+      Order.fromDraftOrder({
+        table: data.table,
+        customerCount: data.customerCount,
+      }),
+    );
     reset();
+    navigate({
+      to: '/tables/create',
+    });
   };
 
   return (

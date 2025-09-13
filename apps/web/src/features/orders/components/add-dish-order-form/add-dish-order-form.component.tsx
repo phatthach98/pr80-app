@@ -14,13 +14,15 @@ import { PlusIcon } from 'lucide-react';
 import { Dish } from '@/domain/entity';
 import { DishList } from './dish-list/dish-list.component';
 import { DishOptions } from './dish-options/dish-options.component';
-import { useTables } from '../../hooks';
 import { SelectOptionWithPrice } from '@pr80-app/shared-contracts';
+import { ordersStore, setCurrentDraftOrder } from '@/features/orders/store';
+import { toast } from 'sonner';
+import { useStore } from '@tanstack/react-store';
 
 export function AddDishOrderForm() {
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { selectedOrder, updateSelectedOrderToStore } = useTables();
+  const { currentDraftOrder } = useStore(ordersStore);
   const handleSelectDish = (dish: Dish) => {
     setSelectedDish(dish);
   };
@@ -35,10 +37,12 @@ export function AddDishOrderForm() {
     quantity: number,
     takeAway: boolean,
   ) => {
-    if (!selectedOrder) return;
-    const updatedOrder = selectedOrder.addDish(dish, selectedOption, quantity, takeAway);
-    console.log(updatedOrder.toCreateOrderDTO());
-    updateSelectedOrderToStore(updatedOrder);
+    if (!currentDraftOrder) {
+      toast('Không tìm thấy đơn hàng');
+      return;
+    }
+    const updatedOrder = currentDraftOrder.addDish(dish, selectedOption, quantity, takeAway);
+    setCurrentDraftOrder(updatedOrder);
     setIsDialogOpen(false);
     setSelectedDish(null);
   };

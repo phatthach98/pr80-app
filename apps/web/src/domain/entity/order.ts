@@ -27,7 +27,6 @@ export class Order {
   createdAt?: Date;
   updatedAt?: Date;
   customerCount: number;
-  source: 'local' | 'api';
 
   constructor(props: {
     id: string;
@@ -42,7 +41,6 @@ export class Order {
     createdAt?: Date;
     updatedAt?: Date;
     customerCount: number;
-    source: 'local' | 'api';
   }) {
     this.id = props.id;
     this.linkedOrderId = props.linkedOrderId;
@@ -56,26 +54,6 @@ export class Order {
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
     this.customerCount = props.customerCount;
-    this.source = props.source;
-  }
-
-  /**
-   * Create an Order entity from a local table item
-   */
-  static fromLocalTable(localTable: TableView): Order {
-    return new Order({
-      id: localTable.id, // Use tableKey as ID for local tables
-      linkedOrderId: null,
-      createdBy: '',
-      status: localTable.status,
-      table: localTable.tableNumber,
-      totalAmount: '0',
-      type: EOrderType.MAIN,
-      note: '',
-      dishes: [],
-      customerCount: localTable.customerCount,
-      source: 'local',
-    });
   }
 
   /**
@@ -98,7 +76,6 @@ export class Order {
       createdAt: orderResponse.createdAt,
       updatedAt: orderResponse.updatedAt,
       customerCount: 0, // API doesn't provide customer count
-      source: 'api',
     });
   }
 
@@ -109,29 +86,19 @@ export class Order {
     return orders.map(Order.fromOrderResponse);
   }
 
-  /**
-   * Create a list of Order entities from a list of local table items
-   */
-  static fromLocalOrderList(localOrders: TableView[]): Order[] {
-    return localOrders.map(Order.fromLocalTable);
-  }
-
-  /**
-   * Convert to local table format
-   */
-  toLocalOrder(): TableView {
-    return {
-      id: this.id,
-      tableNumber: this.table,
-      customerCount: this.customerCount,
-      status: this.status,
-      source: this.source,
-      orderId: this.source === 'api' ? this.id : undefined,
-      totalAmount: this.totalAmount,
-      createdAt: this.createdAt,
-      relatedOrderIds: this.source === 'api' ? [this.id] : [],
-      type: this.type,
-    };
+  static fromDraftOrder(draftOrder: { table: string; customerCount: number }): Order {
+    return new Order({
+      id: '',
+      linkedOrderId: null,
+      createdBy: '',
+      status: EOrderStatus.DRAFT,
+      table: draftOrder.table,
+      totalAmount: '0',
+      type: EOrderType.MAIN,
+      note: '',
+      dishes: [],
+      customerCount: draftOrder.customerCount,
+    });
   }
 
   /**
@@ -304,96 +271,4 @@ export class Order {
       note: this.note || undefined,
     };
   }
-
-  /**
-   * View mapping functions
-   */
-
-  /**
-   * Map to table view format
-   */
-  static toTableView(orders: Order[]): TableView[] {
-    // Group orders by table
-    const tableGroups = orders.reduce<Record<string, Order[]>>((acc, order) => {
-      if (!acc[order.table]) {
-        acc[order.table] = [];
-      }
-      acc[order.table].push(order);
-      return acc;
-    }, {});
-
-    // Create TableView for each table
-    return Object.entries(tableGroups).map(([tableNumber, tableOrders]) => {
-      // Sort orders by creation date (newest first) or by status priority
-      const sortedOrders = [...tableOrders].sort((a, b) => {
-        // First sort by source (local first)
-        if (a.source !== b.source) {
-          return a.source === 'local' ? -1 : 1;
-        }
-
-        // Then sort by date for API orders
-        if (a.source === 'api' && a.createdAt && b.createdAt) {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }
-
-        return 0;
-      });
-
-      const mainOrder = sortedOrders[0];
-      const relatedOrders = sortedOrders.slice(1);
-
-      return {
-        id: mainOrder.id || tableNumber,
-        tableNumber,
-        customerCount: mainOrder.customerCount,
-        status: mainOrder.status,
-        source: mainOrder.source,
-        orderId: mainOrder.source === 'api' ? mainOrder.id : undefined,
-        totalAmount: mainOrder.totalAmount,
-        createdAt: mainOrder.createdAt,
-        relatedOrderIds: relatedOrders.map((order) => order.id),
-        type: mainOrder.type,
-      };
-    });
-  }
-
-  /**
-   * Map to chef view format
-   */
-  static toChefView(orders: Order[]): ChefView[] {
-    return orders.map((order) => ({
-      id: order.id,
-      tableNumber: order.table,
-      status: order.status,
-      dishes: order.dishes,
-      createdAt: order.createdAt,
-      type: order.type,
-    }));
-  }
-}
-
-/**
- * View types for different perspectives
- */
-
-export interface TableView {
-  id: string;
-  tableNumber: string;
-  customerCount: number;
-  status: EOrderStatus;
-  source: 'local' | 'api';
-  orderId?: string;
-  totalAmount: string;
-  createdAt?: Date;
-  relatedOrderIds: string[];
-  type: EOrderType;
-}
-
-export interface ChefView {
-  id: string;
-  tableNumber: string;
-  status: EOrderStatus;
-  dishes: OrderDish[];
-  createdAt?: Date;
-  type: EOrderType;
 }

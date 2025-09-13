@@ -10,6 +10,14 @@ export interface SelectedOptionRequestDTO {
   itemLabel: string;
 }
 
+export interface SelectedOptionDTO {
+  dishOptionId: string;
+  dishOptionName: string;
+  itemValue: string;
+  itemLabel: string;
+  extraPrice: string;
+}
+
 // Order item in a request
 export interface OrderItemRequestDTO {
   dishId: string;

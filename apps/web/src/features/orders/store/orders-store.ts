@@ -1,59 +1,31 @@
-import { ordersLocalStorageUtil } from '@/utils/order-local-storage.util';
 import { Store } from '@tanstack/react-store';
-import { Order, TableView } from '@/domain/entity';
+import { Order } from '@/domain/entity';
 
 /**
  * TablesState represents the state of tables in the application
  * It only stores data, with no business logic
  */
 interface OrdersState {
-  draftOrders: Order[];
-  apiOrders: Order[];
+  orders: Order[];
   selectedOrderId: string | null;
+  currentDraftOrder: Order | null;
 }
 
 // Initialize state
 const initialState: OrdersState = {
-  draftOrders: [],
-  apiOrders: [],
+  orders: [],
   selectedOrderId: null,
-};
-
-// Load initial state from localStorage if available
-const loadInitialState = (): OrdersState => {
-  if (typeof window === 'undefined') return initialState;
-
-  try {
-    const storedOrders = ordersLocalStorageUtil.getLocalOrders();
-    if (storedOrders) {
-      const localOrders: TableView[] = JSON.parse(storedOrders);
-      return {
-        ...initialState,
-        draftOrders: Order.fromLocalOrderList(localOrders),
-      };
-    }
-  } catch (error) {
-    console.error('Failed to load orders from localStorage:', error);
-  }
-
-  return initialState;
+  currentDraftOrder: null,
 };
 
 // Create the store
-export const ordersStore = new Store<OrdersState>(loadInitialState());
+export const ordersStore = new Store<OrdersState>(initialState);
 
 // Basic state setters
-export const setDraftOrders = (draftOrders: Order[]) => {
+export const setOrders = (orders: Order[]) => {
   ordersStore.setState((state) => ({
     ...state,
-    draftOrders,
-  }));
-};
-
-export const setApiOrders = (apiOrders: Order[]) => {
-  ordersStore.setState((state) => ({
-    ...state,
-    apiOrders,
+    orders,
   }));
 };
 
@@ -64,15 +36,27 @@ export const setSelectedOrderId = (selectedOrderId: string | null) => {
   }));
 };
 
-// Basic state getters
-export const getDraftOrders = (): Order[] => {
-  return ordersStore.state.draftOrders;
+export const getOrders = (): Order[] => {
+  return ordersStore.state.orders;
 };
 
-export const getApiOrders = (): Order[] => {
-  return ordersStore.state.apiOrders;
+export const getCurrentDraftOrder = (): Order | null => {
+  return ordersStore.state.currentDraftOrder;
 };
 
-export const getSelectedOrderId = (): string | null => {
-  return ordersStore.state.selectedOrderId;
+export const setCurrentDraftOrder = (currentDraftOrder: Order | null) => {
+  ordersStore.setState((state) => ({
+    ...state,
+    currentDraftOrder,
+  }));
+};
+
+export const getSelectedOrder = (selectedOrderId: string | null): Order | null => {
+  if (!selectedOrderId) return null;
+  const selectedOrder = getOrders().find((order) => order.id === selectedOrderId) || null;
+  return selectedOrder;
+};
+
+export const resetOrdersState = () => {
+  ordersStore.setState(initialState);
 };

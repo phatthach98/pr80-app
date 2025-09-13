@@ -14,7 +14,7 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as AuthTablesIndexRouteImport } from './routes/_auth/tables.index'
-import { Route as AuthTablesTableIdRouteImport } from './routes/_auth/tables.$tableId'
+import { Route as AuthTablesCreateRouteImport } from './routes/_auth/tables.create'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -39,22 +39,22 @@ const AuthTablesIndexRoute = AuthTablesIndexRouteImport.update({
   path: '/tables/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthTablesTableIdRoute = AuthTablesTableIdRouteImport.update({
-  id: '/tables/$tableId',
-  path: '/tables/$tableId',
+const AuthTablesCreateRoute = AuthTablesCreateRouteImport.update({
+  id: '/tables/create',
+  path: '/tables/create',
   getParentRoute: () => AuthRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof PublicLoginRoute
-  '/tables/$tableId': typeof AuthTablesTableIdRoute
+  '/tables/create': typeof AuthTablesCreateRoute
   '/tables': typeof AuthTablesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof PublicLoginRoute
-  '/tables/$tableId': typeof AuthTablesTableIdRoute
+  '/tables/create': typeof AuthTablesCreateRoute
   '/tables': typeof AuthTablesIndexRoute
 }
 export interface FileRoutesById {
@@ -63,21 +63,21 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
   '/_public/login': typeof PublicLoginRoute
-  '/_auth/tables/$tableId': typeof AuthTablesTableIdRoute
+  '/_auth/tables/create': typeof AuthTablesCreateRoute
   '/_auth/tables/': typeof AuthTablesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/tables/$tableId' | '/tables'
+  fullPaths: '/' | '/login' | '/tables/create' | '/tables'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/tables/$tableId' | '/tables'
+  to: '/' | '/login' | '/tables/create' | '/tables'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/_public'
     | '/_public/login'
-    | '/_auth/tables/$tableId'
+    | '/_auth/tables/create'
     | '/_auth/tables/'
   fileRoutesById: FileRoutesById
 }
@@ -124,23 +124,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthTablesIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/tables/$tableId': {
-      id: '/_auth/tables/$tableId'
-      path: '/tables/$tableId'
-      fullPath: '/tables/$tableId'
-      preLoaderRoute: typeof AuthTablesTableIdRouteImport
+    '/_auth/tables/create': {
+      id: '/_auth/tables/create'
+      path: '/tables/create'
+      fullPath: '/tables/create'
+      preLoaderRoute: typeof AuthTablesCreateRouteImport
       parentRoute: typeof AuthRoute
     }
   }
 }
 
 interface AuthRouteChildren {
-  AuthTablesTableIdRoute: typeof AuthTablesTableIdRoute
+  AuthTablesCreateRoute: typeof AuthTablesCreateRoute
   AuthTablesIndexRoute: typeof AuthTablesIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
-  AuthTablesTableIdRoute: AuthTablesTableIdRoute,
+  AuthTablesCreateRoute: AuthTablesCreateRoute,
   AuthTablesIndexRoute: AuthTablesIndexRoute,
 }
 

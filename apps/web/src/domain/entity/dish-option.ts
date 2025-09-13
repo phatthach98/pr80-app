@@ -3,7 +3,7 @@ import {
   CreateDishOptionRequestDTO,
   UpdateDishOptionRequestDTO,
   SelectOptionWithPrice,
-  OrderDishItemOptionResponseDTO,
+  SelectedOptionRequestDTO,
 } from '@pr80-app/shared-contracts';
 
 export class DishOption {
@@ -13,18 +13,18 @@ export class DishOption {
     public readonly id: string,
     public readonly name: string,
     public readonly description: string,
-    public readonly options: readonly SelectOptionWithPrice[],
+    public readonly dishOptionItems: readonly SelectOptionWithPrice[],
   ) {
     // Freeze arrays and object for immutability enforcement
-    Object.freeze(this.options);
+    Object.freeze(this.dishOptionItems);
     Object.freeze(this);
   }
 
   // ✅ Base Function 1: Response mapping
   static fromResponseDTO(dto: DishOptionResponseDTO): DishOption {
-    const options = dto.optionItems || [];
+    const dishOptionItems = dto.optionItems || [];
 
-    return new DishOption(dto.id, dto.name, dto.description, options);
+    return new DishOption(dto.id, dto.name, dto.description, dishOptionItems);
   }
 
   static fromResponseDTOList(dtos: DishOptionResponseDTO[]): DishOption[] {
@@ -36,7 +36,7 @@ export class DishOption {
     return {
       name: this.name,
       description: this.description,
-      optionItems: [...this.options],
+      optionItems: [...this.dishOptionItems],
     };
   }
 
@@ -44,7 +44,16 @@ export class DishOption {
     return {
       name: this.name,
       description: this.description,
-      optionItems: [...this.options],
+      optionItems: [...this.dishOptionItems],
+    };
+  }
+
+  toSelectedOptionRequestDTO(): SelectedOptionRequestDTO {
+    return {
+      dishOptionId: this.id,
+      dishOptionName: this.name,
+      itemValue: this.dishOptionItems[0]?.value || '',
+      itemLabel: this.dishOptionItems[0]?.label || '',
     };
   }
 
@@ -61,10 +70,11 @@ export class DishOption {
 
     if (!this.name?.trim()) errors.push('Name is required');
     if (!this.description?.trim()) errors.push('Description is required');
-    if (!this.options || this.options.length === 0) errors.push('At least one option is required');
+    if (!this.dishOptionItems || this.dishOptionItems.length === 0)
+      errors.push('At least one option is required');
 
     // Validate each option
-    this.options.forEach((option, index) => {
+    this.dishOptionItems.forEach((option, index) => {
       if (!option.label?.trim() || !option.value?.trim()) {
         errors.push(`Option ${index + 1} is invalid - missing label or value`);
       }
@@ -82,10 +92,11 @@ export class DishOption {
 
     if (!this.name?.trim()) errors.push('Name is required');
     if (!this.description?.trim()) errors.push('Description is required');
-    if (!this.options || this.options.length === 0) errors.push('At least one option is required');
+    if (!this.dishOptionItems || this.dishOptionItems.length === 0)
+      errors.push('At least one option is required');
 
     // Validate each option
-    this.options.forEach((option, index) => {
+    this.dishOptionItems.forEach((option, index) => {
       if (!option.label?.trim() || !option.value?.trim()) {
         errors.push(`Option ${index + 1} is invalid - missing label or value`);
       }
@@ -106,16 +117,16 @@ export class DishOption {
   }
 
   hasOption(optionValue: string): boolean {
-    return this.options.some((option) => option.value === optionValue);
+    return this.dishOptionItems.some((option) => option.value === optionValue);
   }
 
   getOptionByValue(optionValue: string): SelectOptionWithPrice | undefined {
-    return this.options.find((option) => option.value === optionValue);
+    return this.dishOptionItems.find((option) => option.value === optionValue);
   }
 
   // ✅ Base Function 5: Basic getters
   getOptionCount(): number {
-    return this.options.length;
+    return this.dishOptionItems.length;
   }
 
   // Simple display formatting for UI (no calculations)
@@ -131,19 +142,19 @@ export class DishOption {
   withName(newName: string): DishOption {
     if (this.name === newName) return this;
 
-    return new DishOption(this.id, newName, this.description, this.options);
+    return new DishOption(this.id, newName, this.description, this.dishOptionItems);
   }
 
   withDescription(newDescription: string): DishOption {
     if (this.description === newDescription) return this;
 
-    return new DishOption(this.id, this.name, newDescription, this.options);
+    return new DishOption(this.id, this.name, newDescription, this.dishOptionItems);
   }
 
   withOptions(newOptions: readonly SelectOptionWithPrice[]): DishOption {
     // Check if options actually changed by comparing values and prices
-    if (this.options.length === newOptions.length) {
-      const allSame = this.options.every((option, index) => {
+    if (this.dishOptionItems.length === newOptions.length) {
+      const allSame = this.dishOptionItems.every((option, index) => {
         const newOption = newOptions[index];
         return (
           option.value === newOption.value &&
@@ -162,23 +173,28 @@ export class DishOption {
     // Check if option already exists
     if (this.hasOption(newOption.value)) return this;
 
-    return new DishOption(this.id, this.name, this.description, [...this.options, newOption]);
+    return new DishOption(this.id, this.name, this.description, [
+      ...this.dishOptionItems,
+      newOption,
+    ]);
   }
 
   removeOption(optionValue: string): DishOption {
-    const filteredOptions = this.options.filter((option) => option.value !== optionValue);
+    const filteredOptions = this.dishOptionItems.filter((option) => option.value !== optionValue);
 
     // Return same instance if no change
-    if (filteredOptions.length === this.options.length) return this;
+    if (filteredOptions.length === this.dishOptionItems.length) return this;
 
     return new DishOption(this.id, this.name, this.description, filteredOptions);
   }
 
   // Efficient bulk update method
-  withChanges(changes: Partial<Pick<DishOption, 'name' | 'description' | 'options'>>): DishOption {
+  withChanges(
+    changes: Partial<Pick<DishOption, 'name' | 'description' | 'dishOptionItems'>>,
+  ): DishOption {
     // Check if any values actually changed
     const hasChanges = Object.entries(changes).some(([key, value]) => {
-      if (key === 'options') {
+      if (key === 'dishOptionItems') {
         const newOptions = value as readonly SelectOptionWithPrice[];
         return !this.withOptions(newOptions).equals(this);
       }
@@ -191,7 +207,7 @@ export class DishOption {
       this.id,
       changes.name ?? this.name,
       changes.description ?? this.description,
-      changes.options ?? this.options,
+      changes.dishOptionItems ?? this.dishOptionItems,
     );
   }
 
@@ -201,9 +217,9 @@ export class DishOption {
       this.id === other.id &&
       this.name === other.name &&
       this.description === other.description &&
-      this.options.length === other.options.length &&
-      this.options.every((option, index) => {
-        const otherOption = other.options[index];
+      this.dishOptionItems.length === other.dishOptionItems.length &&
+      this.dishOptionItems.every((option, index) => {
+        const otherOption = other.dishOptionItems[index];
         return (
           option.value === otherOption.value &&
           option.label === otherOption.label &&

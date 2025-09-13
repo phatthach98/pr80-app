@@ -3,19 +3,8 @@ import { v4 as uuid } from "uuid";
 import {
   EOrderStatus,
   EOrderType,
-  SelectedOptionRequestDTO,
 } from "@pr80-app/shared-contracts";
-
-export interface OrderDishItem {
-  id: string; // Unique identifier for this specific dish item in the order
-  dishId: string;
-  name: string;
-  quantity: number;
-  readonly totalPrice: string; // Make price readonly to prevent direct manipulation
-  readonly basePrice: string;
-  selectedOptions: SelectedOptionRequestDTO[];
-  takeAway: boolean;
-}
+import { OrderDishItem } from "./order-dish-item";
 
 export class Order {
   public id: string;
@@ -82,18 +71,18 @@ export class Order {
   private calculateTotalAmount(): string {
     // Ensure we're using the correct price for each dish
     const total = this.dishes.reduce((sum, dish) => {
-      // Calculate the base price plus any extra from options
-      const dishPrice = parseDecimalSafely(dish.totalPrice);
+      // Get total price for dish with quantity
+      const dishTotalPrice = dish.getTotalPriceForQuantity();
 
       // Validate that the price is a positive number
-      if (typeof dishPrice !== "number" || dishPrice < 0) {
-        throw new Error(`Invalid price for dish ${dish.id}: ${dishPrice}`);
+      if (typeof dishTotalPrice !== "number" || dishTotalPrice < 0) {
+        throw new Error(`Invalid price for dish ${dish.id}: ${dishTotalPrice}`);
       }
 
-      return sum + dishPrice * dish.quantity;
+      return sum + dishTotalPrice;
     }, 0);
 
-    // Ensure price is stored with 2 decimal places
+    // Ensure price is stored with 6 decimal places
     return total.toFixed(6);
   }
 
@@ -121,15 +110,14 @@ export class Order {
   public addDish(dish: OrderDishItem): void {
     // Check if dish already exists
     const existingDishIndex = this.dishes.findIndex(
-      (item) =>
-        item.dishId === dish.dishId &&
-        this.areDishOptionsEqual(item.selectedOptions, dish.selectedOptions) &&
-        item.takeAway === dish.takeAway
+      (item) => item.equals(dish)
     );
 
     if (existingDishIndex >= 0) {
       // Update quantity if dish already exists
-      this.dishes[existingDishIndex].quantity += dish.quantity;
+      const existingDish = this.dishes[existingDishIndex];
+      const newQuantity = existingDish.quantity + dish.quantity;
+      this.dishes[existingDishIndex] = existingDish.withQuantity(newQuantity);
     } else {
       // Add new dish
       this.dishes.push(dish);
@@ -145,8 +133,9 @@ export class Order {
         // Remove dish if quantity is 0 or negative
         this.dishes.splice(dishIndex, 1);
       } else {
-        // Update quantity
-        this.dishes[dishIndex].quantity = newQuantity;
+        // Update quantity with immutable pattern
+        const dish = this.dishes[dishIndex];
+        this.dishes[dishIndex] = dish.withQuantity(newQuantity);
       }
 
       // Recalculate total amount
@@ -163,26 +152,6 @@ export class Order {
     }
   }
 
-  private areDishOptionsEqual(options1: any[], options2: any[]): boolean {
-    if (options1.length !== options2.length) return false;
-
-    // Sort both arrays to ensure consistent comparison
-    const sortedOptions1 = [...options1].sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
-    const sortedOptions2 = [...options2].sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
-
-    return sortedOptions1.every((option, index) => {
-      const option2 = sortedOptions2[index];
-      return (
-        option.name === option2.name &&
-        option.value === option2.value &&
-        option.extraPrice === option2.extraPrice
-      );
-    });
-  }
 
   public toJSON() {
     const order: any = {

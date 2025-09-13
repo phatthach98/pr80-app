@@ -2,6 +2,7 @@ import { SelectOptionWithPrice } from "../types/selection-option.types";
 
 // Pure DTO interfaces - no domain entity imports
 
+
 export interface DishOptionResponseDTO {
   id: string;
   name: string;

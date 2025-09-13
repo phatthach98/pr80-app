@@ -103,7 +103,6 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
       if (!dishOption) {
         return null;
       }
-      console.log("dishOption", dishOption);
       const formattedOptions = dishOption.optionItems.map((option) => {
         return {
           ...option,

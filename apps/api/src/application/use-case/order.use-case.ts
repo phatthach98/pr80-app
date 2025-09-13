@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
-import { Order, OrderDishItem } from "@domain/entity/order";
+import { Order } from "@domain/entity/order";
+import { OrderDishItem } from "@domain/entity/order-dish-item";
 import { OrderRepository } from "../interface/repository/order-repo.interface";
 import { DishRepository } from "../interface/repository/dish-repo.interface";
 import { DishOptionRepository } from "../interface/repository/dish-option-repo.interface";
@@ -81,22 +82,20 @@ export class OrderUseCase {
     if (!dish) {
       throw new NotFoundError(`Dish with id ${dishId} not found`);
     }
+    
     // Get base price from dish
     const basePrice = dish.basePrice;
 
     // If no options are selected, return the base dish
     if (!selectedOptions || selectedOptions.length === 0) {
-      const id = uuid();
-      return {
-        id,
-        dishId: dish.id,
-        name: dish.name,
-        quantity: quantity,
-        basePrice: dish.basePrice,
-        totalPrice: dish.basePrice,
-        selectedOptions: [],
-        takeAway: takeAway,
-      };
+      return OrderDishItem.create(
+        dish.id,
+        dish.name,
+        quantity,
+        dish.basePrice,
+        [],
+        takeAway
+      );
     }
 
     // Extract all option IDs from the dish
@@ -111,8 +110,8 @@ export class OrderUseCase {
     const dishOptionsMap = new Map(
       dishOptions.map((option) => [option.id, option])
     );
+    
     // Process each selected option using the map and calculate total price
-    let totalExtraPrice = 0;
     const processedOptions = [];
 
     for (const selectedOption of selectedOptions) {
@@ -141,29 +140,17 @@ export class OrderUseCase {
         itemLabel: selectedOption.itemLabel,
         extraPrice: optionValue.extraPrice || "0",
       });
-
-      totalExtraPrice += parseDecimalSafely(optionValue.extraPrice || "0");
     }
 
-    // Calculate total price (base + extras)
-    const itemPrice = (
-      parseDecimalSafely(basePrice || "0") + totalExtraPrice
-    ).toFixed(6);
-
-    // Generate a unique ID for this dish item
-    const id = uuid();
-
-    // Return the dish item with calculated prices and unique ID
-    return {
-      id,
-      dishId: dish.id,
-      name: dish.name,
-      quantity: quantity,
-      basePrice: basePrice,
-      totalPrice: itemPrice,
-      selectedOptions: processedOptions,
-      takeAway: takeAway,
-    };
+    // Create and return OrderDishItem with processed options
+    return OrderDishItem.create(
+      dish.id,
+      dish.name,
+      quantity,
+      basePrice,
+      processedOptions,
+      takeAway
+    );
   }
 
   /**
@@ -554,45 +541,7 @@ export class OrderUseCase {
     existingDishes: OrderDishItem[],
     newDish: OrderDishItem
   ): number {
-    return existingDishes.findIndex((dish) => {
-      // First check if it's the same dish ID and takeAway status
-      if (
-        dish.dishId !== newDish.dishId ||
-        dish.takeAway !== newDish.takeAway
-      ) {
-        return false;
-      }
-
-      // Then check if the selected options match
-      if (dish.selectedOptions.length !== newDish.selectedOptions.length) {
-        return false;
-      }
-
-      // Sort both arrays to ensure consistent comparison
-      const sortedExistingOptions = [...dish.selectedOptions].sort(
-        (a, b) =>
-          a.dishOptionId.localeCompare(b.dishOptionId) ||
-          a.itemValue.localeCompare(b.itemValue)
-      );
-
-      const sortedNewOptions = [...newDish.selectedOptions].sort(
-        (a, b) =>
-          a.dishOptionId.localeCompare(b.dishOptionId) ||
-          a.itemValue.localeCompare(b.itemValue)
-      );
-
-      // Check if all options match
-      return sortedExistingOptions.every((option, index) => {
-        const newOption = sortedNewOptions[index];
-        return (
-          option.dishOptionId.toLowerCase() ===
-            newOption.dishOptionId.toLowerCase() &&
-          option.itemValue.toLowerCase() ===
-            newOption.itemValue.toLowerCase() &&
-          option.itemLabel === newOption.itemLabel
-        );
-      });
-    });
+    return existingDishes.findIndex(dish => dish.equals(newDish));
   }
 
   /**
