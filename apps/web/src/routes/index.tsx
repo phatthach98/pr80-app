@@ -6,7 +6,7 @@ export const Route = createFileRoute('/')({
   beforeLoad: () => {
     if (authLocalStorageUtil.getToken()) {
       throw redirect({
-        to: '/orders',
+        to: '/tables',
       });
     }
 

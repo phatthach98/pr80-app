@@ -6,7 +6,7 @@ const DishSchemaDefinition = new Schema(
     _id: { type: String, required: true },
     name: { type: String, required: true },
     description: { type: String, required: false },
-    price: {
+    basePrice: {
       type: mongoose.Schema.Types.Decimal128,
       required: true,
       get: formatDecimal,

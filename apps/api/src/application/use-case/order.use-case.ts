@@ -1,27 +1,22 @@
 import { v4 as uuid } from "uuid";
-import {
-  Order,
-  OrderDishItem,
-  OrderStatus,
-  OrderType,
-} from "@domain/entity/order";
+import { Order } from "@domain/entity/order";
+import { OrderDishItem } from "@domain/entity/order-dish-item";
 import { OrderRepository } from "../interface/repository/order-repo.interface";
 import { DishRepository } from "../interface/repository/dish-repo.interface";
 import { DishOptionRepository } from "../interface/repository/dish-option-repo.interface";
 import { SocketService } from "../interface/service";
 import { NotFoundError } from "@application/errors";
 import { parseDecimalSafely } from "@application/utils";
-
-// Define interfaces for the enhanced use case
-interface SelectedOption {
-  name: string;
-  value: string;
-}
+import {
+  EOrderStatus,
+  EOrderType,
+  SelectedOptionRequestDTO,
+} from "@pr80-app/shared-contracts";
 
 interface OrderItemRequest {
   dishId: string;
   quantity: number;
-  selectedOptions: SelectedOption[];
+  selectedOptions: SelectedOptionRequestDTO[];
   takeAway: boolean;
 }
 
@@ -47,11 +42,11 @@ export class OrderUseCase {
     return order;
   }
 
-  async getOrdersByStatus(status: OrderStatus) {
+  async getOrdersByStatus(status: EOrderStatus) {
     return this.orderRepository.getOrdersByStatus(status);
   }
 
-  async getOrdersByType(type: OrderType) {
+  async getOrdersByType(type: EOrderType) {
     return this.orderRepository.getOrdersByType(type);
   }
 
@@ -78,7 +73,7 @@ export class OrderUseCase {
    */
   async calculateDishWithOptions(
     dishId: string,
-    selectedOptions: SelectedOption[],
+    selectedOptions: SelectedOptionRequestDTO[],
     quantity: number,
     takeAway: boolean = false
   ): Promise<OrderDishItem> {
@@ -87,21 +82,20 @@ export class OrderUseCase {
     if (!dish) {
       throw new NotFoundError(`Dish with id ${dishId} not found`);
     }
+    
     // Get base price from dish
-    const basePrice = dish.price;
+    const basePrice = dish.basePrice;
 
     // If no options are selected, return the base dish
     if (!selectedOptions || selectedOptions.length === 0) {
-      const id = uuid();
-      return {
-        id,
-        dishId: dish.id,
-        name: dish.name,
-        quantity: quantity,
-        price: basePrice,
-        selectedOptions: [],
-        takeAway: takeAway,
-      };
+      return OrderDishItem.create(
+        dish.id,
+        dish.name,
+        quantity,
+        dish.basePrice,
+        [],
+        takeAway
+      );
     }
 
     // Extract all option IDs from the dish
@@ -114,56 +108,49 @@ export class OrderUseCase {
 
     // Create a map for quick lookup
     const dishOptionsMap = new Map(
-      dishOptions.map((option) => [option.name.toLowerCase(), option])
+      dishOptions.map((option) => [option.id, option])
     );
+    
     // Process each selected option using the map and calculate total price
-    let totalExtraPrice = 0;
     const processedOptions = [];
 
     for (const selectedOption of selectedOptions) {
-      const dishOption = dishOptionsMap.get(selectedOption.name.toLowerCase());
+      const dishOption = dishOptionsMap.get(selectedOption.dishOptionId);
 
       if (!dishOption) {
-        throw new NotFoundError(`Option not found: ${selectedOption.name}`);
+        throw new NotFoundError(
+          `Option not found: ${selectedOption.dishOptionName}`
+        );
       }
 
-      const optionValue = dishOption.options.find(
-        (o) => o.value.toLowerCase() === selectedOption.value.toLowerCase()
+      const optionValue = dishOption.optionItems.find(
+        (o) => o.value.toLowerCase() === selectedOption.itemValue.toLowerCase()
       );
 
       if (!optionValue) {
         throw new NotFoundError(
-          `Option value not found: ${selectedOption.value} for option ${selectedOption.name}`
+          `Option value not found: ${selectedOption.itemValue} for option ${selectedOption.dishOptionName}`
         );
       }
 
       processedOptions.push({
-        name: selectedOption.name,
-        value: optionValue.label,
-        extraPrice: optionValue.extraPrice,
+        dishOptionId: selectedOption.dishOptionId,
+        dishOptionName: selectedOption.dishOptionName,
+        itemValue: selectedOption.itemValue,
+        itemLabel: selectedOption.itemLabel,
+        extraPrice: optionValue.extraPrice || "0",
       });
-
-      totalExtraPrice += parseDecimalSafely(optionValue.extraPrice || "0");
     }
 
-    // Calculate total price (base + extras)
-    const itemPrice = (
-      parseDecimalSafely(basePrice || "0") + totalExtraPrice
-    ).toFixed(6);
-
-    // Generate a unique ID for this dish item
-    const id = uuid();
-
-    // Return the dish item with calculated prices and unique ID
-    return {
-      id,
-      dishId: dish.id,
-      name: dish.name,
-      quantity: quantity,
-      price: itemPrice,
-      selectedOptions: processedOptions,
-      takeAway: takeAway,
-    };
+    // Create and return OrderDishItem with processed options
+    return OrderDishItem.create(
+      dish.id,
+      dish.name,
+      quantity,
+      basePrice,
+      processedOptions,
+      takeAway
+    );
   }
 
   /**
@@ -216,14 +203,14 @@ export class OrderUseCase {
       order = updatedOrder;
 
       await this.recalculateMainOrderTotal(
-        order.type === OrderType.MAIN ? order.id : order.linkedOrderId || ""
+        order.type === EOrderType.MAIN ? order.id : order.linkedOrderId || ""
       );
     } else {
       // Create new order with this dish
       order = await this.createOrder(
         userId,
         table,
-        OrderType.MAIN,
+        EOrderType.MAIN,
         [dishWithPrice],
         null,
         ""
@@ -264,7 +251,7 @@ export class OrderUseCase {
 
     // If this is a main order and might have linked orders, recalculate its total
     await this.recalculateMainOrderTotal(
-      order.type === OrderType.MAIN ? order.id : order.linkedOrderId || ""
+      order.type === EOrderType.MAIN ? order.id : order.linkedOrderId || ""
     );
 
     return updatedOrder;
@@ -303,7 +290,7 @@ export class OrderUseCase {
       await this.recalculateMainOrderTotal(order.linkedOrderId);
     }
     // If this is a main order and might have linked orders, recalculate its total
-    else if (order.type === OrderType.MAIN) {
+    else if (order.type === EOrderType.MAIN) {
       await this.recalculateMainOrderTotal(order.id);
     }
 
@@ -316,7 +303,7 @@ export class OrderUseCase {
   async createOrder(
     createdBy: string,
     table: string,
-    type: OrderType = OrderType.MAIN,
+    type: EOrderType = EOrderType.MAIN,
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
     note: string = ""
@@ -373,7 +360,7 @@ export class OrderUseCase {
     const additionalOrder = Order.create(
       createdBy,
       originalOrder.table,
-      OrderType.SUB, // Always create additional orders as SUB type
+      EOrderType.SUB, // Always create additional orders as SUB type
       calculatedDishes,
       originalOrderId,
       note
@@ -411,7 +398,7 @@ export class OrderUseCase {
         // If this is a new dish, it will be handled by addDish method which calculates the price
         if (originalDish) {
           // If it's an existing dish, ensure the price hasn't been changed
-          if (originalDish.price !== newDish.price) {
+          if (originalDish.basePrice !== newDish.basePrice) {
             throw new Error(
               `Price manipulation detected for dish ${newDish.id}`
             );
@@ -423,12 +410,13 @@ export class OrderUseCase {
               const newOption = newDish.selectedOptions[i];
               const originalOption = originalDish.selectedOptions.find(
                 (opt) =>
-                  opt.name === newOption.name && opt.value === newOption.value
+                  opt.dishOptionId === newOption.dishOptionId &&
+                  opt.itemValue === newOption.itemValue
               );
 
               if (
                 originalOption &&
-                originalOption.extraPrice !== newOption.extraPrice
+                originalOption.itemLabel !== newOption.itemLabel
               ) {
                 throw new Error(
                   `Option price manipulation detected for dish ${newDish.id}`
@@ -458,7 +446,7 @@ export class OrderUseCase {
     const result = await this.orderRepository.update(updatedOrder);
 
     await this.recalculateMainOrderTotal(
-      updatedOrder.type === OrderType.MAIN
+      updatedOrder.type === EOrderType.MAIN
         ? updatedOrder.id
         : updatedOrder.linkedOrderId || ""
     );
@@ -474,7 +462,7 @@ export class OrderUseCase {
   /**
    * Update order status
    */
-  async updateOrderStatus(id: string, newStatus: OrderStatus) {
+  async updateOrderStatus(id: string, newStatus: EOrderStatus) {
     const order = await this.getOrderById(id);
 
     order.updateStatus(newStatus);
@@ -553,39 +541,7 @@ export class OrderUseCase {
     existingDishes: OrderDishItem[],
     newDish: OrderDishItem
   ): number {
-    return existingDishes.findIndex((dish) => {
-      // First check if it's the same dish ID and takeAway status
-      if (
-        dish.dishId !== newDish.dishId ||
-        dish.takeAway !== newDish.takeAway
-      ) {
-        return false;
-      }
-
-      // Then check if the selected options match
-      if (dish.selectedOptions.length !== newDish.selectedOptions.length) {
-        return false;
-      }
-
-      // Sort both arrays to ensure consistent comparison
-      const sortedExistingOptions = [...dish.selectedOptions].sort(
-        (a, b) => a.name.localeCompare(b.name) || a.value.localeCompare(b.value)
-      );
-
-      const sortedNewOptions = [...newDish.selectedOptions].sort(
-        (a, b) => a.name.localeCompare(b.name) || a.value.localeCompare(b.value)
-      );
-
-      // Check if all options match
-      return sortedExistingOptions.every((option, index) => {
-        const newOption = sortedNewOptions[index];
-        return (
-          option.name.toLowerCase() === newOption.name.toLowerCase() &&
-          option.value.toLowerCase() === newOption.value.toLowerCase() &&
-          option.extraPrice === newOption.extraPrice
-        );
-      });
-    });
+    return existingDishes.findIndex(dish => dish.equals(newDish));
   }
 
   /**
@@ -603,7 +559,7 @@ export class OrderUseCase {
     // Calculate the main order's own total from its dishes (to ensure it's accurate)
     let mainOrderTotal = 0;
     for (const dish of mainOrder.dishes) {
-      mainOrderTotal += parseDecimalSafely(dish.price) * dish.quantity;
+      mainOrderTotal += parseDecimalSafely(dish.basePrice) * dish.quantity;
     }
     mainOrderTotal = parseDecimalSafely(mainOrderTotal.toFixed(6));
 
@@ -616,7 +572,7 @@ export class OrderUseCase {
         // Validate each linked order's total to prevent manipulation
         let orderTotal = 0;
         for (const dish of order.dishes) {
-          orderTotal += parseDecimalSafely(dish.price) * dish.quantity;
+          orderTotal += parseDecimalSafely(dish.basePrice) * dish.quantity;
         }
         orderTotal = parseDecimalSafely(orderTotal.toFixed(6));
 

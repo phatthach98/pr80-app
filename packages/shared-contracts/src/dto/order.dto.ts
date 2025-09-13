@@ -1,11 +1,21 @@
-import { OrderStatus, OrderType } from '../enums/order-status.enum';
+import { EOrderStatus, EOrderType } from "../enums/order-status.enum";
 
 // Pure DTO interfaces - no domain entity imports
 
 // Selected option in a request
 export interface SelectedOptionRequestDTO {
-  name: string;
-  value: string;
+  dishOptionId: string;
+  dishOptionName: string;
+  itemValue: string;
+  itemLabel: string;
+}
+
+export interface SelectedOptionDTO {
+  dishOptionId: string;
+  dishOptionName: string;
+  itemValue: string;
+  itemLabel: string;
+  extraPrice: string;
 }
 
 // Order item in a request
@@ -16,18 +26,23 @@ export interface OrderItemRequestDTO {
   takeAway: boolean;
 }
 
+export interface OrderDishItemOptionResponseDTO {
+  dishOptionId: string;
+  dishOptionName: string;
+  itemValue: string;
+  itemLabel: string;
+  extraPrice: string;
+}
+
 // Response DTO for order dish items
 export interface OrderDishItemResponseDTO {
   id: string; // Unique identifier for this specific dish item
   dishId: string;
   name: string;
   quantity: number;
-  price: string;
-  selectedOptions: {
-    name: string;
-    value: string;
-    extraPrice: string;
-  }[];
+  totalPrice: string;
+  basePrice: string;
+  selectedOptions: OrderDishItemOptionResponseDTO[];
   takeAway: boolean;
 }
 
@@ -36,10 +51,10 @@ export interface OrderResponseDTO {
   id: string;
   linkedOrderId: string | null;
   createdBy: string;
-  status: OrderStatus;
+  status: EOrderStatus;
   table: string;
   totalAmount: string;
-  type: OrderType;
+  type: EOrderType;
   note: string;
   dishes: OrderDishItemResponseDTO[];
   createdAt?: Date;
@@ -49,7 +64,7 @@ export interface OrderResponseDTO {
 // DTO for creating a new order
 export interface CreateOrderRequestDTO {
   table: string;
-  type?: OrderType;
+  type?: EOrderType;
   dishes?: OrderItemRequestDTO[];
   linkedOrderId?: string;
   note?: string;
@@ -65,8 +80,8 @@ export interface CreateAdditionalOrderRequestDTO {
 // DTO for updating an order
 export interface UpdateOrderRequestDTO {
   table?: string;
-  status?: OrderStatus;
-  type?: OrderType;
+  status?: EOrderStatus;
+  type?: EOrderType;
   note?: string;
 }
 
@@ -87,7 +102,7 @@ export interface UpdateOrderItemQuantityRequestDTO {
 
 // DTO for updating order status
 export interface UpdateOrderStatusRequestDTO {
-  status: OrderStatus;
+  status: EOrderStatus;
 }
 
 // DTO for updating order table

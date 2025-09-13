@@ -53,7 +53,7 @@ export class AuthUseCase {
         roles: roleIds,
       },
       {
-        expiresIn: "1m",
+        expiresIn: "7d",
       }
     );
 

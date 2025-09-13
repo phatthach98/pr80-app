@@ -1,0 +1,125 @@
+---
+description: 
+globs: **/*.query.ts, **/*.mutation.ts, **/hooks/query/**/*.ts, **/hooks/mutation/**/*.ts
+alwaysApply: false
+---
+
+# TanStack Query Best Practices & Advanced Patterns
+
+## Context
+
+Auto-applied rule for TanStack Query files in the PR80 restaurant management app. Ensures consistent implementation of query and mutation patterns across the feature-based architecture with proper folder structure, query key factories, and data transformation selectors.
+
+## Critical Rules
+
+### 📁 Folder Structure
+- **Query hooks**: Place in `src/hooks/query/` for shared queries or `src/features/{feature}/hooks/` for feature-specific
+- **Mutation hooks**: Place in `src/hooks/mutation/` for shared mutations or `src/features/{feature}/hooks/` for feature-specific
+- **File naming**: Use `*.query.ts` for queries and `*.mutation.ts` for mutations
+- **Index exports**: Always export through `index.ts` files for clean imports
+
+### 🔑 Query Key Factory Pattern
+- **Consistent hierarchy**: `[domain, operation, ...params]` format
+- **Typed constants**: Use `as const` for query keys to ensure type safety
+- **Centralized keys**: Create query key factories for each domain
+```typescript
+export const dishesKeys = {
+  all: ['dishes'] as const,
+  lists: () => [...dishesKeys.all, 'list'] as const,
+  list: (filters: string) => [...dishesKeys.lists(), { filters }] as const,
+  details: () => [...dishesKeys.all, 'detail'] as const,
+  detail: (id: string) => [...dishesKeys.details(), id] as const,
+} as const;
+```
+
+### 🎯 Data Transformation with Selectors
+- **Separate concerns**: Use `select` option for data transformation instead of transforming in components
+- **Type-safe selectors**: Define proper TypeScript types for transformed data
+- **Consistent patterns**: Transform API DTOs to domain entities in selectors
+```typescript
+export const useDishQuery = (id: string) => {
+  return useQuery({
+    queryKey: dishesKeys.detail(id),
+    queryFn: () => fetchDish(id),
+    select: (data: DishResponseDTO): Dish => ({
+      id: data.id,
+      name: data.name,
+      price: data.basePrice,
+      options: data.dishOptions?.map(transformDishOption) ?? [],
+    }),
+  });
+};
+```
+
+### 🏗️ Hook Structure Patterns
+- **Export query functions**: Separate query functions from hooks for reusability
+- **Error handling**: Consistent error throwing with descriptive messages
+- **Loading states**: Use proper loading and error states in hook returns
+- **Optimistic updates**: Implement optimistic updates for mutations where appropriate
+
+### 🔄 Mutation Patterns
+- **Query invalidation**: Use specific query key patterns for cache invalidation
+- **Optimistic updates**: Update cache optimistically for better UX
+- **Error recovery**: Implement proper rollback on mutation failure
+- **Success callbacks**: Chain related actions in onSuccess callbacks
+
+### 📦 Import Organization
+- **API client first**: Import API client and DTOs at the top
+- **TanStack imports**: Group TanStack Query imports together
+- **Domain types**: Import domain entities for transformations
+- **Local utilities**: Import query key factories and utilities last
+
+## Examples
+
+<example>
+  // ✅ Good: Proper query structure with factory and selector
+  import { apiClient } from '@/api/api-client';
+  import { DishResponseDTO } from '@pr80-app/shared-contracts';
+  import { useQuery } from '@tanstack/react-query';
+  import { Dish } from '@/domain/entity';
+
+  export const dishesKeys = {
+    all: ['dishes'] as const,
+    lists: () => [...dishesKeys.all, 'list'] as const,
+    details: () => [...dishesKeys.all, 'detail'] as const,
+    detail: (id: string) => [...dishesKeys.details(), id] as const,
+  } as const;
+
+  export const useDishQuery = (id: string) => {
+    return useQuery({
+      queryKey: dishesKeys.detail(id),
+      queryFn: async (): Promise<DishResponseDTO> => {
+        const response = await apiClient.get<DishResponseDTO>(`/dishes/${id}`);
+        if (!response.success) {
+          throw new Error(response.error.message);
+        }
+        return response.data;
+      },
+      select: (data: DishResponseDTO): Dish => ({
+        id: data.id,
+        name: data.name,
+        price: data.basePrice,
+        isAvailable: data.status === 'available',
+      }),
+    });
+  };
+</example>
+
+<example type="invalid">
+  // ❌ Bad: No query key factory, inline transformation, poor structure
+  export const useDish = (id: string) => {
+    const { data, ...rest } = useQuery({
+      queryKey: ['dish', id],
+      queryFn: () => apiClient.get(`/dishes/${id}`),
+    });
+    
+    return {
+      dish: data ? { 
+        id: data.id, 
+        name: data.name, 
+        price: data.basePrice 
+      } : null,
+      ...rest
+    };
+  };
+</example>

@@ -1,10 +1,14 @@
-import { ErrorCode } from './error-codes';
+import { EErrorCode } from "./error-codes";
 
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly errorCode: string;
 
-  constructor(message: string, statusCode: number = 400, errorCode: string = ErrorCode.INTERNAL_SERVER_ERROR) {
+  constructor(
+    message: string,
+    statusCode: number = 400,
+    errorCode: string = EErrorCode.INTERNAL_SERVER_ERROR
+  ) {
     super(message);
     this.statusCode = statusCode;
     this.errorCode = errorCode;
@@ -13,4 +17,4 @@ export class AppError extends Error {
       Error.captureStackTrace(this, this.constructor);
     }
   }
-} 
+}

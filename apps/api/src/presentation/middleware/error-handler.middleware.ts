@@ -1,7 +1,7 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { AppError } from "@application/errors";
 import { ApiResponseUtil } from "@application/utils";
-import { ErrorCode } from "@application/errors/error-codes";
+import { EErrorCode } from "@application/errors/error-codes";
 
 export const errorHandler = (
   err: Error,
@@ -31,16 +31,16 @@ export const errorHandler = (
     process.env.NODE_ENV === "production"
       ? "An internal server error occurred"
       : err.message; // Show detailed message only in development
-  
+
   // Log the error stack for server-side observation
   if (err.stack) {
     console.error("Error stack:", err.stack);
   }
-  
+
   return ApiResponseUtil.sendError(
     res,
     message,
-    ErrorCode.INTERNAL_SERVER_ERROR,
+    EErrorCode.INTERNAL_SERVER_ERROR,
     500,
     process.env.NODE_ENV !== "production" ? { stack: err.stack } : undefined,
     req.originalUrl

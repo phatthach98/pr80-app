@@ -1,1 +1,1 @@
-export { ErrorCode } from '@pr80-app/shared-contracts';
+export { EErrorCode } from "@pr80-app/shared-contracts";

@@ -1,8 +1,9 @@
 import { v4 as uuid } from "uuid";
 import { OrderRepository } from "@application/interface/repository/order-repo.interface";
-import { Order, OrderStatus, OrderType } from "@domain/entity/order";
+import { Order } from "@domain/entity/order";
 import { OrderSchema } from "../schemas/order-schema";
 import { formatDecimal } from "../utils/mongodb.util";
+import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
 
 export class OrderRepositoryImpl implements OrderRepository {
   async getOrders(): Promise<Order[]> {
@@ -36,7 +37,7 @@ export class OrderRepositoryImpl implements OrderRepository {
     }
   }
 
-  async getOrdersByStatus(status: OrderStatus): Promise<Order[] | null> {
+  async getOrdersByStatus(status: EOrderStatus): Promise<Order[] | null> {
     try {
       const orders = await OrderSchema.find({ status }).lean();
 
@@ -51,7 +52,7 @@ export class OrderRepositoryImpl implements OrderRepository {
     }
   }
 
-  async getOrdersByType(type: OrderType): Promise<Order[] | null> {
+  async getOrdersByType(type: EOrderType): Promise<Order[] | null> {
     try {
       const orders = await OrderSchema.find({ type }).lean();
 
@@ -164,16 +165,19 @@ export class OrderRepositoryImpl implements OrderRepository {
 
   // Helper method to convert MongoDB document to domain entity
   private mapToOrderEntity(orderDoc: any): Order {
-    const dishes = orderDoc.dishes.map((dish: any) => ({
-      ...dish,
-      id: dish.id || uuid(), // Keep dish.id as is or generate new UUID
-      price: formatDecimal(dish.price),
-      selectedOptions: dish.selectedOptions.map((option: any) => ({
+    const dishes = orderDoc.dishes.map((orderDishItem: any) => ({
+      id: orderDishItem.id,
+      basePrice: formatDecimal(orderDishItem.basePrice),
+      totalPrice: formatDecimal(orderDishItem.totalPrice),
+      name: orderDishItem.name,
+      quantity: orderDishItem.quantity,
+      takeAway: orderDishItem.takeAway,
+      dishId: orderDishItem.dishId,
+      selectedOptions: orderDishItem.selectedOptions.map((option: any) => ({
         ...option,
         extraPrice: formatDecimal(option.extraPrice),
       })),
     }));
-
     const order = new Order(
       orderDoc._id.toString(), // Use _id as id in domain model
       orderDoc.createdBy,

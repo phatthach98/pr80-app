@@ -1,24 +1,25 @@
-import { SelectOptionWithPrice } from '../types/selection-option.types';
+import { SelectOptionWithPrice } from "../types/selection-option.types";
 
 // Pure DTO interfaces - no domain entity imports
+
 
 export interface DishOptionResponseDTO {
   id: string;
   name: string;
   description: string;
-  options: SelectOptionWithPrice[];
+  optionItems: SelectOptionWithPrice[];
 }
 
 export interface CreateDishOptionRequestDTO {
   name: string;
   description: string;
-  options: SelectOptionWithPrice[];
+  optionItems: SelectOptionWithPrice[];
 }
 
 export interface UpdateDishOptionRequestDTO {
   name?: string;
   description?: string;
-  options?: SelectOptionWithPrice[];
+  optionItems?: SelectOptionWithPrice[];
 }
 
 export interface DishOptionOperationResponseDTO {

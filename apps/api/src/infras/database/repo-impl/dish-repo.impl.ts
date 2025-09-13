@@ -19,7 +19,7 @@ export class DishRepositoryImpl implements DishRepository {
             dish._id.toString(), // Use _id as id in domain model
             dish.name,
             dish.description || "",
-            formatDecimal(dish.price),
+            formatDecimal(dish.basePrice),
             dish.options
           )
       );
@@ -42,7 +42,7 @@ export class DishRepositoryImpl implements DishRepository {
         dish._id.toString(), // Use _id as id in domain model
         dish.name,
         dish.description || "",
-        formatDecimal(dish.price),
+        formatDecimal(dish.basePrice),
         dish.options
       );
     } catch (error) {
@@ -57,7 +57,7 @@ export class DishRepositoryImpl implements DishRepository {
         _id: dish.id, // Map domain id to MongoDB _id
         name: dish.name,
         description: dish.description,
-        price: dish.price,
+        basePrice: dish.basePrice,
         options: dish.options,
       });
 
@@ -95,7 +95,7 @@ export class DishRepositoryImpl implements DishRepository {
         updatedDish._id.toString(), // Use _id as id in domain model
         updatedDish.name,
         updatedDish.description || "",
-        formatDecimal(updatedDish.price),
+        formatDecimal(updatedDish.basePrice),
         updatedDish.options
       );
     } catch (error) {

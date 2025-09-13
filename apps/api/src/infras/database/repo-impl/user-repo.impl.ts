@@ -3,7 +3,7 @@ import { Permission } from "@domain/entity/permission";
 import { Role } from "@domain/entity/role";
 import { User } from "@domain/entity/user";
 import { UserModel } from "@infras/database/schemas";
-import { ROLE_NAME } from "@pr80-app/shared-contracts";
+import { E_ROLE_NAME } from "@pr80-app/shared-contracts";
 
 export class UserRepoImpl implements UserRepository {
   async create(
@@ -91,7 +91,7 @@ export class UserRepoImpl implements UserRepository {
   private mapDocToRole(roleDoc: any): Role {
     const role = new Role(
       roleDoc._id.toString(),
-      roleDoc.name as ROLE_NAME,
+      roleDoc.name as E_ROLE_NAME,
       roleDoc.description
     );
 

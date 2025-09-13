@@ -6,7 +6,7 @@ const dishOptionSchema = new Schema(
     _id: { type: String, required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
-    options: [
+    optionItems: [
       {
         label: { type: String, required: true },
         value: { type: String, required: true },
