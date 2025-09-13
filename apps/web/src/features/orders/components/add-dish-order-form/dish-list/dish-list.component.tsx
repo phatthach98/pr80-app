@@ -50,7 +50,7 @@ export function DishList({ onSelectDish }: DishListProps) {
               <CardDescription className="line-clamp-2 text-xs">{dish.description}</CardDescription>
             </CardHeader>
             <CardFooter className="flex justify-between pt-0">
-              <div className="font-medium">{dish.price}</div>
+              <div className="font-medium">{dish.getFormattedBasePrice()}</div>
               {dish.hasOptions() && (
                 <div className="text-muted-foreground text-xs">Có tùy chọn</div>
               )}

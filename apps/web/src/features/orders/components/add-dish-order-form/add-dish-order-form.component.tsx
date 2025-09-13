@@ -12,9 +12,9 @@ import {
 } from '@/components/ui/dialog';
 import { PlusIcon } from 'lucide-react';
 import { Dish } from '@/domain/entity';
+import { OrderDishOption } from '@/domain/entity/order-dish-option';
 import { DishList } from './dish-list/dish-list.component';
 import { DishOptions } from './dish-options/dish-options.component';
-import { SelectOptionWithPrice } from '@pr80-app/shared-contracts';
 import { ordersStore, setCurrentDraftOrder } from '@/features/orders/store';
 import { toast } from 'sonner';
 import { useStore } from '@tanstack/react-store';
@@ -33,7 +33,7 @@ export function AddDishOrderForm() {
 
   const handleAddDishToOrder = (
     dish: Dish,
-    selectedOption: Record<string, SelectOptionWithPrice[]>,
+    selectedOptions: OrderDishOption[],
     quantity: number,
     takeAway: boolean,
   ) => {
@@ -41,7 +41,7 @@ export function AddDishOrderForm() {
       toast('Không tìm thấy đơn hàng');
       return;
     }
-    const updatedOrder = currentDraftOrder.addDish(dish, selectedOption, quantity, takeAway);
+    const updatedOrder = currentDraftOrder.addDish(dish, selectedOptions, quantity, takeAway);
     setCurrentDraftOrder(updatedOrder);
     setIsDialogOpen(false);
     setSelectedDish(null);
