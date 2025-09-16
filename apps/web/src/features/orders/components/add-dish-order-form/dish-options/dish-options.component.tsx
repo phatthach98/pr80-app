@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dish, DishOption } from '@/domain/entity';
+import { OrderDishOption } from '@/domain/entity/order-dish-option';
 import { useDishWithOptionsQuery } from '@/hooks/query/dishes.query';
 import { ArrowLeftIcon, MinusIcon, PlusIcon } from 'lucide-react';
 import { SelectOptionWithPrice } from '@pr80-app/shared-contracts';
@@ -11,7 +13,7 @@ interface DishOptionsProps {
   onBack: () => void;
   handleAddDishToOrder: (
     dish: Dish,
-    selectedOptions: Record<string, SelectOptionWithPrice[]>,
+    selectedOptions: OrderDishOption[],
     quantity: number,
     takeAway: boolean,
   ) => void;
@@ -21,9 +23,7 @@ export function DishOptions({ dish, onBack, handleAddDishToOrder }: DishOptionsP
   // Get full dish details with options
   const { data: dishWithOptions, isLoading, error } = useDishWithOptionsQuery(dish.id);
 
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, SelectOptionWithPrice[]>>(
-    {},
-  );
+  const [selectedOptions, setSelectedOptions] = useState<OrderDishOption[]>([]);
   const [quantity, setQuantity] = useState(1);
 
   if (isLoading) return <div className="py-8 text-center">Đang tải tùy chọn...</div>;
@@ -36,24 +36,32 @@ export function DishOptions({ dish, onBack, handleAddDishToOrder }: DishOptionsP
     isMultiple: boolean,
   ) => {
     setSelectedOptions((prev) => {
-      const current = prev[option.id] || [];
-
-      if (isMultiple) {
-        // For multiple selections (like checkboxes)
-        return {
-          ...prev,
-          [option.id]: current.includes(selection)
-            ? current.filter((id) => id !== selection)
-            : current.includes(selection)
-              ? current
-              : [...current, selection],
-        };
+      // Check if we already have this option selected
+      const existingOptionIndex = prev.findIndex(opt => opt.dishOptionId === option.id);
+      
+      // Create new OrderDishOption
+      const newOption = OrderDishOption.fromResponseDTO({
+        dishOptionId: option.id,
+        dishOptionName: option.name,
+        itemValue: selection.value,
+        itemLabel: selection.label,
+        extraPrice: selection.extraPrice
+      });
+      
+      if (existingOptionIndex >= 0) {
+        if (isMultiple) {
+          // For multiple selections (like checkboxes) - not implemented yet
+          // Would need to track multiple selections per option
+          return prev;
+        } else {
+          // For single selection, replace the existing option
+          const newOptions = [...prev];
+          newOptions[existingOptionIndex] = newOption;
+          return newOptions;
+        }
       } else {
-        // For single selection (like radio buttons)
-        return {
-          ...prev,
-          [option.id]: [selection],
-        };
+        // Add new option
+        return [...prev, newOption];
       }
     });
   };
@@ -76,7 +84,7 @@ export function DishOptions({ dish, onBack, handleAddDishToOrder }: DishOptionsP
 
   const isOptionValid = (option: DishOption): boolean => {
     if (!isOptionRequired()) return true;
-    return !!selectedOptions[option.id]?.length;
+    return selectedOptions.some(opt => opt.dishOptionId === option.id);
   };
 
   const areAllOptionsValid = dishWithOptions.options.every(isOptionValid);
@@ -96,47 +104,54 @@ export function DishOptions({ dish, onBack, handleAddDishToOrder }: DishOptionsP
         <CardHeader className="pb-2">
           <CardTitle className="text-base">{dishWithOptions.name}</CardTitle>
           <CardDescription className="text-xs">{dishWithOptions.description}</CardDescription>
-          <div className="font-medium">{dishWithOptions.basePrice}</div>
+          <div className="font-medium">{dishWithOptions.getFormattedBasePrice()}</div>
         </CardHeader>
       </Card>
 
       {/* Options */}
-      <div className="max-h-[300px] space-y-3 overflow-y-auto pr-1">
-        {dishWithOptions.options.map((option) => (
-          <Card key={option.id}>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center text-sm">
-                {option.name}
-                {isOptionRequired() && <span className="ml-1 text-red-500">*</span>}
-              </CardTitle>
-              <CardDescription className="text-xs">{option.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Simplified option selection - we'll implement proper UI components later */}
-              <div className="space-y-2">
-                {option.dishOptionItems.map((selection) => (
-                  <div
-                    key={selection.value}
-                    className={`cursor-pointer rounded-md border p-2 ${
-                      (selectedOptions[option.id] || []).includes(selection)
-                        ? 'bg-primary/10 border-primary'
-                        : 'hover:bg-muted/50'
-                    }`}
-                    onClick={() => handleOptionChange(option, selection, isMultipleSelection())}
-                  >
-                    <div className="flex w-full justify-between">
-                      <span>{selection.label}</span>
-                      {parseFloat(selection.extraPrice) > 0 && (
-                        <span className="text-muted-foreground">+{selection.extraPrice}</span>
-                      )}
+      <ScrollArea className="max-h-[300px]">
+        <div className="space-y-3 pr-1">
+          {dishWithOptions.options.map((option) => (
+            <Card key={option.id}>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center text-sm">
+                  {option.name}
+                  {isOptionRequired() && <span className="ml-1 text-red-500">*</span>}
+                </CardTitle>
+                <CardDescription className="text-xs">{option.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Simplified option selection - we'll implement proper UI components later */}
+                <div className="space-y-2">
+                  {option.items.map((selection) => (
+                    <div
+                      key={selection.value}
+                      className={`cursor-pointer rounded-md border p-2 ${
+                        selectedOptions.some(opt => 
+                          opt.dishOptionId === option.id && 
+                          opt.itemValue === selection.value
+                        )
+                          ? 'bg-primary/10 border-primary'
+                          : 'hover:bg-muted/50'
+                      }`}
+                      onClick={() => handleOptionChange(option, selection, isMultipleSelection())}
+                    >
+                      <div className="flex w-full justify-between">
+                        <span>{selection.label}</span>
+                        {parseFloat(selection.extraPrice) > 0 && (
+                          <span className="text-muted-foreground">
+                            +{selection.getFormattedExtraPrice()}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </ScrollArea>
 
       {/* Quantity and Add button */}
       <div className="flex items-center justify-between pt-2">

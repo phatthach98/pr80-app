@@ -41,6 +41,7 @@ export interface OrderDishItemResponseDTO {
   name: string;
   quantity: number;
   totalPrice: string;
+  priceIncludingSelectedOption: string;
   basePrice: string;
   selectedOptions: OrderDishItemOptionResponseDTO[];
   takeAway: boolean;

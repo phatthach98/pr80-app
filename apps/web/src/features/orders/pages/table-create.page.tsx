@@ -13,15 +13,6 @@ export const TableCreatePage = () => {
   // Helper function to determine if a dish is newly added (no ID means it's not saved to DB yet)
   const isNewDish = (dish: Order['dishes'][number]) => !dish.id;
 
-  // Helper function to format price
-  const formatPrice = (price: string) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      maximumFractionDigits: 0,
-    }).format(Number(price));
-  };
-
   // Helper function to get status badge color
   const getStatusBadge = (status: EOrderStatus) => {
     switch (status) {
@@ -108,7 +99,7 @@ export const TableCreatePage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h3 className="font-medium">Tổng tiền:</h3>
-                <p className="text-lg font-bold">{formatPrice(currentDraftOrder.totalAmount)}</p>
+                <p className="text-lg font-bold">{currentDraftOrder.getFormattedTotalAmount()}</p>
               </div>
               {currentDraftOrder.note && (
                 <div>
@@ -143,7 +134,7 @@ export const TableCreatePage = () => {
                               )}
                             </div>
                             <p className="text-muted-foreground text-sm">
-                              {formatPrice(dish.getDisplayPrice())} x {dish.quantity}
+                              {dish.getFormattedPriceWithSelectedOption()} x {dish.quantity}
                             </p>
 
                             {/* Display dish options */}
@@ -156,16 +147,13 @@ export const TableCreatePage = () => {
                                       key={index}
                                       className="text-muted-foreground flex items-center"
                                     >
-                                      <span>{option.name}: </span>
-                                      <span className="ml-1">
-                                        {option.dishOptionItems.map((opt) => opt.label).join(', ')}
-                                      </span>
-                                      {option.dishOptionItems[0]?.extraPrice &&
-                                        Number(option.dishOptionItems[0].extraPrice) > 0 && (
-                                          <span className="ml-1">
-                                            (+{formatPrice(option.dishOptionItems[0].extraPrice)})
-                                          </span>
-                                        )}
+                                      <span>{option.dishOptionName}: </span>
+                                      <span className="ml-1">{option.itemLabel}</span>
+                                      {option.extraPrice && option.getParsedExtraPrice() > 0 && (
+                                        <span className="ml-1">
+                                          {option.getFormattedExtraPrice()}
+                                        </span>
+                                      )}
                                     </li>
                                   ))}
                                 </ul>
@@ -173,9 +161,7 @@ export const TableCreatePage = () => {
                             )}
                           </div>
                           <div className="text-right">
-                            <p className="font-bold">
-                              {formatPrice(String(Number(dish.getDisplayPrice()) * dish.quantity))}
-                            </p>
+                            <p className="font-bold">{dish.getFormattedTotalPrice()}</p>
                           </div>
                         </div>
                       </CardContent>

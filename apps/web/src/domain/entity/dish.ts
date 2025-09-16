@@ -5,6 +5,7 @@ import {
   UpdateDishRequestDTO,
 } from '@pr80-app/shared-contracts';
 import { DishOption } from './dish-option';
+import { formatCurrency } from '@/utils/currency';
 
 export class Dish {
   private _isValid?: boolean; // Validation cache
@@ -150,16 +151,6 @@ export class Dish {
     return this.options.reduce((sum, option) => sum + option.getOptionCount(), 0);
   }
 
-  // Simple price display formatting (no calculations)
-  getFormattedBasePrice(): string {
-    return `$${this.getBasePrice().toFixed(2)}`;
-  }
-
-  // Format any calculated price received from API
-  formatPrice(calculatedPrice: number): string {
-    return `$${calculatedPrice.toFixed(2)}`;
-  }
-
   // ✅ Base Function 6: Immutable operations
   withName(newName: string): Dish {
     if (this.name === newName) return this;
@@ -248,5 +239,9 @@ export class Dish {
 
   matchesSearch(searchTerm: string): boolean {
     return this.getSearchText().includes(searchTerm.toLowerCase());
+  }
+
+  getFormattedBasePrice(): string {
+    return formatCurrency(this.basePrice);
   }
 }

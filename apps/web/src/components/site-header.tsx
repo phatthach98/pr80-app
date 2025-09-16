@@ -3,7 +3,7 @@ import { Button, Separator, useSidebar } from '@/components/ui';
 import {
   OrderStatusSelect,
   AddDishOrderForm,
-  CreateTableForm,
+  CreateDraftOrderForm,
   SubmitOrderDraftButton,
 } from '@/features/orders/components';
 import { useLocation } from '@tanstack/react-router';
@@ -34,7 +34,7 @@ const HeaderActionOnTablesPage = () => {
   return (
     <div className="flex items-center gap-2">
       <OrderStatusSelect />
-      <CreateTableForm />
+      <CreateDraftOrderForm />
     </div>
   );
 };

@@ -4,10 +4,8 @@ import {
   EOrderType,
   OrderItemRequestDTO,
   OrderResponseDTO,
-  SelectOption,
-  SelectOptionWithPrice,
 } from '@pr80-app/shared-contracts';
-import { DishOption } from './dish-option';
+import { OrderDishOption } from './order-dish-option';
 import { Dish } from './dish';
 import { OrderDish } from './order-dish';
 import { formatCurrency } from '@/utils/currency';
@@ -112,27 +110,19 @@ export class Order {
    */
   addDish(
     dish: Dish,
-    selectedOptions: Record<string, SelectOptionWithPrice[]>,
+    selectedOptions: OrderDishOption[],
     quantity: number,
     takeAway: boolean = false,
   ): Order {
-    // Convert selected options to DishOption entities
-    const dishOptions = Object.entries(selectedOptions).map(([dishOptionId, optionWithPrice]) => {
-      const selectDishOption = dish.options.find((option) => option.id === dishOptionId);
-      return DishOption.fromResponseDTO({
-        id: dishOptionId,
-        name: selectDishOption?.name || '',
-        description: '',
-        optionItems: [optionWithPrice[0]],
-      });
-    });
+    // Use OrderDishOption entities directly
 
     // Create an OrderDish from the dish and options
-    const orderDish = OrderDish.fromDish(dish, {
+    const orderDish = OrderDish.fromDishAndOrderDishOption(
+      dish,
+      selectedOptions,
       quantity,
       takeAway,
-      options: dishOptions,
-    });
+    );
 
     // Add the dish to the order
     const updatedDishes = [...this.dishes, orderDish];
@@ -182,28 +172,17 @@ export class Order {
    * @param selectedOptions - New selected options
    * @returns The updated order
    */
-  updateDishOptions(dishItemId: string, selectedOptions: Record<string, SelectOption[]>): Order {
-    // Convert selected options to DishOption entities
-    const dishOptions = Object.entries(selectedOptions).map(([dishOptionId, options]) => {
-      return DishOption.fromResponseDTO({
-        id: dishOptionId,
-        name: dishOptionId,
-        description: '',
-        optionItems: options.map((opt) => ({
-          label: opt.label,
-          value: opt.value,
-          extraPrice: '0', // Default extra price
-        })),
-      });
-    });
+  updateDishOptions(dishItemId: string, selectedOptions: OrderDishOption[]): Order {
+    // Use OrderDishOption entities directly
 
     const updatedDishes = this.dishes.map((dish) =>
-      dish.id === dishItemId ? dish.withOptions(dishOptions) : dish,
+      dish.id === dishItemId ? dish.withOptions(selectedOptions) : dish,
     );
 
     return new Order({
       ...this,
       dishes: updatedDishes,
+      totalAmount: this.calculateTotalAmount(),
     });
   }
 
@@ -220,6 +199,7 @@ export class Order {
     return new Order({
       ...this,
       dishes: updatedDishes,
+      totalAmount: this.calculateTotalAmount(),
     });
   }
 
@@ -233,15 +213,6 @@ export class Order {
       ...this,
       note,
     });
-  }
-
-  /**
-   * Get the total amount of the order
-   * This simply returns the stored total amount from the backend
-   * @returns The total amount as a string
-   */
-  getTotalAmount(): string {
-    return this.totalAmount;
   }
 
   /**
@@ -261,10 +232,17 @@ export class Order {
     };
   }
 
-  calculateTotalAmount(): string {
+  getFormattedTotalAmount(): string {
+    if (this.status === EOrderStatus.DRAFT) {
+      return formatCurrency(this.calculateTotalAmount());
+    }
+    return formatCurrency(this.totalAmount);
+  }
+
+  private calculateTotalAmount(): string {
     const totalAmount = this.dishes.reduce((sum, dish) => {
-      return sum + Number(dish.totalPrice) * dish.quantity;
+      return sum + dish.getParsedTotalPrice();
     }, 0);
-    return formatCurrency(totalAmount);
+    return totalAmount.toFixed(6);
   }
 }

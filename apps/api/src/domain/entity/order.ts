@@ -1,9 +1,6 @@
 import { parseDecimalSafely } from "@application/utils";
 import { v4 as uuid } from "uuid";
-import {
-  EOrderStatus,
-  EOrderType,
-} from "@pr80-app/shared-contracts";
+import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
 import { OrderDishItem } from "./order-dish-item";
 
 export class Order {
@@ -109,8 +106,8 @@ export class Order {
 
   public addDish(dish: OrderDishItem): void {
     // Check if dish already exists
-    const existingDishIndex = this.dishes.findIndex(
-      (item) => item.equals(dish)
+    const existingDishIndex = this.dishes.findIndex((item) =>
+      item.equals(dish)
     );
 
     if (existingDishIndex >= 0) {
@@ -151,7 +148,6 @@ export class Order {
       this.totalAmount = this.calculateTotalAmount();
     }
   }
-
 
   public toJSON() {
     const order: any = {

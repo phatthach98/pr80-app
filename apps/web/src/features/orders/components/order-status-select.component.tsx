@@ -18,7 +18,7 @@ export function OrderStatusSelect() {
 
   return (
     <Select>
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className="w-auto">
         <SelectValue placeholder="Lọc đơn hàng" />
       </SelectTrigger>
       <SelectContent>

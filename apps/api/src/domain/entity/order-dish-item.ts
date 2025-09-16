@@ -8,6 +8,7 @@ export class OrderDishItem {
   public readonly name: string;
   public readonly quantity: number;
   public readonly totalPrice: string; // Make price readonly to prevent direct manipulation
+  public readonly priceIncludingSelectedOption: string;
   public readonly basePrice: string;
   public readonly selectedOptions: SelectedOptionDTO[];
   public readonly takeAway: boolean;
@@ -19,6 +20,7 @@ export class OrderDishItem {
     quantity: number,
     basePrice: string,
     totalPrice: string,
+    priceIncludingSelectedOption: string,
     selectedOptions: SelectedOptionDTO[],
     takeAway: boolean
   ) {
@@ -28,6 +30,7 @@ export class OrderDishItem {
     this.quantity = quantity;
     this.basePrice = basePrice;
     this.totalPrice = totalPrice;
+    this.priceIncludingSelectedOption = priceIncludingSelectedOption;
     this.selectedOptions = selectedOptions;
     this.takeAway = takeAway;
 
@@ -45,9 +48,14 @@ export class OrderDishItem {
     takeAway: boolean = false
   ): OrderDishItem {
     // Calculate total price including options
+    const priceIncludingSelectedOption =
+      OrderDishItem.calculatePriceIncludingSelectedOption(
+        basePrice,
+        selectedOptions
+      );
     const totalPrice = OrderDishItem.calculateTotalPrice(
-      basePrice,
-      selectedOptions
+      priceIncludingSelectedOption,
+      quantity
     );
 
     return new OrderDishItem(
@@ -57,6 +65,7 @@ export class OrderDishItem {
       quantity,
       basePrice,
       totalPrice,
+      priceIncludingSelectedOption,
       selectedOptions,
       takeAway
     );
@@ -69,6 +78,7 @@ export class OrderDishItem {
     quantity: number;
     basePrice: string;
     totalPrice: string;
+    priceIncludingSelectedOption: string;
     selectedOptions: SelectedOptionDTO[];
     takeAway: boolean;
   }): OrderDishItem {
@@ -79,12 +89,13 @@ export class OrderDishItem {
       existingItem.quantity,
       existingItem.basePrice,
       existingItem.totalPrice,
+      existingItem.priceIncludingSelectedOption,
       existingItem.selectedOptions,
       existingItem.takeAway
     );
   }
 
-  private static calculateTotalPrice(
+  private static calculatePriceIncludingSelectedOption(
     basePrice: string,
     selectedOptions: SelectedOptionDTO[]
   ): string {
@@ -107,9 +118,17 @@ export class OrderDishItem {
     return totalPrice.toFixed(6);
   }
 
+  private static calculateTotalPrice(
+    priceIncludingSelectedOption: string,
+    quantity: number
+  ): string {
+    return (
+      parseDecimalSafely(priceIncludingSelectedOption) * quantity
+    ).toFixed(6);
+  }
+
   public getTotalPriceForQuantity(): number {
-    const price = parseDecimalSafely(this.totalPrice);
-    return price * this.quantity;
+    return parseDecimalSafely(this.totalPrice);
   }
 
   public withQuantity(newQuantity: number): OrderDishItem {
@@ -122,6 +141,7 @@ export class OrderDishItem {
       newQuantity,
       this.basePrice,
       this.totalPrice,
+      this.priceIncludingSelectedOption,
       this.selectedOptions,
       this.takeAway
     );
@@ -137,6 +157,7 @@ export class OrderDishItem {
       this.quantity,
       this.basePrice,
       this.totalPrice,
+      this.priceIncludingSelectedOption,
       this.selectedOptions,
       takeAway
     );
@@ -150,11 +171,15 @@ export class OrderDishItem {
     selectedOptions: SelectedOptionDTO[]
   ): OrderDishItem {
     // Recalculate total price with new options
+    const priceIncludingSelectedOption =
+      OrderDishItem.calculatePriceIncludingSelectedOption(
+        this.basePrice,
+        selectedOptions
+      );
     const totalPrice = OrderDishItem.calculateTotalPrice(
-      this.basePrice,
-      selectedOptions
+      priceIncludingSelectedOption,
+      this.quantity
     );
-
     return new OrderDishItem(
       this.id,
       this.dishId,
@@ -162,6 +187,7 @@ export class OrderDishItem {
       this.quantity,
       this.basePrice,
       totalPrice,
+      priceIncludingSelectedOption,
       selectedOptions,
       this.takeAway
     );
@@ -208,6 +234,7 @@ export class OrderDishItem {
       quantity: this.quantity,
       totalPrice: this.totalPrice,
       basePrice: this.basePrice,
+      priceIncludingSelectedOption: this.priceIncludingSelectedOption,
       selectedOptions: this.selectedOptions,
       takeAway: this.takeAway,
     };
