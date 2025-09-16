@@ -13,6 +13,7 @@ export class OrderDish {
     public readonly dishId: string,
     public readonly name: string,
     public readonly basePrice: string,
+    public readonly priceIncludingSelectedOption: string,
     public readonly totalPrice: string,
     public readonly options: readonly OrderDishOption[],
     public readonly quantity: number,
@@ -33,7 +34,7 @@ export class OrderDish {
   ): OrderDish {
     const basePrice = dish.basePrice;
     const options = orderDishOption || [];
-    return new OrderDish('', dish.id, dish.name, basePrice, '', options, quantity, takeAway);
+    return new OrderDish('', dish.id, dish.name, basePrice, '', '', options, quantity, takeAway);
   }
 
   calculatePriceWithSelectedOption(
@@ -70,6 +71,7 @@ export class OrderDish {
       dto.dishId,
       dto.name,
       dto.basePrice,
+      dto.priceIncludingSelectedOption,
       dto.totalPrice,
       orderOptions,
       dto.quantity,
@@ -102,6 +104,7 @@ export class OrderDish {
       this.dishId,
       this.name,
       this.basePrice,
+      this.priceIncludingSelectedOption,
       totalPrice,
       this.options,
       quantity,
@@ -120,6 +123,7 @@ export class OrderDish {
       this.dishId,
       this.name,
       this.basePrice,
+      this.priceIncludingSelectedOption,
       this.totalPrice,
       this.options,
       this.quantity,
@@ -138,6 +142,7 @@ export class OrderDish {
       this.dishId,
       this.name,
       this.basePrice,
+      this.priceIncludingSelectedOption,
       totalPrice,
       options,
       this.quantity,
@@ -175,6 +180,8 @@ export class OrderDish {
       this.basePrice,
       this.options,
     );
-    return formatCurrency(draftPriceWithSelectedOption);
+    return !!this.priceIncludingSelectedOption
+      ? formatCurrency(this.priceIncludingSelectedOption)
+      : formatCurrency(draftPriceWithSelectedOption);
   }
 }

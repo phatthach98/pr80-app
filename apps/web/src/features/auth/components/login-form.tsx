@@ -23,7 +23,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     setIsLoading(true);
     await login(data.phoneNumber, data.passCode);
     setIsLoading(false);
-    navigate({ to: '/orders', replace: true });
+    navigate({ to: '/tables', replace: true });
   };
 
   return (
