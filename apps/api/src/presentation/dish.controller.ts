@@ -1,43 +1,93 @@
 import { Request, Response } from "express";
-import { DishUseCase } from "@application/use-case";
-import { DISH_USE_CASE } from "@infras/di/tokens";
+import { DishOptionUseCase, DishUseCase } from "@application/use-case";
+import { DISH_OPTION_USE_CASE, DISH_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
 import {
   CreateDishRequestDTO,
-  DishResponseDTO,
-  DishWithOptionsResponseDTO,
+  DishOptionResponseDTO,
+  GetDishResponseDTO,
+  MutationDishResponseDTO,
   UpdateDishRequestDTO,
 } from "@pr80-app/shared-contracts";
 
 const dishUseCase = container.resolve<DishUseCase>(DISH_USE_CASE);
+const dishOptionUseCase =
+  container.resolve<DishOptionUseCase>(DISH_OPTION_USE_CASE);
 
 export class DishController {
-  static async getDishes(req: Request, res: Response<DishResponseDTO[]>) {
-    const dishes = await dishUseCase.getDishes();
-    res.json(dishes ? dishes.map((dish) => dish.toJSON()) : []);
+  static async getDishes(req: Request, res: Response<GetDishResponseDTO[]>) {
+    const [dishes, dishOptions] = await Promise.all([
+      dishUseCase.getDishes(),
+      dishOptionUseCase.getDishOptions(),
+    ]);
+
+    if (!dishes) {
+      res.json([]);
+    }
+
+    const dishWithOptionsDetail = (dishes || [])
+      .map((dish) => {
+        const optionsInDish = dish.options;
+        const optionsDetail = optionsInDish.map((optionInDish) => {
+          const optionDetail = (dishOptions || []).find(
+            (option) => option.id === optionInDish.id
+          );
+          if (!optionDetail) {
+            return null;
+          }
+          return {
+            ...optionDetail,
+            optionItems: optionDetail.optionItems || [],
+            maxSelectionCount: optionInDish.maxSelectionCount || 1,
+          };
+        });
+
+        return {
+          ...dish.toJSON(),
+          options: optionsDetail.filter(Boolean) as DishOptionResponseDTO[],
+        };
+      })
+      .filter(Boolean);
+
+    res.json(dishWithOptionsDetail);
   }
 
   static async getDishById(
-    req: Request<{ id: string }, {}, {}, { includeOptions?: string }>,
-    res: Response<DishResponseDTO | DishWithOptionsResponseDTO>
+    req: Request<{ id: string }, {}, {}>,
+    res: Response<GetDishResponseDTO>
   ) {
     const { id } = req.params;
-    const includeOptions = req.query.includeOptions === "true";
+    const [dish, dishOptions] = await Promise.all([
+      dishUseCase.getDishById(id),
+      dishOptionUseCase.getDishOptions(),
+    ]);
+    const optionsInDish = dish.options;
+    const optionsDetail = optionsInDish.filter(Boolean).map((optionInDish) => {
+      const optionDetail = (dishOptions || []).find(
+        (option) => option.id === optionInDish.id
+      );
+      if (!optionDetail) {
+        return null;
+      }
 
-    let result;
-    if (includeOptions) {
-      result = await dishUseCase.getDishByIdWithOptions(id);
-    } else {
-      const dish = await dishUseCase.getDishById(id);
-      result = dish.toJSON();
-    }
+      return {
+        ...optionDetail.toJSON(),
+        optionItems: optionDetail.optionItems || [],
+        maxSelectionCount: optionInDish.maxSelectionCount || 1,
+      };
+    });
 
-    res.json(result);
+    const dishWithOptionsDetail = {
+      ...dish.toJSON(),
+      options: optionsDetail,
+    } as GetDishResponseDTO;
+
+    res.json(dishWithOptionsDetail);
   }
 
   static async createDish(
     req: Request<{}, {}, CreateDishRequestDTO>,
-    res: Response<DishResponseDTO>
+    res: Response<MutationDishResponseDTO>
   ) {
     const { name, description, basePrice, options } = req.body;
     const dish = await dishUseCase.createDish(
@@ -51,10 +101,11 @@ export class DishController {
 
   static async updateDish(
     req: Request<{ id: string }, {}, UpdateDishRequestDTO>,
-    res: Response<DishResponseDTO>
+    res: Response<MutationDishResponseDTO>
   ) {
     const { id } = req.params;
     const dish = await dishUseCase.updateDish(id, req.body);
+
     res.json(dish.toJSON());
   }
 
@@ -65,17 +116,21 @@ export class DishController {
   }
 
   static async addOptionToDish(
-    req: Request<{ id: string; optionId: string }>,
-    res: Response<DishResponseDTO>
+    req: Request<{ id: string; optionId: string; maxSelectionCount: number }>,
+    res: Response<MutationDishResponseDTO>
   ) {
-    const { id, optionId } = req.params;
-    const dish = await dishUseCase.addOptionToDish(id, optionId);
+    const { id, optionId, maxSelectionCount } = req.params;
+    const dish = await dishUseCase.addOptionToDish(
+      id,
+      optionId,
+      maxSelectionCount
+    );
     res.json(dish.toJSON());
   }
 
   static async removeOptionFromDish(
     req: Request<{ id: string; optionId: string }>,
-    res: Response<DishResponseDTO>
+    res: Response<MutationDishResponseDTO>
   ) {
     const { id, optionId } = req.params;
     const dish = await dishUseCase.removeOptionFromDish(id, optionId);

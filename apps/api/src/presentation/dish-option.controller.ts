@@ -36,11 +36,13 @@ export class DishOptionController {
     req: Request<{}, {}, CreateDishOptionRequestDTO>,
     res: Response<DishOptionResponseDTO>
   ) {
-    const { name, description, optionItems } = req.body;
+    const { name, description, optionItems, isAllowMultipleSelection } =
+      req.body;
     const dishOption = await dishOptionUseCase.createDishOption(
       name,
       description,
-      optionItems
+      optionItems,
+      isAllowMultipleSelection
     );
     return res.status(201).json(dishOption.toJSON());
   }

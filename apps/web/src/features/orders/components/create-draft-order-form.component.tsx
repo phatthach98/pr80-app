@@ -28,8 +28,6 @@ import {
 import { useSettingOptionsQuery } from '@/hooks/query';
 import { PlusIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { setCurrentDraftOrder } from '../store';
-import { Order } from '@/domain/entity';
 import { useNavigate } from '@tanstack/react-router';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -55,15 +53,9 @@ export function CreateDraftOrderForm() {
   const navigate = useNavigate();
 
   const createDraftOrder = async (data: CreateDraftOrderFormDataType) => {
-    setCurrentDraftOrder(
-      Order.fromDraftOrder({
-        table: data.table,
-        customerCount: data.customerCount,
-      }),
-    );
     form.reset();
     navigate({
-      to: '/tables/create',
+      to: `/tables/create?table=${data.table}&customerCount=${data.customerCount}`,
     });
   };
 

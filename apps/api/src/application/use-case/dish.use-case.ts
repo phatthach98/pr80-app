@@ -1,14 +1,9 @@
-import { Dish } from "@domain/entity/dish";
-import { DishOption } from "@domain/entity/dish-option";
+import { Dish, DishOptionWithMetadata } from "@domain/entity/dish";
 import { DishRepository } from "../interface/repository/dish-repo.interface";
-import { DishOptionRepository } from "../interface/repository/dish-option-repo.interface";
 import { NotFoundError } from "@application/errors";
 
 export class DishUseCase {
-  constructor(
-    private readonly dishRepository: DishRepository,
-    private readonly dishOptionRepository: DishOptionRepository
-  ) {}
+  constructor(private readonly dishRepository: DishRepository) {}
 
   async getDishes() {
     return this.dishRepository.getDishes();
@@ -24,40 +19,11 @@ export class DishUseCase {
     return dish;
   }
 
-  async getDishByIdWithOptions(id: string) {
-    const dish = await this.dishRepository.getDishById(id);
-
-    if (!dish) {
-      throw new NotFoundError(`Dish with id ${id} not found`);
-    }
-
-    // Create a DTO that preserves the original dish entity
-    const dishDTO = {
-      id: dish.id,
-      name: dish.name,
-      description: dish.description,
-      basePrice: dish.basePrice,
-      options: dish.options,
-      optionDetails: [] as DishOption[],
-    };
-    // Fetch option details if there are options
-    if (dish.options && dish.options.length > 0) {
-      // Extract all option IDs
-      const optionIds = dish.options.map((option) => option.id);
-
-      // Fetch all dish options in a single database call
-      dishDTO.optionDetails =
-        await this.dishOptionRepository.getDishOptionsByIds(optionIds);
-    }
-
-    return dishDTO;
-  }
-
   async createDish(
     name: string,
     description: string,
     price: string,
-    options: { id: string }[] = []
+    options: DishOptionWithMetadata[]
   ) {
     const dish = Dish.create(name, description, price, options);
     return this.dishRepository.create(dish);
@@ -95,7 +61,11 @@ export class DishUseCase {
     return { success: true, message: "Dish deleted successfully" };
   }
 
-  async addOptionToDish(dishId: string, optionId: string) {
+  async addOptionToDish(
+    dishId: string,
+    optionId: string,
+    maxSelectionCount: number
+  ) {
     // Get dish from repository directly to avoid fetching options
     const dish = await this.dishRepository.getDishById(dishId);
 
@@ -103,7 +73,7 @@ export class DishUseCase {
       throw new NotFoundError(`Dish with id ${dishId} not found`);
     }
 
-    dish.addOption(optionId);
+    dish.addOption({ id: optionId, maxSelectionCount });
 
     return this.dishRepository.update(dish);
   }

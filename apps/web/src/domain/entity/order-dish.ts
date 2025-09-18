@@ -15,11 +15,11 @@ export class OrderDish {
     public readonly basePrice: string,
     public readonly priceIncludingSelectedOption: string,
     public readonly totalPrice: string,
-    public readonly options: readonly OrderDishOption[],
+    public readonly selectedOptions: readonly OrderDishOption[],
     public readonly quantity: number,
     public readonly takeAway: boolean,
   ) {
-    Object.freeze(this.options);
+    Object.freeze(this.selectedOptions);
     Object.freeze(this);
   }
 
@@ -33,28 +33,38 @@ export class OrderDish {
     takeAway: boolean,
   ): OrderDish {
     const basePrice = dish.basePrice;
-    const options = orderDishOption || [];
-    return new OrderDish('', dish.id, dish.name, basePrice, '', '', options, quantity, takeAway);
+    const selectedOptions = orderDishOption || [];
+    return new OrderDish(
+      '',
+      dish.id,
+      dish.name,
+      basePrice,
+      '',
+      '',
+      selectedOptions,
+      quantity,
+      takeAway,
+    );
   }
 
   calculatePriceWithSelectedOption(
     dishBasePrice: string,
-    options: readonly OrderDishOption[],
+    selectedOptions: readonly OrderDishOption[],
   ): string {
     return (
       parseFloat(dishBasePrice) +
-      options.reduce((acc, option) => acc + option.getParsedExtraPrice(), 0)
+      selectedOptions.reduce((acc, option) => acc + option.getParsedExtraPrice(), 0)
     ).toFixed(6);
   }
 
   calculateTotalPrice(
     dishBasePrice: string,
-    options: readonly OrderDishOption[],
+    selectedOptions: readonly OrderDishOption[],
     quantity: number,
   ): string {
     return (
       (parseFloat(dishBasePrice) +
-        options.reduce((acc, option) => acc + option.getParsedExtraPrice(), 0)) *
+        selectedOptions.reduce((acc, option) => acc + option.getParsedExtraPrice(), 0)) *
       quantity
     ).toFixed(6);
   }
@@ -64,7 +74,7 @@ export class OrderDish {
    */
   static fromResponseDTO(dto: OrderDishItemResponseDTO): OrderDish {
     // Convert DTO options to OrderDishOption entities
-    const orderOptions = OrderDishOption.fromResponseDTOList(dto.selectedOptions);
+    const selectedOptions = OrderDishOption.fromResponseDTOList(dto.selectedOptions);
 
     return new OrderDish(
       dto.id,
@@ -73,7 +83,7 @@ export class OrderDish {
       dto.basePrice,
       dto.priceIncludingSelectedOption,
       dto.totalPrice,
-      orderOptions,
+      selectedOptions,
       dto.quantity,
       dto.takeAway,
     );
@@ -86,7 +96,7 @@ export class OrderDish {
     return {
       dishId: this.dishId,
       quantity: this.quantity,
-      selectedOptions: this.options.map((opt) => opt.toRequestDTO()),
+      selectedOptions: this.selectedOptions.map((opt) => opt.toRequestDTO()),
       takeAway: this.takeAway,
     };
   }
@@ -97,7 +107,7 @@ export class OrderDish {
   withQuantity(quantity: number): OrderDish {
     if (this.quantity === quantity) return this;
 
-    const totalPrice = this.calculateTotalPrice(this.basePrice, this.options, quantity);
+    const totalPrice = this.calculateTotalPrice(this.basePrice, this.selectedOptions, quantity);
 
     return new OrderDish(
       this.id,
@@ -106,7 +116,7 @@ export class OrderDish {
       this.basePrice,
       this.priceIncludingSelectedOption,
       totalPrice,
-      this.options,
+      this.selectedOptions,
       quantity,
       this.takeAway,
     );
@@ -125,7 +135,7 @@ export class OrderDish {
       this.basePrice,
       this.priceIncludingSelectedOption,
       this.totalPrice,
-      this.options,
+      this.selectedOptions,
       this.quantity,
       takeAway,
     );
@@ -134,8 +144,8 @@ export class OrderDish {
   /**
    * Create a new OrderDish with updated options
    */
-  withOptions(options: readonly OrderDishOption[]): OrderDish {
-    const totalPrice = this.calculateTotalPrice(this.basePrice, options, this.quantity);
+  withSelectedOptions(selectedOptions: readonly OrderDishOption[]): OrderDish {
+    const totalPrice = this.calculateTotalPrice(this.basePrice, selectedOptions, this.quantity);
 
     return new OrderDish(
       this.id,
@@ -144,7 +154,7 @@ export class OrderDish {
       this.basePrice,
       this.priceIncludingSelectedOption,
       totalPrice,
-      options,
+      selectedOptions,
       this.quantity,
       this.takeAway,
     );
@@ -158,7 +168,11 @@ export class OrderDish {
   }
 
   getParsedTotalPrice(): number {
-    const draftTotalPrice = this.calculateTotalPrice(this.basePrice, this.options, this.quantity);
+    const draftTotalPrice = this.calculateTotalPrice(
+      this.basePrice,
+      this.selectedOptions,
+      this.quantity,
+    );
     return !!this.totalPrice ? Number(this.totalPrice) : Number(draftTotalPrice);
   }
 
@@ -171,17 +185,48 @@ export class OrderDish {
    * actual prices which are handled by the backend
    */
   getFormattedTotalPrice(): string {
-    const draftTotalPrice = this.calculateTotalPrice(this.basePrice, this.options, this.quantity);
+    const draftTotalPrice = this.calculateTotalPrice(
+      this.basePrice,
+      this.selectedOptions,
+      this.quantity,
+    );
     return !!this.totalPrice ? formatCurrency(this.totalPrice) : formatCurrency(draftTotalPrice);
   }
 
   getFormattedPriceWithSelectedOption(): string {
     const draftPriceWithSelectedOption = this.calculatePriceWithSelectedOption(
       this.basePrice,
-      this.options,
+      this.selectedOptions,
     );
     return !!this.priceIncludingSelectedOption
       ? formatCurrency(this.priceIncludingSelectedOption)
       : formatCurrency(draftPriceWithSelectedOption);
+  }
+
+  getDishOptionNameGroupById(): Record<string, { dishOptionName: string; itemLabel: string }[]> {
+    const dishOptionNameGroupById = this.selectedOptions.reduce(
+      (acc: Record<string, { dishOptionName: string; itemLabel: string }[]>, option) => {
+        acc[option.dishOptionId] = [
+          ...(acc[option.dishOptionId] || []),
+          { dishOptionName: option.dishOptionName, itemLabel: option.itemLabel },
+        ];
+        return acc;
+      },
+      {},
+    );
+    return dishOptionNameGroupById;
+  }
+
+  equals(other: OrderDish): boolean {
+    return (
+      this.dishId === other.dishId &&
+      this.takeAway === other.takeAway &&
+      this.selectedOptions.length === other.selectedOptions.length &&
+      this.selectedOptions.every((selectedOption) =>
+        other.selectedOptions.some((otherSelectedOption) =>
+          selectedOption.equals(otherSelectedOption),
+        ),
+      )
+    );
   }
 }

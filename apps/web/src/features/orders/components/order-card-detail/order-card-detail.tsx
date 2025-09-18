@@ -84,9 +84,9 @@ export function OrderCardDetail({ order, className }: OrderCardDetailProps) {
                   </div>
                 </div>
 
-                {dish.options.length > 0 && (
+                {dish.selectedOptions.length > 0 && (
                   <div className="text-muted-foreground mt-1 space-y-1 pl-4 text-sm">
-                    {dish.options.map((option) => (
+                    {dish.selectedOptions.map((option) => (
                       <div key={option.dishOptionId} className="flex items-center gap-2">
                         <span>{option.dishOptionName}:</span>
                         <div className="flex gap-2">

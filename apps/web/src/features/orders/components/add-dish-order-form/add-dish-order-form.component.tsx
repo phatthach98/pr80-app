@@ -13,8 +13,8 @@ import {
 import { PlusIcon } from 'lucide-react';
 import { Dish } from '@/domain/entity';
 import { OrderDishOption } from '@/domain/entity/order-dish-option';
-import { DishList } from './dish-list/dish-list.component';
-import { DishOptions } from './dish-options/dish-options.component';
+import { DishListForm } from './dish-list-form/dish-list-form.component';
+import { DishOptionsForm } from './dish-options-form/dish-options-form.component';
 import { ordersStore, setCurrentDraftOrder } from '@/features/orders/store';
 import { toast } from 'sonner';
 import { useStore } from '@tanstack/react-store';
@@ -71,13 +71,13 @@ export function AddDishOrderForm() {
 
         <div className="mt-4">
           {selectedDish ? (
-            <DishOptions
+            <DishOptionsForm
               dish={selectedDish}
               onBack={handleBack}
               handleAddDishToOrder={handleAddDishToOrder}
             />
           ) : (
-            <DishList onSelectDish={handleSelectDish} />
+            <DishListForm onSelectDish={handleSelectDish} />
           )}
         </div>
 
