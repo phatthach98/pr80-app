@@ -12,26 +12,36 @@ export class DishOptionUseCase {
 
   async getDishOptionById(id: string) {
     const dishOption = await this.dishOptionRepository.getDishOptionById(id);
-    
+
     if (!dishOption) {
       throw new NotFoundError(`Dish option with id ${id} not found`);
     }
-    
+
     return dishOption;
   }
 
   async createDishOption(
     name: string,
     description: string,
-    options: SelectOptionWithPrice[]
+    options: SelectOptionWithPrice[],
+    isAllowMultipleSelection: boolean
   ) {
-    const dishOption = DishOption.create(name, description, options);
+    const dishOption = DishOption.create(
+      name,
+      description,
+      options,
+      isAllowMultipleSelection
+    );
     return this.dishOptionRepository.create(dishOption);
   }
 
-  async updateDishOption(id: string, changes: Partial<Omit<DishOption, "id">>) {
+  async updateDishOption(
+    id: string,
+    changes: Partial<
+      Omit<DishOption, "id"> & { isAllowMultipleSelection?: boolean }
+    >
+  ) {
     const dishOption = await this.dishOptionRepository.getDishOptionById(id);
-
     if (!dishOption) {
       throw new NotFoundError(`Dish option with id ${id} not found`);
     }
@@ -40,6 +50,8 @@ export class DishOptionUseCase {
       ...dishOption,
       ...changes,
       id,
+      isAllowMultipleSelection:
+        changes.isAllowMultipleSelection ?? dishOption.isAllowMultipleSelection,
     };
 
     return this.dishOptionRepository.update(updatedDishOption);
@@ -53,11 +65,11 @@ export class DishOptionUseCase {
     }
 
     const deleted = await this.dishOptionRepository.deleteDishOption(id);
-    
+
     if (!deleted) {
       throw new Error(`Failed to delete dish option with id ${id}`);
     }
-    
+
     return { success: true, message: "Dish option deleted successfully" };
   }
 }

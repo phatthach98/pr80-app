@@ -1,18 +1,24 @@
 import { v4 as uuid } from "uuid";
+import { DishOption } from "./dish-option";
+
+export type DishOptionWithMetadata = {
+  maxSelectionCount: number;
+  id: string;
+};
 
 export class Dish {
   public id: string;
   public name: string;
   public description: string;
   public basePrice: string;
-  public options: { id: string }[];
+  public options: DishOptionWithMetadata[];
 
   constructor(
     id: string,
     name: string,
     description: string,
     basePrice: string,
-    options: { id: string }[] = []
+    options: DishOptionWithMetadata[] = []
   ) {
     this.id = id;
     this.name = name;
@@ -25,14 +31,14 @@ export class Dish {
     name: string,
     description: string,
     basePrice: string,
-    options: { id: string }[] = []
+    options: DishOptionWithMetadata[] = []
   ): Dish {
     return new Dish(uuid(), name, description, basePrice, options);
   }
 
-  public addOption(optionId: string): void {
-    if (!this.hasOption(optionId)) {
-      this.options.push({ id: optionId });
+  public addOption(dishOption: DishOptionWithMetadata): void {
+    if (!this.hasOption(dishOption.id)) {
+      this.options.push(dishOption);
     }
   }
 
@@ -63,11 +69,7 @@ export class Dish {
       name: this.name,
       description: this.description,
       basePrice: this.basePrice,
-      options: this.options.map((option) => {
-        // Create a new object with only the id property
-        const { id } = option;
-        return { id };
-      }),
+      options: this.options,
     };
   }
 }

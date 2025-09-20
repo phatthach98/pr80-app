@@ -1,11 +1,25 @@
 import { Order } from '@/domain/entity';
-import { ordersStore } from '../store';
+import { ordersStore, setCurrentDraftOrder } from '../store';
 import { EOrderStatus, EOrderType } from '@pr80-app/shared-contracts';
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { useStore } from '@tanstack/react-store';
+import { useSearch } from '@tanstack/react-router';
+import { useEffect } from 'react';
 
 export const TableCreatePage = () => {
+  const { table, customerCount } = useSearch({ from: '/_auth/tables/create' });
   const { currentDraftOrder } = useStore(ordersStore);
+
+  useEffect(() => {
+    if (table && customerCount && !currentDraftOrder) {
+      setCurrentDraftOrder(
+        Order.fromDraftOrder({
+          table,
+          customerCount,
+        }),
+      );
+    }
+  }, [table, customerCount]);
 
   if (!currentDraftOrder) {
     return <div>Không tìm thấy đơn hàng</div>;
@@ -137,28 +151,21 @@ export const TableCreatePage = () => {
                               {dish.getFormattedPriceWithSelectedOption()} x {dish.quantity}
                             </p>
 
-                            {/* Display dish options */}
-                            {dish.options.length > 0 && (
-                              <div className="mt-2">
-                                <h5 className="text-sm font-medium">Tùy chọn:</h5>
-                                <ul className="text-sm">
-                                  {dish.options.map((option, index) => (
-                                    <li
-                                      key={index}
-                                      className="text-muted-foreground flex items-center"
-                                    >
-                                      <span>{option.dishOptionName}: </span>
-                                      <span className="ml-1">{option.itemLabel}</span>
-                                      {option.extraPrice && option.getParsedExtraPrice() > 0 && (
-                                        <span className="ml-1">
-                                          {option.getFormattedExtraPrice()}
-                                        </span>
-                                      )}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
+                            <div className="mt-2">
+                              {Object.entries(dish.getDishOptionNameGroupById()).map(
+                                ([dishOptionId, dishOptionNameGroup]) => (
+                                  <div key={dishOptionId}>
+                                    <div className="">{dishOptionNameGroup[0].dishOptionName}:</div>
+                                    <div className="text-muted-foreground">
+                                      {' '}
+                                      {dishOptionNameGroup
+                                        .map((item) => item.itemLabel)
+                                        .join(' - ')}
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
                           </div>
                           <div className="text-right">
                             <p className="font-bold">{dish.getFormattedTotalPrice()}</p>

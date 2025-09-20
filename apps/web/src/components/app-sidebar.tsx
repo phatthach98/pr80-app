@@ -3,17 +3,17 @@ import {
   BookOpen,
   Bot,
   Command,
-  Frame,
-  LifeBuoy,
-  Map as MapIcon,
-  PieChart,
-  Send,
+  LogOut,
+  Package2Icon,
   Settings2,
   SquareTerminal,
+  Table,
+  Table2Icon,
 } from 'lucide-react';
 
-import { NavMain, NavProjects, NavSecondary, NavUser } from '@/components';
+import { NavMain } from '@/components';
 import {
+  Button,
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -22,6 +22,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui';
+import { useAuth } from '@/features/auth/hooks/use-auth';
+import { useNavigate } from '@tanstack/react-router';
 
 const data = {
   user: {
@@ -31,123 +33,31 @@ const data = {
   },
   navMain: [
     {
-      title: 'Playground',
-      url: '#',
-      icon: SquareTerminal,
+      title: 'Danh sách bàn',
+      url: '/tables',
+      icon: Table2Icon,
       isActive: true,
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-        {
-          title: 'Starred',
-          url: '#',
-        },
-        {
-          title: 'Settings',
-          url: '#',
-        },
-      ],
+      items: [],
     },
     {
-      title: 'Models',
-      url: '#',
-      icon: Bot,
-      items: [
-        {
-          title: 'Genesis',
-          url: '#',
-        },
-        {
-          title: 'Explorer',
-          url: '#',
-        },
-        {
-          title: 'Quantum',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Documentation',
-      url: '#',
-      icon: BookOpen,
-      items: [
-        {
-          title: 'Introduction',
-          url: '#',
-        },
-        {
-          title: 'Get Started',
-          url: '#',
-        },
-        {
-          title: 'Tutorials',
-          url: '#',
-        },
-        {
-          title: 'Changelog',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Settings',
-      url: '#',
-      icon: Settings2,
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-        {
-          title: 'Team',
-          url: '#',
-        },
-        {
-          title: 'Billing',
-          url: '#',
-        },
-        {
-          title: 'Limits',
-          url: '#',
-        },
-      ],
+      title: 'Danh sách đơn hàng',
+      url: '/orders',
+      icon: Package2Icon,
+      isActive: true,
+      items: [],
     },
   ],
-  navSecondary: [
-    {
-      title: 'Support',
-      url: '#',
-      icon: LifeBuoy,
-    },
-    {
-      title: 'Feedback',
-      url: '#',
-      icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: 'Design Engineering',
-      url: '#',
-      icon: Frame,
-    },
-    {
-      name: 'Sales & Marketing',
-      url: '#',
-      icon: PieChart,
-    },
-    {
-      name: 'Travel',
-      url: '#',
-      icon: MapIcon,
-    },
-  ],
+  navSecondary: [],
+  projects: [],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    logout();
+    navigate({ to: '/login' });
+  };
   return (
     <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
       <SidebarHeader>
@@ -169,11 +79,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <Button variant="secondary" onClick={handleLogout}>
+          <LogOut /> Đăng xuất
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );

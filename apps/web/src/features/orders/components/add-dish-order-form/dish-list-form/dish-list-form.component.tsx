@@ -1,15 +1,15 @@
 import { useDishesQuery } from '@/hooks/query/dishes.query';
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dish } from '@/domain/entity';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { SearchIcon } from 'lucide-react';
+import defaultDishImage from '@/assets/default-dish.png';
 
 interface DishListProps {
   onSelectDish: (dish: Dish) => void;
 }
 
-export function DishList({ onSelectDish }: DishListProps) {
+export function DishListForm({ onSelectDish }: DishListProps) {
   const { data: dishes, isLoading, error } = useDishesQuery();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -31,31 +31,39 @@ export function DishList({ onSelectDish }: DishListProps) {
         <SearchIcon className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
         <Input
           placeholder="Tìm kiếm món ăn..."
-          className="pl-8"
+          className="rounded-xl pl-8"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       {/* Dish list */}
-      <div className="grid max-h-[400px] grid-cols-1 gap-3 overflow-y-auto pr-1">
+      <div className="grid max-h-[500px] grid-cols-1 gap-4 overflow-y-auto pr-1">
         {filteredDishes?.map((dish) => (
-          <Card
+          <div
             key={dish.id}
-            className="hover:bg-muted/50 cursor-pointer transition-colors"
+            className="flex cursor-pointer items-center rounded-xl bg-white p-3 shadow-sm transition-all hover:shadow-md"
             onClick={() => onSelectDish(dish)}
           >
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{dish.name}</CardTitle>
-              <CardDescription className="line-clamp-2 text-xs">{dish.description}</CardDescription>
-            </CardHeader>
-            <CardFooter className="flex justify-between pt-0">
-              <div className="font-medium">{dish.getFormattedBasePrice()}</div>
-              {dish.hasOptions() && (
-                <div className="text-muted-foreground text-xs">Có tùy chọn</div>
-              )}
-            </CardFooter>
-          </Card>
+            {/* Dish image */}
+            <div className="relative mr-3 h-20 w-20 overflow-hidden rounded-xl">
+              <img src={defaultDishImage} alt={dish.name} className="h-full w-full object-cover" />
+            </div>
+
+            {/* Dish info */}
+            <div className="flex-1">
+              <div className="flex items-start justify-between">
+                <h3 className="line-clamp-1 text-base font-semibold">{dish.name}</h3>
+              </div>
+              <p className="mt-1 line-clamp-2 text-xs text-gray-500">{dish.description}</p>
+              <div className="mt-2 flex items-center justify-between">
+                <div className="text-primary font-bold">{dish.getFormattedBasePrice()}</div>
+                {dish.hasOptions() && (
+                  <div className="rounded-full bg-gray-100 px-2 py-1 text-xs">Có tùy chọn</div>
+                )}
+              </div>
+            </div>
+          </div>
         ))}
 
         {filteredDishes?.length === 0 && (

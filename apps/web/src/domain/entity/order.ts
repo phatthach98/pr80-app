@@ -114,9 +114,6 @@ export class Order {
     quantity: number,
     takeAway: boolean = false,
   ): Order {
-    // Use OrderDishOption entities directly
-
-    // Create an OrderDish from the dish and options
     const orderDish = OrderDish.fromDishAndOrderDishOption(
       dish,
       selectedOptions,
@@ -124,8 +121,15 @@ export class Order {
       takeAway,
     );
 
-    // Add the dish to the order
-    const updatedDishes = [...this.dishes, orderDish];
+    let updatedDishes = [...this.dishes, orderDish];
+
+    if (this.dishes.some((dish) => dish.equals(orderDish))) {
+      updatedDishes = this.dishes.map((dish) =>
+        dish.equals(orderDish) ? orderDish.withQuantity(dish.quantity + quantity) : dish,
+      );
+    } else {
+      updatedDishes = [...this.dishes, orderDish];
+    }
 
     return new Order({
       ...this,
@@ -176,7 +180,7 @@ export class Order {
     // Use OrderDishOption entities directly
 
     const updatedDishes = this.dishes.map((dish) =>
-      dish.id === dishItemId ? dish.withOptions(selectedOptions) : dish,
+      dish.id === dishItemId ? dish.withSelectedOptions(selectedOptions) : dish,
     );
 
     return new Order({

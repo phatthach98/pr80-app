@@ -1,5 +1,9 @@
-import { OrderDishItemOptionResponseDTO, SelectedOptionRequestDTO } from '@pr80-app/shared-contracts';
+import {
+  OrderDishItemOptionResponseDTO,
+  SelectedOptionRequestDTO,
+} from '@pr80-app/shared-contracts';
 import { formatCurrency } from '@/utils/currency';
+import { DishOptionItem } from './dish-option-item';
 
 /**
  * OrderDishOption entity representing a selected option in an order dish
@@ -35,6 +39,20 @@ export class OrderDishOption {
    */
   static fromResponseDTOList(dtos: OrderDishItemOptionResponseDTO[]): OrderDishOption[] {
     return dtos.map(OrderDishOption.fromResponseDTO);
+  }
+
+  static fromDishOptionItem(
+    dishOptionId: string,
+    dishOptionName: string,
+    dishOptionItem: DishOptionItem,
+  ): OrderDishOption {
+    return new OrderDishOption(
+      dishOptionId,
+      dishOptionName,
+      dishOptionItem.value,
+      dishOptionItem.label,
+      dishOptionItem.extraPrice,
+    );
   }
 
   /**
