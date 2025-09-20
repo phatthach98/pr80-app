@@ -70,6 +70,7 @@ const OrderSchemaDefinition = new Schema(
       default: EOrderType.MAIN,
     },
     note: { type: String, default: "" },
+    customerCount: { type: Number, required: true, default: 1 },
     dishes: [OrderDishItemSchema],
   },
   {

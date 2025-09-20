@@ -110,6 +110,7 @@ export class OrderRepositoryImpl implements OrderRepository {
         type: order.type,
         note: order.note,
         dishes: order.dishes,
+        customerCount: order.customerCount,
       });
 
       return order;
@@ -133,6 +134,7 @@ export class OrderRepositoryImpl implements OrderRepository {
             type: order.type,
             note: order.note,
             dishes: order.dishes,
+            customerCount: order.customerCount,
           },
         },
         { new: true }
@@ -187,6 +189,7 @@ export class OrderRepositoryImpl implements OrderRepository {
       dishes,
       orderDoc.linkedOrderId,
       orderDoc.note,
+      orderDoc.customerCount,
       formatDecimal(orderDoc.totalAmount)
     );
 

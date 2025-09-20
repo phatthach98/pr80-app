@@ -59,6 +59,13 @@ export function CreateDraftOrderForm() {
     });
   };
 
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open);
+    if (!open) {
+      form.reset();
+    }
+  };
+
   if (isPending) {
     return <Skeleton className="h-10 w-full" />;
   }
@@ -68,7 +75,7 @@ export function CreateDraftOrderForm() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="default" size="sm" type="button">
           <PlusIcon className="size-4" />
@@ -114,7 +121,11 @@ export function CreateDraftOrderForm() {
                   <FormItem>
                     <FormLabel required>Số lượng khách</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input
+                        {...field}
+                        type="number"
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

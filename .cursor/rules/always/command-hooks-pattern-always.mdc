@@ -1,0 +1,114 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Command Pattern & Hooks Separation 🏗️
+
+## Context
+
+- Apply when creating or modifying business logic in React components
+- Enforce separation between pure business operations and state management
+- Prevent mixing of concerns in UI components
+
+## Critical Rules
+
+- **Commands for Actions**: Use command pattern for submit, init, validation operations
+  - Must be pure functions with no side effects
+  - Single responsibility principle
+  - Return data, never mutate external state
+  - Class-based with `execute()` method or pure functions
+- **Entity Factory Methods**: Use static factory methods on entities for data transformations
+  - Entities should know how to create themselves from different data sources
+  - Keep transformation logic encapsulated within the entity
+  - Use descriptive method names like `fromDTO()`, `fromFormData()`, `toRequestDTO()`
+- **Hooks for State**: Use custom hooks for state management only
+  - Handle React lifecycle and component state
+  - Manage UI-specific state (form values, selection, loading states)
+  - Can call commands but never contain business logic
+- **No Business Logic in Components**: Components only handle rendering and user interactions
+  - Delegate to hooks for state management
+  - Delegate to commands for business operations
+- **Type Safety**: Always define input/output types for commands and hook state
+
+## Examples
+
+<example>
+  // ✅ Entity factory method for transformation
+  export class OrderDishOption {
+    // Static factory method for transformation
+    static fromDishOptionItem(dishOptionId: string, dishOptionName: string, item: DishOptionItem): OrderDishOption {
+      return new OrderDishOption(dishOptionId, dishOptionName, item.value, item.label, item.extraPrice);
+    }
+  }
+  
+  // ✅ Command for business logic (non-transformation)
+  export class ValidateDishOptionsCommand {
+    execute(selectedOptions: Record<string, DishOptionItem[]>): ValidationResult {
+      // Pure validation logic
+      return { isValid: Object.keys(selectedOptions).length > 0, errors: [] };
+    }
+  }
+
+  // ✅ Hook for state management
+  export function useDishOptionsState() {
+    const [state, setState] = useState(initialState);
+    const validateCommand = new ValidateDishOptionsCommand();
+    
+    const initialize = (orderDish: OrderDish, dish: Dish) => {
+      // Use entity factory method for transformation
+      const mappedOptions = dish.options.flatMap(option => {
+        return OrderDishOption.fromDishOptionItem(option.id, option.name, option.items[0]);
+      });
+      setState({ selectedOptions: mappedOptions, quantity: orderDish.quantity });
+    };
+    
+    return { state, initialize };
+  }
+
+  // ✅ Component delegates to hook and commands
+  export function DishOptionsForm({ editingDish }) {
+    const { state, initialize } = useDishOptionsState();
+    
+    useEffect(() => {
+      if (editingDish) initialize(editingDish, dish);
+    }, [editingDish]);
+    
+    return <div>{/* UI only */}</div>;
+  }
+</example>
+
+<example type="invalid">
+  // ❌ Business logic mixed in component
+  export function DishOptionsForm({ editingDish }) {
+    const [state, setState] = useState({});
+    
+    useEffect(() => {
+      // ❌ Business logic in component instead of using entity factory methods
+      const mappedOptions = editingDish.selectedOptions.map(option => {
+        // Complex transformation logic that should be in entity factory method
+        return { id: option.id, value: option.value, label: option.label };
+      });
+      setState({ selectedOptions: mappedOptions });
+    }, [editingDish]);
+  }
+
+  // ❌ State management in command
+  export class BadCommand {
+    private state = {}; // ❌ Commands should be stateless
+    
+    execute(input) {
+      this.state = input; // ❌ Side effects
+      return this.state;
+    }
+  }
+  
+  // ❌ Transformation logic in command instead of entity
+  export class TransformDishOptionCommand { // ❌ Should be static factory method on entity
+    execute(option) {
+      // Transformation logic that should be on the entity
+      return { id: option.id, value: option.value, label: option.label };
+    }
+  }
+</example>

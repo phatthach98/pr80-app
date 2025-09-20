@@ -58,6 +58,7 @@ export interface OrderResponseDTO {
   type: EOrderType;
   note: string;
   dishes: OrderDishItemResponseDTO[];
+  customerCount: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -69,6 +70,7 @@ export interface CreateOrderRequestDTO {
   dishes?: OrderItemRequestDTO[];
   linkedOrderId?: string;
   note?: string;
+  customerCount?: number;
 }
 
 // DTO for creating an additional order
@@ -76,6 +78,7 @@ export interface CreateAdditionalOrderRequestDTO {
   originalOrderId: string;
   dishes: OrderItemRequestDTO[];
   note?: string;
+  customerCount?: number;
 }
 
 // DTO for updating an order
@@ -84,6 +87,7 @@ export interface UpdateOrderRequestDTO {
   status?: EOrderStatus;
   type?: EOrderType;
   note?: string;
+  customerCount?: number;
 }
 
 // DTO for adding or updating an order item

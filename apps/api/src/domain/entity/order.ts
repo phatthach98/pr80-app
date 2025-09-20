@@ -1,4 +1,3 @@
-import { parseDecimalSafely } from "@application/utils";
 import { v4 as uuid } from "uuid";
 import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
 import { OrderDishItem } from "./order-dish-item";
@@ -12,6 +11,7 @@ export class Order {
   public totalAmount: string;
   public type: EOrderType;
   public note: string;
+  public customerCount: number;
   public dishes: OrderDishItem[];
 
   constructor(
@@ -23,6 +23,7 @@ export class Order {
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
     note: string = "",
+    customerCount: number = 1,
     totalAmount?: string
   ) {
     this.id = id;
@@ -32,8 +33,17 @@ export class Order {
     this.table = table;
     this.type = type;
     this.note = note;
-    this.dishes = dishes;
-
+    this.dishes = dishes.map((dish) =>
+      OrderDishItem.create(
+        dish.dishId,
+        dish.name,
+        dish.quantity,
+        dish.basePrice,
+        dish.selectedOptions,
+        dish.takeAway
+      )
+    );
+    this.customerCount = customerCount;
     // Always calculate the total amount based on dishes to prevent manipulation
     // Only use provided totalAmount for linked orders where we need to include sub-orders
     if (totalAmount) {
@@ -51,7 +61,8 @@ export class Order {
     type: EOrderType = EOrderType.MAIN,
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
-    note: string = ""
+    note: string = "",
+    customerCount: number = 1
   ): Order {
     return new Order(
       uuid(),
@@ -61,7 +72,8 @@ export class Order {
       type,
       dishes,
       linkedOrderId,
-      note
+      note,
+      customerCount
     );
   }
 
@@ -160,6 +172,7 @@ export class Order {
       type: this.type,
       note: this.note,
       dishes: this.dishes,
+      customerCount: this.customerCount,
     };
 
     // Add timestamps if they exist

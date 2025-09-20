@@ -33,7 +33,7 @@ export const SubmitOrderDraftButton = () => {
   };
 
   return (
-    <Button variant="default" size="sm" onClick={handleSubmitOrder}>
+    <Button className="w-full" variant="default" size="lg" onClick={handleSubmitOrder}>
       <SendIcon className="size-4" />
       Gửi
     </Button>
