@@ -5,6 +5,7 @@ import {
   OrderItemRequestDTO,
   OrderResponseDTO,
   UpdateOrderRequestDTO,
+  CreateAdditionalOrderRequestDTO,
 } from '@pr80-app/shared-contracts';
 import { OrderDishOption } from './order-dish-option';
 import { Dish } from './dish';
@@ -102,6 +103,21 @@ export class Order {
     });
   }
 
+  static fromAdditionalOrder(mainOrder: Order, newDishes: OrderDish[], newNote: string): Order {
+    return new Order({
+      id: `__additional_order__${generateUniqueKey()}`,
+      linkedOrderId: mainOrder.id,
+      createdBy: '',
+      status: EOrderStatus.DRAFT,
+      table: mainOrder.table,
+      totalAmount: '0',
+      type: EOrderType.SUB,
+      note: newNote,
+      dishes: newDishes,
+      customerCount: mainOrder.customerCount,
+    });
+  }
+
   /**
    * Add a dish to the order
    * @param dish - The Dish entity to add
@@ -110,24 +126,12 @@ export class Order {
    * @param takeAway - Whether this dish is for take away
    * @returns The updated order
    */
-  addDish(
-    dish: Dish,
-    selectedOptions: OrderDishOption[],
-    quantity: number,
-    takeAway: boolean = false,
-  ): Order {
-    const orderDish = OrderDish.fromDishAndOrderDishOption(
-      dish,
-      selectedOptions,
-      quantity,
-      takeAway,
-    );
-
+  addDish(orderDish: OrderDish): Order {
     let updatedDishes = [...this.dishes, orderDish];
 
     if (this.dishes.some((dish) => dish.equals(orderDish))) {
       updatedDishes = this.dishes.map((dish) =>
-        dish.equals(orderDish) ? orderDish.withQuantity(dish.quantity + quantity) : dish,
+        dish.equals(orderDish) ? orderDish.withQuantity(dish.quantity + orderDish.quantity) : dish,
       );
     } else {
       updatedDishes = [...this.dishes, orderDish];
@@ -221,6 +225,13 @@ export class Order {
     });
   }
 
+  updateCustomerCount(customerCount: number): Order {
+    return new Order({
+      ...this,
+      customerCount,
+    });
+  }
+
   /**
    * Convert the order to a CreateOrderRequestDTO for API requests
    * @returns CreateOrderRequestDTO
@@ -236,6 +247,14 @@ export class Order {
       linkedOrderId: this.linkedOrderId || undefined,
       note: this.note || undefined,
       customerCount: this.customerCount,
+    };
+  }
+
+  toCreateAdditionalOrderDTO(): CreateAdditionalOrderRequestDTO {
+    return {
+      originalOrderId: this.linkedOrderId || '',
+      dishes: this.dishes.map((dish) => dish.toRequestDTO()),
+      note: this.note,
     };
   }
 
@@ -274,11 +293,11 @@ export class Order {
     return totalAmount.toFixed(6);
   }
 
-  public isDraft(): boolean {
-    return this.status === EOrderStatus.DRAFT;
+  public isMainOrder(): boolean {
+    return this.type === EOrderType.MAIN;
   }
 
   public canEdit(): boolean {
-    return this.status === EOrderStatus.DRAFT || this.status === EOrderStatus.PENDING;
+    return this.status === EOrderStatus.DRAFT;
   }
 }
