@@ -82,7 +82,7 @@ export class OrderUseCase {
     if (!dish) {
       throw new NotFoundError(`Dish with id ${dishId} not found`);
     }
-    
+
     // Get base price from dish
     const basePrice = dish.basePrice;
 
@@ -110,7 +110,7 @@ export class OrderUseCase {
     const dishOptionsMap = new Map(
       dishOptions.map((option) => [option.id, option])
     );
-    
+
     // Process each selected option using the map and calculate total price
     const processedOptions = [];
 
@@ -306,7 +306,8 @@ export class OrderUseCase {
     type: EOrderType = EOrderType.MAIN,
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
-    note: string = ""
+    note: string = "",
+    customerCount: number = 1
   ) {
     // If linkedOrderId is provided, verify it exists
     if (linkedOrderId) {
@@ -319,7 +320,8 @@ export class OrderUseCase {
       type,
       dishes,
       linkedOrderId,
-      note
+      note,
+      customerCount
     );
 
     const createdOrder = await this.orderRepository.create(order);
@@ -339,7 +341,8 @@ export class OrderUseCase {
     originalOrderId: string,
     createdBy: string,
     orderItems: OrderItemRequest[] = [],
-    note: string = ""
+    note: string = "",
+    customerCount: number = 1
   ) {
     // Get the original order to copy table
     const originalOrder = await this.getOrderById(originalOrderId);
@@ -363,11 +366,12 @@ export class OrderUseCase {
       EOrderType.SUB, // Always create additional orders as SUB type
       calculatedDishes,
       originalOrderId,
-      note
+      note,
+      customerCount
     );
 
     // Create the additional order
-    const createdOrder = await this.orderRepository.create(additionalOrder);
+    await this.orderRepository.create(additionalOrder);
 
     // Recalculate the main order's total amount
     const mainOrder = await this.recalculateMainOrderTotal(originalOrderId);
@@ -439,7 +443,10 @@ export class OrderUseCase {
       changes.linkedOrderId !== undefined
         ? changes.linkedOrderId
         : order.linkedOrderId,
-      changes.note !== undefined ? changes.note : order.note
+      changes.note !== undefined ? changes.note : order.note,
+      changes.customerCount !== undefined
+        ? changes.customerCount
+        : order.customerCount
     );
 
     // Update the order
@@ -541,7 +548,7 @@ export class OrderUseCase {
     existingDishes: OrderDishItem[],
     newDish: OrderDishItem
   ): number {
-    return existingDishes.findIndex(dish => dish.equals(newDish));
+    return existingDishes.findIndex((dish) => dish.equals(newDish));
   }
 
   /**
@@ -594,6 +601,7 @@ export class OrderUseCase {
       mainOrder.dishes,
       mainOrder.linkedOrderId,
       mainOrder.note,
+      mainOrder.customerCount,
       // Always explicitly pass the calculated total that includes linked orders
       finalTotal
     );

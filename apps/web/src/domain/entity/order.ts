@@ -4,11 +4,13 @@ import {
   EOrderType,
   OrderItemRequestDTO,
   OrderResponseDTO,
+  UpdateOrderRequestDTO,
 } from '@pr80-app/shared-contracts';
 import { OrderDishOption } from './order-dish-option';
 import { Dish } from './dish';
 import { OrderDish } from './order-dish';
 import { formatCurrency } from '@/utils/currency';
+import { generateUniqueKey } from '@/utils';
 
 /**
  * Order entity representing both draft tables from local storage and orders from API
@@ -74,7 +76,7 @@ export class Order {
       dishes: dishes,
       createdAt: orderResponse.createdAt,
       updatedAt: orderResponse.updatedAt,
-      customerCount: 0, // API doesn't provide customer count
+      customerCount: orderResponse.customerCount,
     });
   }
 
@@ -87,7 +89,7 @@ export class Order {
 
   static fromDraftOrder(draftOrder: { table: string; customerCount: number }): Order {
     return new Order({
-      id: '',
+      id: `__draft_order__${generateUniqueKey()}`,
       linkedOrderId: null,
       createdBy: '',
       status: EOrderStatus.DRAFT,
@@ -225,7 +227,7 @@ export class Order {
    */
   toCreateOrderDTO(): CreateOrderRequestDTO {
     // Convert dishes to the request format using their toRequestDTO method
-    const dishesDTO: OrderItemRequestDTO[] = this.dishes.map((dish) => dish.toCreateRequestDTO());
+    const dishesDTO: OrderItemRequestDTO[] = this.dishes.map((dish) => dish.toRequestDTO());
 
     return {
       table: this.table,
@@ -233,6 +235,28 @@ export class Order {
       dishes: dishesDTO,
       linkedOrderId: this.linkedOrderId || undefined,
       note: this.note || undefined,
+      customerCount: this.customerCount,
+    };
+  }
+
+  /**
+   * Convert the order to an UpdateOrderRequestDTO for API requests
+   * @returns UpdateOrderRequestDTO with orderId
+   */
+  toUpdateOrderDTO(): { orderId: string; data: UpdateOrderRequestDTO } {
+    if (!this.id) {
+      throw new Error('Cannot update an order without an ID');
+    }
+
+    return {
+      orderId: this.id,
+      data: {
+        table: this.table,
+        type: this.type,
+        note: this.note || undefined,
+        status: this.status,
+        customerCount: this.customerCount,
+      },
     };
   }
 
@@ -248,5 +272,13 @@ export class Order {
       return sum + dish.getParsedTotalPrice();
     }, 0);
     return totalAmount.toFixed(6);
+  }
+
+  public isDraft(): boolean {
+    return this.status === EOrderStatus.DRAFT;
+  }
+
+  public canEdit(): boolean {
+    return this.status === EOrderStatus.DRAFT || this.status === EOrderStatus.PENDING;
   }
 }

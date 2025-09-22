@@ -1,19 +1,12 @@
 import { SidebarIcon } from 'lucide-react';
 import { Button, Separator, useSidebar } from '@/components/ui';
-import {
-  OrderStatusSelect,
-  AddDishOrderForm,
-  CreateDraftOrderForm,
-  SubmitOrderDraftButton,
-} from '@/features/orders/components';
+import { OrderStatusSelect, CreateDraftOrderForm } from '@/features/orders/components';
 import { useLocation } from '@tanstack/react-router';
 
 export function SiteHeader() {
   const { toggleSidebar } = useSidebar();
   const { pathname } = useLocation();
   const isTablesPage = pathname === '/tables' || pathname === '/tables/';
-  const isTableCreatePage = pathname.startsWith('/tables/create') && pathname !== '/tables/';
-
   return (
     <header className="bg-background sticky top-0 z-50 flex w-full items-center border-b">
       <div className="flex h-(--header-height) w-full items-center gap-2 px-4">
@@ -23,7 +16,6 @@ export function SiteHeader() {
         <Separator orientation="vertical" className="mr-2 h-4" />
         <div className="flex w-full items-center justify-end gap-2 sm:ml-auto sm:w-auto">
           {isTablesPage && <HeaderActionOnTablesPage />}
-          {isTableCreatePage && <HeaderActionOnTableCreatePage />}
         </div>
       </div>
     </header>
@@ -35,15 +27,6 @@ const HeaderActionOnTablesPage = () => {
     <div className="flex items-center gap-2">
       <OrderStatusSelect />
       <CreateDraftOrderForm />
-    </div>
-  );
-};
-
-const HeaderActionOnTableCreatePage = () => {
-  return (
-    <div className="flex items-center gap-2">
-      <AddDishOrderForm />
-      <SubmitOrderDraftButton />
     </div>
   );
 };

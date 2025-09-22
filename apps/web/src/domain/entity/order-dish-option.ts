@@ -4,6 +4,7 @@ import {
 } from '@pr80-app/shared-contracts';
 import { formatCurrency } from '@/utils/currency';
 import { DishOptionItem } from './dish-option-item';
+import { generateUniqueKey } from '@/utils';
 
 /**
  * OrderDishOption entity representing a selected option in an order dish
@@ -12,6 +13,7 @@ import { DishOptionItem } from './dish-option-item';
  */
 export class OrderDishOption {
   private constructor(
+    public readonly id: string,
     public readonly dishOptionId: string,
     public readonly dishOptionName: string,
     public readonly itemValue: string,
@@ -26,6 +28,7 @@ export class OrderDishOption {
    */
   static fromResponseDTO(dto: OrderDishItemOptionResponseDTO): OrderDishOption {
     return new OrderDishOption(
+      `__draft_order_dish_option__${generateUniqueKey()}`,
       dto.dishOptionId,
       dto.dishOptionName,
       dto.itemValue,
@@ -47,6 +50,7 @@ export class OrderDishOption {
     dishOptionItem: DishOptionItem,
   ): OrderDishOption {
     return new OrderDishOption(
+      `__draft_order_dish_option__${generateUniqueKey()}`,
       dishOptionId,
       dishOptionName,
       dishOptionItem.value,
@@ -128,6 +132,7 @@ export class OrderDishOption {
   withExtraPrice(newExtraPrice: string): OrderDishOption {
     if (this.extraPrice === newExtraPrice) return this;
     return new OrderDishOption(
+      this.id,
       this.dishOptionId,
       this.dishOptionName,
       this.itemValue,
@@ -138,8 +143,17 @@ export class OrderDishOption {
 
   /**
    * Check if this option equals another
+   * We consider two options equal if they belong to the same dish option
+   * and have the same itemValue, which is the unique identifier
    */
   equals(other: OrderDishOption): boolean {
+    return this.dishOptionId === other.dishOptionId && this.itemValue === other.itemValue;
+  }
+
+  /**
+   * Check if this option is exactly equal to another (all properties match)
+   */
+  exactEquals(other: OrderDishOption): boolean {
     return (
       this.dishOptionId === other.dishOptionId &&
       this.dishOptionName === other.dishOptionName &&

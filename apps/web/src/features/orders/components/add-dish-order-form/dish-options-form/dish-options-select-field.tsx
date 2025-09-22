@@ -2,18 +2,16 @@ import { Button } from '@/components/ui';
 import { Dish, DishOption } from '@/domain/entity';
 import { DishOptionItem } from '@/domain/entity/dish-option-item';
 import { cn } from '@/tailwind/utils';
-import { useState } from 'react';
 
 interface DishOptionsSelectFieldProps {
   dish: Dish;
+  selectedOptions: Record<string, DishOptionItem[]>;
   onSelect: (orderDishOption: Record<string, DishOptionItem[]>) => void;
 }
 
 export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
-  const { dish, onSelect } = props;
+  const { dish, selectedOptions, onSelect } = props;
   const dishOptions = dish.options;
-
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, DishOptionItem[]>>({});
 
   const checkIsOverMaxSelectionCount = (dishOptionName: string, maxSelectionCount: number) => {
     const isOverMaxSelectionCount = selectedOptions[dishOptionName]?.length >= maxSelectionCount;
@@ -22,9 +20,9 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
 
   const checkIsSelected = (dishOptionName: string, dishOptionItem: DishOptionItem) => {
     const isSelectedOption = !!selectedOptions[dishOptionName]?.some((opt) =>
-      opt.equals(dishOptionItem),
+      opt.equals(dishOptionItem)
     );
-
+    
     return isSelectedOption;
   };
 
@@ -34,19 +32,24 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
     const isSelected = checkIsSelected(dishOptionName, dishOptionItem);
     const isOverMaxSelectionCount = checkIsOverMaxSelectionCount(dishOptionName, maxSelectionCount);
     const optionsByName = selectedOptions[dishOptionName] || [];
-    let currentOptions = selectedOptions;
+    let currentOptions = {...selectedOptions};
+    
     if (isSelected) {
       currentOptions = {
         ...currentOptions,
         [dishOptionName]: optionsByName.filter((opt) => !opt.equals(dishOptionItem)),
       };
+    } else if (!isOverMaxSelectionCount) {
+      currentOptions = { 
+        ...currentOptions, 
+        [dishOptionName]: [...optionsByName, dishOptionItem] 
+      };
+    } else {
+      // Max selection reached, do nothing
+      return;
     }
 
-    if (!isSelected && !isOverMaxSelectionCount) {
-      currentOptions = { ...currentOptions, [dishOptionName]: [...optionsByName, dishOptionItem] };
-    }
-
-    setSelectedOptions(currentOptions);
+    // Only call onSelect, no internal state
     onSelect(currentOptions);
   };
 
@@ -63,8 +66,9 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
 
             <div className="flex flex-wrap gap-2">
               {dishOption.items.map((dishOptionItem) => {
-                const isSelected = selectedOptions[dishOption.name]?.some((opt) =>
-                  opt.equals(dishOptionItem),
+                // Check if this item is selected
+                const isSelected = selectedOptions[dishOption.name]?.some((opt) => 
+                  opt.equals(dishOptionItem)
                 );
                 return (
                   <Button

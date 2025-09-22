@@ -2,6 +2,7 @@ import { OrderDishItemResponseDTO, OrderItemRequestDTO } from '@pr80-app/shared-
 import { Dish } from './dish';
 import { formatCurrency } from '@/utils/currency';
 import { OrderDishOption } from './order-dish-option';
+import { generateUniqueKey } from '@/utils';
 
 /**
  * OrderDish entity representing a dish in an order
@@ -35,7 +36,7 @@ export class OrderDish {
     const basePrice = dish.basePrice;
     const selectedOptions = orderDishOption || [];
     return new OrderDish(
-      '',
+      `__draft_order_dish__${generateUniqueKey()}`,
       dish.id,
       dish.name,
       basePrice,
@@ -92,7 +93,7 @@ export class OrderDish {
   /**
    * Convert to OrderItemRequestDTO for API create/update requests
    */
-  toCreateRequestDTO(): OrderItemRequestDTO {
+  toRequestDTO(): OrderItemRequestDTO {
     return {
       dishId: this.dishId,
       quantity: this.quantity,

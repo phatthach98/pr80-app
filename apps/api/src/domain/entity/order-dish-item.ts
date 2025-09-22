@@ -1,5 +1,8 @@
 import { v4 as uuid } from "uuid";
-import { SelectedOptionDTO } from "@pr80-app/shared-contracts";
+import {
+  OrderItemRequestDTO,
+  SelectedOptionDTO,
+} from "@pr80-app/shared-contracts";
 import { parseDecimalSafely } from "@application/utils";
 
 export class OrderDishItem {
@@ -235,6 +238,15 @@ export class OrderDishItem {
       totalPrice: this.totalPrice,
       basePrice: this.basePrice,
       priceIncludingSelectedOption: this.priceIncludingSelectedOption,
+      selectedOptions: this.selectedOptions,
+      takeAway: this.takeAway,
+    };
+  }
+
+  public toRequestDTO(): OrderItemRequestDTO {
+    return {
+      dishId: this.dishId,
+      quantity: this.quantity,
       selectedOptions: this.selectedOptions,
       takeAway: this.takeAway,
     };

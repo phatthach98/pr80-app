@@ -1,43 +1,109 @@
 import { Order } from '@/domain/entity';
 import { OrderDish } from '@/domain/entity/order-dish';
-import { ordersStore, setCurrentDraftOrder } from '../store';
-import { AddDishOrderForm } from '../components/add-dish-order-form/add-dish-order-form.component';
+import { ordersStore, setCurrentDraftOrder } from '../../store';
+import { AddDishOrderForm } from '../add-dish-order-form/add-dish-order-form.component';
 import { useStore } from '@tanstack/react-store';
-import { useSearch } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { EditIcon, XIcon } from 'lucide-react';
 import defaultDishImage from '@/assets/default-dish.png';
-import { EOrderType } from '@pr80-app/shared-contracts';
-import { Badge, Button, EditableField, QuantityInput } from '@/components/ui';
+import { BackButton, Badge, Button, EditableField, QuantityInput } from '@/components/ui';
+import { SubmitOrderButton } from '../submit-order-button.component';
 
-export const TableCreatePage = () => {
+export interface TableDetailProps {
+  /**
+   * The order to display. If provided, component will be in "view/edit" mode.
+   */
+  order?: Order;
+
+  /**
+   * Create mode parameters. If provided, component will be in "create" mode.
+   */
+  createParams?: {
+    table: string;
+    customerCount: number;
+  };
+
+  /**
+   * Optional callback when order is updated (in either create or view/edit mode)
+   */
+  onOrderUpdate?: (order: Order) => void;
+}
+
+/**
+ * TableDetail component that can be used for both creating tables and viewing table details
+ */
+export const TableDetail = ({
+  order: initialOrder,
+  createParams,
+  onOrderUpdate,
+}: TableDetailProps) => {
   const [selectedDishForEdit, setSelectedDishForEdit] = useState<OrderDish | undefined>();
-  const { table, customerCount } = useSearch({ from: '/_auth/tables/create' });
+  const isCreate = !initialOrder && !!createParams;
+
+  // For create mode
   const { currentDraftOrder } = useStore(ordersStore);
 
-  useEffect(() => {
-    if (table && customerCount && !currentDraftOrder) {
-      setCurrentDraftOrder(
-        Order.fromDraftOrder({
-          table,
-          customerCount: Number(customerCount),
-        }),
-      );
-    }
-  }, [table, customerCount]);
+  // For view/edit mode
+  const [order, setOrder] = useState<Order | null>(initialOrder || null);
 
-  if (!currentDraftOrder) {
+  useEffect(() => {
+    if (isCreate && createParams) {
+      // Create mode - use the provided create params
+      if (!currentDraftOrder) {
+        const newDraftOrder = Order.fromDraftOrder({
+          table: createParams.table,
+          customerCount: createParams.customerCount,
+        });
+        setCurrentDraftOrder(newDraftOrder);
+        if (onOrderUpdate) {
+          onOrderUpdate(newDraftOrder);
+        }
+      }
+    } else if (initialOrder) {
+      // View/edit mode - use the provided order
+      setOrder(initialOrder);
+    }
+  }, [isCreate, createParams, initialOrder]);
+
+  // Use either the current draft order (for create) or the loaded order (for view/edit)
+  const activeOrder = isCreate ? currentDraftOrder : order;
+
+  if (!activeOrder) {
     return <div>Không tìm thấy đơn hàng</div>;
   }
 
   // Helper function to update dish quantity
   const updateDishQuantity = (dishId: string, quantity: number) => {
-    setCurrentDraftOrder(currentDraftOrder.updateDishQuantity(dishId, quantity));
+    if (isCreate && currentDraftOrder) {
+      const updatedOrder = currentDraftOrder.updateDishQuantity(dishId, quantity);
+      setCurrentDraftOrder(updatedOrder);
+      if (onOrderUpdate) {
+        onOrderUpdate(updatedOrder);
+      }
+    } else if (order) {
+      const updatedOrder = order.updateDishQuantity(dishId, quantity);
+      setOrder(updatedOrder);
+      if (onOrderUpdate) {
+        onOrderUpdate(updatedOrder);
+      }
+    }
   };
 
   // Helper function to remove dish
   const removeDish = (dishId: string) => {
-    setCurrentDraftOrder(currentDraftOrder.removeDish(dishId));
+    if (isCreate && currentDraftOrder) {
+      const updatedOrder = currentDraftOrder.removeDish(dishId);
+      setCurrentDraftOrder(updatedOrder);
+      if (onOrderUpdate) {
+        onOrderUpdate(updatedOrder);
+      }
+    } else if (order) {
+      const updatedOrder = order.removeDish(dishId);
+      setOrder(updatedOrder);
+      if (onOrderUpdate) {
+        onOrderUpdate(updatedOrder);
+      }
+    }
   };
 
   // Helper function to edit dish
@@ -47,36 +113,63 @@ export const TableCreatePage = () => {
 
   // Helper function to update note
   const handleUpdateNote = (value: string) => {
-    if (currentDraftOrder) {
-      setCurrentDraftOrder(currentDraftOrder.updateNote(value));
+    if (isCreate && currentDraftOrder) {
+      const updatedOrder = currentDraftOrder.updateNote(value);
+      setCurrentDraftOrder(updatedOrder);
+      if (onOrderUpdate) {
+        onOrderUpdate(updatedOrder);
+      }
+    } else if (order) {
+      const updatedOrder = order.updateNote(value);
+      setOrder(updatedOrder);
+      if (onOrderUpdate) {
+        onOrderUpdate(updatedOrder);
+      }
     }
   };
 
   // Helper function to update customer count
   const handleUpdateCustomerCount = (value: string) => {
     const count = parseInt(value, 10);
-    if (currentDraftOrder && !isNaN(count) && count > 0) {
-      const updatedOrder = new Order({
-        ...currentDraftOrder,
-        customerCount: count,
-      });
-      setCurrentDraftOrder(updatedOrder);
+    if (count > 0) {
+      if (isCreate && currentDraftOrder) {
+        const updatedOrder = new Order({
+          ...currentDraftOrder,
+          customerCount: count,
+        });
+        setCurrentDraftOrder(updatedOrder);
+        if (onOrderUpdate) {
+          onOrderUpdate(updatedOrder);
+        }
+      } else if (order) {
+        const updatedOrder = new Order({
+          ...order,
+          customerCount: count,
+        });
+        setOrder(updatedOrder);
+        if (onOrderUpdate) {
+          onOrderUpdate(updatedOrder);
+        }
+      }
     }
   };
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-md bg-white p-4 md:max-w-xl lg:max-w-2xl xl:max-w-3xl">
+      {/* Back button */}
+      <div className="mb-4">
+        <BackButton />
+      </div>
+
       {/* Header with restaurant name */}
       <div className="mb-6 text-center md:mb-10">
-        <h1 className="mb-4 text-xl font-bold md:text-2xl lg:text-3xl">
-          Bàn {table} ({currentDraftOrder.type === EOrderType.MAIN ? 'chính' : 'phụ'})
-        </h1>
+        <h1 className="mb-4 text-xl font-bold md:text-2xl lg:text-3xl">Bàn {activeOrder.table}</h1>
         <Badge variant="outline" className="mb-4">
-          {currentDraftOrder.status}
+          {activeOrder.status}
         </Badge>
         <div className="flex items-center justify-center">
           <EditableField
-            value={currentDraftOrder.customerCount.toString()}
+            value={activeOrder.customerCount.toString()}
             onSave={handleUpdateCustomerCount}
             type="number"
             placeholder="Số lượng khách"
@@ -90,7 +183,7 @@ export const TableCreatePage = () => {
       <div className="bg-secondary/50 mb-6 rounded-md border border-dashed border-gray-400 p-4 md:mb-10">
         <EditableField
           label="Ghi chú"
-          value={currentDraftOrder.note || ''}
+          value={activeOrder.note || ''}
           onSave={handleUpdateNote}
           type="textarea"
           placeholder="Không có ghi chú. Nhấp để thêm ghi chú."
@@ -101,12 +194,12 @@ export const TableCreatePage = () => {
 
       {/* Dish list */}
       <div className="space-y-6 md:space-y-8">
-        {currentDraftOrder.dishes.length === 0 ? (
+        {activeOrder.dishes.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center md:py-12 md:text-lg">
             Chưa có món nào
           </p>
         ) : (
-          currentDraftOrder.dishes.map((dish) => (
+          activeOrder.dishes.map((dish) => (
             <div
               key={dish.id || dish.dishId}
               className="border-b border-dashed pb-4 last:border-b-0 md:rounded-lg md:p-4 md:pb-6 md:transition-colors md:hover:bg-gray-50"
@@ -125,7 +218,7 @@ export const TableCreatePage = () => {
                 </div>
 
                 {/* Dish details */}
-                <div className="flex-1 cursor-pointer" onClick={() => handleEditDish(dish)}>
+                <div className="flex-1 cursor-pointer">
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-medium md:text-lg lg:text-xl">{dish.name}</h3>
@@ -196,15 +289,21 @@ export const TableCreatePage = () => {
 
       {/* Add/Edit dish button */}
       <div className="mt-6 flex justify-center">
-        <AddDishOrderForm orderDish={selectedDishForEdit} />
+        <AddDishOrderForm
+          orderDish={selectedDishForEdit}
+          onClose={() => setSelectedDishForEdit(undefined)}
+        />
       </div>
 
       {/* Order summary */}
       <div className="mt-8 space-y-3 border-t border-dashed pt-6 text-lg md:mx-auto md:mt-12 md:pt-6">
         <div className="flex justify-between md:text-lg">
           <span className="text-gray-600">Tổng tiền</span>
-          <span className="font-medium">{currentDraftOrder.getFormattedTotalAmount()}</span>
+          <span className="font-medium">{activeOrder.getFormattedTotalAmount()}</span>
         </div>
+      </div>
+      <div className="mt-8 flex justify-center">
+        <SubmitOrderButton order={isCreate ? undefined : order || undefined} />
       </div>
     </div>
   );

@@ -97,8 +97,17 @@ export class DishOptionItem {
 
   /**
    * Check if this option item equals another
+   * We consider two options equal if they have the same value,
+   * as value is the unique identifier for option items
    */
   equals(other: DishOptionItem): boolean {
+    return this.value === other.value;
+  }
+  
+  /**
+   * Check if this option item is exactly equal to another (all properties match)
+   */
+  exactEquals(other: DishOptionItem): boolean {
     return (
       this.label === other.label &&
       this.value === other.value &&

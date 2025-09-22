@@ -81,7 +81,14 @@ export class OrderController {
     req: Request<{}, {}, CreateOrderRequestDTO>,
     res: Response<OrderResponseDTO>
   ) {
-    const { table, type, dishes = [], linkedOrderId, note } = req.body;
+    const {
+      table,
+      type,
+      dishes = [],
+      linkedOrderId,
+      note,
+      customerCount,
+    } = req.body;
     // Get user ID from authenticated request
     const userId = req.user?.userId;
 
@@ -109,7 +116,8 @@ export class OrderController {
       type,
       processedDishes,
       linkedOrderId,
-      note
+      note,
+      customerCount
     );
 
     res.status(201).json(order.toJSON());
