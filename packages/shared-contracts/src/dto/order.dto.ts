@@ -78,7 +78,6 @@ export interface CreateAdditionalOrderRequestDTO {
   originalOrderId: string;
   dishes: OrderItemRequestDTO[];
   note?: string;
-  customerCount?: number;
 }
 
 // DTO for updating an order

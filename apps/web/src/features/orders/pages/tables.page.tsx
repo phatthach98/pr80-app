@@ -1,17 +1,8 @@
 import { useOrdersQuery } from '@/hooks/query';
-import { ordersStore, resetOrdersState, setOrders } from '../store';
-import { useEffect } from 'react';
-import { useStore } from '@tanstack/react-store';
 import { OrderCardDetail } from '../components';
 
 export function TablesPage() {
-  const { orders } = useStore(ordersStore);
-  const { data: apiOrders = [] } = useOrdersQuery();
-
-  useEffect(() => {
-    resetOrdersState();
-    setOrders(apiOrders);
-  }, [apiOrders.length]);
+  const { data: orders = [] } = useOrdersQuery();
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
