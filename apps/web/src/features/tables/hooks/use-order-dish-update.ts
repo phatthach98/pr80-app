@@ -3,7 +3,7 @@ import { OrderDish } from '@/domain/entity/order-dish';
 import { toast } from 'sonner';
 
 export const useOrderDishUpdate = () => {
-  const addOrderDishToOrder = (order: Order, orderDish: OrderDish): Order | null => {
+  const addOrderDishToTable = (order: Order, orderDish: OrderDish): Order | null => {
     if (!order.id) {
       toast.error('Order ID is required');
       return null;
@@ -17,5 +17,5 @@ export const useOrderDishUpdate = () => {
     return order.addDish(orderDish);
   };
 
-  return { addOrderDishToOrder };
+  return { addOrderDishToTable };
 };

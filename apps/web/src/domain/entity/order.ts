@@ -8,7 +8,6 @@ import {
   CreateAdditionalOrderRequestDTO,
 } from '@pr80-app/shared-contracts';
 import { OrderDishOption } from './order-dish-option';
-import { Dish } from './dish';
 import { OrderDish } from './order-dish';
 import { formatCurrency } from '@/utils/currency';
 import { generateUniqueKey } from '@/utils';
@@ -29,6 +28,7 @@ export class Order {
   createdAt?: Date;
   updatedAt?: Date;
   customerCount: number;
+  linkedOrders?: Order[];
 
   constructor(props: {
     id: string;
@@ -43,6 +43,7 @@ export class Order {
     createdAt?: Date;
     updatedAt?: Date;
     customerCount: number;
+    linkedOrders?: Order[];
   }) {
     this.id = props.id;
     this.linkedOrderId = props.linkedOrderId;
@@ -56,6 +57,7 @@ export class Order {
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
     this.customerCount = props.customerCount;
+    this.linkedOrders = props.linkedOrders;
   }
 
   /**
@@ -64,6 +66,10 @@ export class Order {
   static fromOrderResponse(orderResponse: OrderResponseDTO): Order {
     // Convert DTO dishes to OrderDish entities
     const dishes = orderResponse.dishes.map((dishDto) => OrderDish.fromResponseDTO(dishDto));
+
+    const linkedOrders = orderResponse.linkedOrders?.map((orderDto) =>
+      Order.fromOrderResponse(orderDto),
+    );
 
     return new Order({
       id: orderResponse.id,
@@ -78,6 +84,7 @@ export class Order {
       createdAt: orderResponse.createdAt,
       updatedAt: orderResponse.updatedAt,
       customerCount: orderResponse.customerCount,
+      linkedOrders: linkedOrders,
     });
   }
 
@@ -299,5 +306,35 @@ export class Order {
 
   public canEdit(): boolean {
     return this.status === EOrderStatus.DRAFT;
+  }
+
+  public getParsedTotalAmount(): number {
+    if (this.status === EOrderStatus.DRAFT) {
+      return parseFloat(this.calculateTotalAmount());
+    }
+    return parseFloat(this.totalAmount);
+  }
+
+  public getDisplayCustomerCount(): string {
+    return this.customerCount > 0 ? `${this.customerCount} Khách` : '';
+  }
+
+  public getDisplayStatus(): string {
+    switch (this.status) {
+      case EOrderStatus.DRAFT:
+        return 'Nháp';
+      case EOrderStatus.COOKING:
+        return 'Đang nấu';
+      case EOrderStatus.READY:
+        return 'Sẵn sàng';
+      case EOrderStatus.SERVING:
+        return 'Đang phục vụ';
+      case EOrderStatus.PAID:
+        return 'Đã thanh toán';
+      case EOrderStatus.CANCELLED:
+        return 'Đã hủy';
+      default:
+        return 'Không xác định';
+    }
   }
 }

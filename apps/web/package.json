@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm run generate-routes && rsbuild build",
-    "dev": "pnpm run generate-routes && rsbuild dev --open --port 3030",
+    "dev": "pnpm run generate-routes && rsbuild dev --port 3030",
     "preview": "rsbuild preview",
     "generate-routes": "tsr generate",
     "lint": "eslint",
@@ -42,6 +42,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.62.0",
+    "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.6",

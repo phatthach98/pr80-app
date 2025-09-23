@@ -36,6 +36,7 @@ const OrderDishItemSchema = new Schema(
       },
     ],
     takeAway: { type: Boolean, required: true, default: false },
+    note: { type: String, default: "" },
   },
   {
     _id: false, // Disable auto _id generation for subdocuments
@@ -54,7 +55,7 @@ const OrderSchemaDefinition = new Schema(
       type: String,
       enum: Object.values(EOrderStatus),
       required: true,
-      default: EOrderStatus.PENDING,
+      default: EOrderStatus.COOKING,
     },
     table: { type: String, required: true },
     totalAmount: {

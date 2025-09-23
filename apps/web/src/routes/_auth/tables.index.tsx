@@ -1,4 +1,4 @@
-import { TablesPage } from '@/features/orders/pages';
+import { TablesPage } from '@/features/tables/pages';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_auth/tables/')({

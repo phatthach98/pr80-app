@@ -19,6 +19,7 @@ export class OrderDish {
     public readonly selectedOptions: readonly OrderDishOption[],
     public readonly quantity: number,
     public readonly takeAway: boolean,
+    public readonly note: string,
   ) {
     Object.freeze(this.selectedOptions);
     Object.freeze(this);
@@ -27,24 +28,18 @@ export class OrderDish {
   /**
    * Create an OrderDish from a base Dish and order-specific properties
    */
-  static fromDishAndOrderDishOption(
-    dish: Dish,
-    orderDishOption: OrderDishOption[],
-    quantity: number,
-    takeAway: boolean,
-  ): OrderDish {
-    const basePrice = dish.basePrice;
-    const selectedOptions = orderDishOption || [];
+  static fromDish(dish: Dish): OrderDish {
     return new OrderDish(
       `__draft_order_dish__${generateUniqueKey()}`,
       dish.id,
       dish.name,
-      basePrice,
+      dish.basePrice,
       '',
       '',
-      selectedOptions,
-      quantity,
-      takeAway,
+      [],
+      0,
+      false,
+      '',
     );
   }
 
@@ -87,6 +82,7 @@ export class OrderDish {
       selectedOptions,
       dto.quantity,
       dto.takeAway,
+      dto.note,
     );
   }
 
@@ -99,6 +95,7 @@ export class OrderDish {
       quantity: this.quantity,
       selectedOptions: this.selectedOptions.map((opt) => opt.toRequestDTO()),
       takeAway: this.takeAway,
+      note: this.note,
     };
   }
 
@@ -120,6 +117,7 @@ export class OrderDish {
       this.selectedOptions,
       quantity,
       this.takeAway,
+      this.note,
     );
   }
 
@@ -139,6 +137,7 @@ export class OrderDish {
       this.selectedOptions,
       this.quantity,
       takeAway,
+      this.note,
     );
   }
 
@@ -158,6 +157,22 @@ export class OrderDish {
       selectedOptions,
       this.quantity,
       this.takeAway,
+      this.note,
+    );
+  }
+
+  withNote(note: string): OrderDish {
+    return new OrderDish(
+      this.id,
+      this.dishId,
+      this.name,
+      this.basePrice,
+      this.priceIncludingSelectedOption,
+      this.totalPrice,
+      this.selectedOptions,
+      this.quantity,
+      this.takeAway,
+      note,
     );
   }
 

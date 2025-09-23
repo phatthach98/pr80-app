@@ -1,9 +1,14 @@
 import { v4 as uuid } from "uuid";
-import {
-  OrderItemRequestDTO,
-  SelectedOptionDTO,
-} from "@pr80-app/shared-contracts";
+import { SelectedOptionDTO } from "@pr80-app/shared-contracts";
 import { parseDecimalSafely } from "@application/utils";
+
+type SelectedOptionType = {
+  dishOptionId: string;
+  dishOptionName: string;
+  itemValue: string;
+  itemLabel: string;
+  extraPrice: string;
+};
 
 export class OrderDishItem {
   public readonly id: string; // Unique identifier for this specific dish item in the order
@@ -13,8 +18,9 @@ export class OrderDishItem {
   public readonly totalPrice: string; // Make price readonly to prevent direct manipulation
   public readonly priceIncludingSelectedOption: string;
   public readonly basePrice: string;
-  public readonly selectedOptions: SelectedOptionDTO[];
+  public readonly selectedOptions: SelectedOptionType[];
   public readonly takeAway: boolean;
+  public readonly note: string;
 
   private constructor(
     id: string,
@@ -25,7 +31,8 @@ export class OrderDishItem {
     totalPrice: string,
     priceIncludingSelectedOption: string,
     selectedOptions: SelectedOptionDTO[],
-    takeAway: boolean
+    takeAway: boolean,
+    note: string
   ) {
     this.id = id;
     this.dishId = dishId;
@@ -36,7 +43,7 @@ export class OrderDishItem {
     this.priceIncludingSelectedOption = priceIncludingSelectedOption;
     this.selectedOptions = selectedOptions;
     this.takeAway = takeAway;
-
+    this.note = note;
     // Freeze the object for immutability
     Object.freeze(this.selectedOptions);
     Object.freeze(this);
@@ -48,7 +55,8 @@ export class OrderDishItem {
     quantity: number,
     basePrice: string,
     selectedOptions: SelectedOptionDTO[] = [],
-    takeAway: boolean = false
+    takeAway: boolean = false,
+    note: string = ""
   ): OrderDishItem {
     // Calculate total price including options
     const priceIncludingSelectedOption =
@@ -70,7 +78,8 @@ export class OrderDishItem {
       totalPrice,
       priceIncludingSelectedOption,
       selectedOptions,
-      takeAway
+      takeAway,
+      note
     );
   }
 
@@ -84,6 +93,7 @@ export class OrderDishItem {
     priceIncludingSelectedOption: string;
     selectedOptions: SelectedOptionDTO[];
     takeAway: boolean;
+    note: string;
   }): OrderDishItem {
     return new OrderDishItem(
       existingItem.id,
@@ -94,7 +104,8 @@ export class OrderDishItem {
       existingItem.totalPrice,
       existingItem.priceIncludingSelectedOption,
       existingItem.selectedOptions,
-      existingItem.takeAway
+      existingItem.takeAway,
+      existingItem.note
     );
   }
 
@@ -146,7 +157,8 @@ export class OrderDishItem {
       this.totalPrice,
       this.priceIncludingSelectedOption,
       this.selectedOptions,
-      this.takeAway
+      this.takeAway,
+      this.note
     );
   }
 
@@ -162,7 +174,8 @@ export class OrderDishItem {
       this.totalPrice,
       this.priceIncludingSelectedOption,
       this.selectedOptions,
-      takeAway
+      takeAway,
+      this.note
     );
   }
 
@@ -192,7 +205,8 @@ export class OrderDishItem {
       totalPrice,
       priceIncludingSelectedOption,
       selectedOptions,
-      this.takeAway
+      this.takeAway,
+      this.note
     );
   }
 
@@ -240,15 +254,7 @@ export class OrderDishItem {
       priceIncludingSelectedOption: this.priceIncludingSelectedOption,
       selectedOptions: this.selectedOptions,
       takeAway: this.takeAway,
-    };
-  }
-
-  public toRequestDTO(): OrderItemRequestDTO {
-    return {
-      dishId: this.dishId,
-      quantity: this.quantity,
-      selectedOptions: this.selectedOptions,
-      takeAway: this.takeAway,
+      note: this.note,
     };
   }
 }

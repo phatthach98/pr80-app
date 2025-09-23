@@ -16,18 +16,22 @@ import { DishListForm } from './dish-list-form/dish-list-form.component';
 import { DishOptionsForm } from './dish-options-form/dish-options-form.component';
 import { OrderDish } from '@/domain/entity/order-dish';
 
-interface AddDishOrderFormProps {
+interface AddDishToTableFormProps {
   orderDish: OrderDish | null;
   onOrderDishUpdate: (orderDish: OrderDish) => void;
   onClose: () => void;
 }
 
-export function AddDishOrderForm({ orderDish, onOrderDishUpdate, onClose }: AddDishOrderFormProps) {
+export function AddDishToTableForm({
+  orderDish,
+  onOrderDishUpdate,
+  onClose,
+}: AddDishToTableFormProps) {
   const [selectedOrderDish, setSelectedOrderDish] = useState<OrderDish | null>(orderDish);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const handleSelectDish = (dish: Dish) => {
-    setSelectedOrderDish(OrderDish.fromDishAndOrderDishOption(dish, [], 0, false));
+    setSelectedOrderDish(OrderDish.fromDish(dish));
   };
 
   const handleBack = () => {
@@ -95,6 +99,7 @@ export function AddDishOrderForm({ orderDish, onOrderDishUpdate, onClose }: AddD
               onBack={handleBack}
               handleAddAndUpdateDishToOrder={handleAddAndUpdateDishToOrder}
               orderDish={selectedOrderDish}
+              isEditing={isEditing}
             />
           ) : (
             <DishListForm onSelectDish={handleSelectDish} />

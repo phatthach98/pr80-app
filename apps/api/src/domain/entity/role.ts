@@ -1,20 +1,20 @@
 import { v4 as uuid } from "uuid";
 import { Permission } from "./permission";
-import { ROLE_NAME } from "@pr80-app/shared-contracts";
+import { E_ROLE_NAME } from "@pr80-app/shared-contracts";
 
 export class Role {
   public id: string;
-  public name: ROLE_NAME;
+  public name: E_ROLE_NAME;
   public description: string;
   private permissions: Permission[] = [];
 
-  constructor(id: string, name: ROLE_NAME, description: string) {
+  constructor(id: string, name: E_ROLE_NAME, description: string) {
     this.id = id;
     this.name = name;
     this.description = description;
   }
 
-  static create(name: ROLE_NAME, description: string) {
+  static create(name: E_ROLE_NAME, description: string) {
     return new Role(uuid(), name, description);
   }
 

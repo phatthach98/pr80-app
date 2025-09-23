@@ -1,5 +1,5 @@
 import { apiClient } from '@/api/api-client';
-import { Order, TableView } from '@/domain/entity';
+import { Order } from '@/domain/entity';
 import { EOrderStatus, OrderResponseDTO } from '@pr80-app/shared-contracts';
 import { useQuery } from '@tanstack/react-query';
 
@@ -7,8 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 export const ordersKeys = {
   all: ['orders'] as const,
   lists: () => [...ordersKeys.all, 'list'] as const,
-  list: (filters?: { status?: EOrderStatus }) =>
-    [...ordersKeys.lists(), { filters }] as const,
+  list: (filters?: { status?: EOrderStatus }) => [...ordersKeys.lists(), { filters }] as const,
   details: () => [...ordersKeys.all, 'detail'] as const,
   detail: (id: string) => [...ordersKeys.details(), id] as const,
 } as const;
@@ -36,6 +35,9 @@ export const fetchOrders = async (filters?: {
 };
 
 export const fetchOrderById = async (id: string): Promise<OrderResponseDTO> => {
+  if (!id) {
+    throw new Error('Order id is required');
+  }
   const response = await apiClient.get<OrderResponseDTO>(`/orders/${id}`);
 
   if (!response.success) {
@@ -65,17 +67,5 @@ export const useOrderQuery = (id: string) => {
       return Order.fromOrderResponse(data);
     },
     enabled: !!id, // Only run query when ID is available
-  });
-};
-
-// Hook for fetching orders list with transformation to TableView
-export const useTablesQuery = (filters?: { status?: EOrderStatus }) => {
-  return useQuery({
-    queryKey: [...ordersKeys.list(filters), 'tableView'],
-    queryFn: () => fetchOrders(filters),
-    select: (data: OrderResponseDTO[]): TableView[] => {
-      const orders = Order.fromOrderResponseList(data);
-      return Order.toTableView(orders);
-    },
   });
 };
