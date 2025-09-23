@@ -5,7 +5,7 @@ import axios, {
   InternalAxiosRequestConfig,
   AxiosRequestConfig,
 } from 'axios';
-import { ErrorCode } from '@pr80-app/shared-contracts';
+import { EErrorCode } from '@pr80-app/shared-contracts';
 import { authLocalStorageUtil } from '@/utils/auth-local-storage.util';
 
 // Types matching the backend API response format
@@ -148,7 +148,7 @@ export class ApiClient {
     return {
       success: false,
       error: {
-        code: ErrorCode.UNEXPECTED_ERROR,
+        code: EErrorCode.UNEXPECTED_ERROR,
         message: error instanceof Error ? error.message : 'An unexpected error occurred',
       },
       timestamp: new Date().toISOString(),
@@ -179,7 +179,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.BAD_REQUEST,
+            code: EErrorCode.BAD_REQUEST,
             message: 'Bad request. Please check your input and try again.',
           },
           timestamp: new Date().toISOString(),
@@ -188,7 +188,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.UNAUTHORIZED,
+            code: EErrorCode.UNAUTHORIZED,
             message: 'Authentication required. Please log in again.',
           },
           timestamp: new Date().toISOString(),
@@ -197,7 +197,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.FORBIDDEN,
+            code: EErrorCode.FORBIDDEN,
             message: 'Access denied. You do not have permission to perform this action.',
           },
           timestamp: new Date().toISOString(),
@@ -206,7 +206,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.NOT_FOUND,
+            code: EErrorCode.NOT_FOUND,
             message: 'The requested resource was not found.',
           },
           timestamp: new Date().toISOString(),
@@ -215,7 +215,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.TOO_MANY_REQUESTS,
+            code: EErrorCode.TOO_MANY_REQUESTS,
             message: 'Too many requests. Please wait a moment and try again.',
           },
           timestamp: new Date().toISOString(),
@@ -224,7 +224,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.INTERNAL_SERVER_ERROR,
+            code: EErrorCode.INTERNAL_SERVER_ERROR,
             message: 'Internal server error. Please try again later.',
           },
           timestamp: new Date().toISOString(),
@@ -233,7 +233,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.BAD_GATEWAY,
+            code: EErrorCode.BAD_GATEWAY,
             message: 'Bad gateway. The server is temporarily unavailable.',
           },
           timestamp: new Date().toISOString(),
@@ -242,7 +242,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.SERVICE_UNAVAILABLE,
+            code: EErrorCode.SERVICE_UNAVAILABLE,
             message: 'Service temporarily unavailable. Please try again later.',
           },
           timestamp: new Date().toISOString(),
@@ -251,7 +251,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.GATEWAY_TIMEOUT,
+            code: EErrorCode.GATEWAY_TIMEOUT,
             message: 'Gateway timeout. The server took too long to respond.',
           },
           timestamp: new Date().toISOString(),
@@ -260,7 +260,7 @@ export class ApiClient {
         return {
           success: false,
           error: {
-            code: ErrorCode.SERVER_ERROR,
+            code: EErrorCode.SERVER_ERROR,
             message: `Server error (${status}). Please try again later.`,
           },
           timestamp: new Date().toISOString(),
@@ -277,7 +277,7 @@ export class ApiClient {
       return {
         success: false,
         error: {
-          code: ErrorCode.REQUEST_TIMEOUT,
+          code: EErrorCode.REQUEST_TIMEOUT,
           message: 'Request timed out. Please try again.',
         },
         timestamp: new Date().toISOString(),
@@ -288,7 +288,7 @@ export class ApiClient {
       return {
         success: false,
         error: {
-          code: ErrorCode.NETWORK_ERROR,
+          code: EErrorCode.NETWORK_ERROR,
           message: 'Network error. Please check your internet connection and try again.',
         },
         timestamp: new Date().toISOString(),
@@ -299,7 +299,7 @@ export class ApiClient {
       return {
         success: false,
         error: {
-          code: ErrorCode.REQUEST_CANCELED,
+          code: EErrorCode.REQUEST_CANCELED,
           message: 'Request was cancelled.',
         },
         timestamp: new Date().toISOString(),
@@ -311,7 +311,7 @@ export class ApiClient {
       return {
         success: false,
         error: {
-          code: ErrorCode.CONNECTION_ERROR,
+          code: EErrorCode.CONNECTION_ERROR,
           message:
             'Unable to connect to the server. Please check your internet connection and try again.',
         },
@@ -323,7 +323,7 @@ export class ApiClient {
     return {
       success: false,
       error: {
-        code: ErrorCode.REQUEST_CONFIG_ERROR,
+        code: EErrorCode.REQUEST_CONFIG_ERROR,
         message: 'Request configuration error. Please try again.',
       },
       timestamp: new Date().toISOString(),

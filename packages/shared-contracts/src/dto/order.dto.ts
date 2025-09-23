@@ -24,6 +24,7 @@ export interface OrderItemRequestDTO {
   quantity: number;
   selectedOptions: SelectedOptionRequestDTO[];
   takeAway: boolean;
+  note: string;
 }
 
 export interface OrderDishItemOptionResponseDTO {
@@ -45,6 +46,7 @@ export interface OrderDishItemResponseDTO {
   basePrice: string;
   selectedOptions: OrderDishItemOptionResponseDTO[];
   takeAway: boolean;
+  note: string;
 }
 
 // Response DTO for orders
@@ -98,6 +100,7 @@ export interface AddOrderItemRequestDTO {
   selectedOptions: SelectedOptionRequestDTO[];
   takeAway: boolean;
   table?: string;
+  note?: string;
 }
 
 // DTO for updating order item quantity

@@ -167,7 +167,7 @@ export class OrderRepositoryImpl implements OrderRepository {
 
   // Helper method to convert MongoDB document to domain entity
   private mapToOrderEntity(orderDoc: any): Order {
-    const dishes = orderDoc.dishes.map((orderDishItem: any) => ({
+    const orderDishes = orderDoc.dishes.map((orderDishItem: any) => ({
       id: orderDishItem.id,
       basePrice: formatDecimal(orderDishItem.basePrice),
       totalPrice: formatDecimal(orderDishItem.totalPrice),
@@ -179,6 +179,7 @@ export class OrderRepositoryImpl implements OrderRepository {
         ...option,
         extraPrice: formatDecimal(option.extraPrice),
       })),
+      note: orderDishItem.note,
     }));
     const order = new Order(
       orderDoc._id.toString(), // Use _id as id in domain model
@@ -186,7 +187,7 @@ export class OrderRepositoryImpl implements OrderRepository {
       orderDoc.table,
       orderDoc.status,
       orderDoc.type,
-      dishes,
+      orderDishes,
       orderDoc.linkedOrderId,
       orderDoc.note,
       orderDoc.customerCount,

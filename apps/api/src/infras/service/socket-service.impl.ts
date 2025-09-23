@@ -36,7 +36,7 @@ export class SocketServiceImpl implements SocketService {
     // Socket middleware for authentication
     this.io.use(async (socket, next) => {
       try {
-        const token = socket.handshake.headers.authorization?.split(" ")[1];
+        const token = socket.handshake.auth.token;
         if (!token) {
           return next(new Error("Authentication error: Token not provided"));
         }

@@ -58,6 +58,11 @@ export const TableDishItem = ({
                   ),
                 )}
               </div>
+              {dish.note && (
+                <div className="mt-2 rounded-md text-sm italic md:mt-3">
+                  Ghi chú: <span className="text-destructive">{dish.note}</span>
+                </div>
+              )}
               <div className="mt-2 text-gray-700 md:mt-3 md:text-lg lg:text-xl">
                 <span className="font-semibold">{dish.getFormattedPriceWithSelectedOption()}</span>{' '}
                 (x{dish.quantity} = {dish.getFormattedTotalPrice()})

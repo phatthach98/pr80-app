@@ -20,9 +20,9 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
 
   const checkIsSelected = (dishOptionName: string, dishOptionItem: DishOptionItem) => {
     const isSelectedOption = !!selectedOptions[dishOptionName]?.some((opt) =>
-      opt.equals(dishOptionItem)
+      opt.equals(dishOptionItem),
     );
-    
+
     return isSelectedOption;
   };
 
@@ -32,17 +32,17 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
     const isSelected = checkIsSelected(dishOptionName, dishOptionItem);
     const isOverMaxSelectionCount = checkIsOverMaxSelectionCount(dishOptionName, maxSelectionCount);
     const optionsByName = selectedOptions[dishOptionName] || [];
-    let currentOptions = {...selectedOptions};
-    
+    let currentOptions = { ...selectedOptions };
+
     if (isSelected) {
       currentOptions = {
         ...currentOptions,
         [dishOptionName]: optionsByName.filter((opt) => !opt.equals(dishOptionItem)),
       };
     } else if (!isOverMaxSelectionCount) {
-      currentOptions = { 
-        ...currentOptions, 
-        [dishOptionName]: [...optionsByName, dishOptionItem] 
+      currentOptions = {
+        ...currentOptions,
+        [dishOptionName]: [...optionsByName, dishOptionItem],
       };
     } else {
       // Max selection reached, do nothing
@@ -58,17 +58,16 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
       {dishOptions.map((dishOption) => {
         return (
           <div key={dishOption.id} className="space-y-2">
-            <h3 className="font-medium">
+            <h3 className="font-medium text-md">
               {dishOption.name}
-              {/* TODO: add isRequired on DishOptionItem */}
               {true && <span className="ml-1 text-red-500">*</span>}
             </h3>
 
             <div className="flex flex-wrap gap-2">
               {dishOption.items.map((dishOptionItem) => {
                 // Check if this item is selected
-                const isSelected = selectedOptions[dishOption.name]?.some((opt) => 
-                  opt.equals(dishOptionItem)
+                const isSelected = selectedOptions[dishOption.name]?.some((opt) =>
+                  opt.equals(dishOptionItem),
                 );
                 return (
                   <Button

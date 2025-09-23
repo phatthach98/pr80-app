@@ -87,7 +87,7 @@ export class OrderController {
     const {
       table,
       type,
-      dishes = [],
+      dishes: orderDishes = [],
       linkedOrderId,
       note,
       customerCount,
@@ -101,13 +101,14 @@ export class OrderController {
 
     // Process dishes if provided
     const processedDishes = [];
-    if (dishes && dishes.length > 0) {
-      for (const dish of dishes) {
+    if (orderDishes && orderDishes.length > 0) {
+      for (const orderDish of orderDishes) {
         const processedDish = await orderUseCase.calculateDishWithOptions(
-          dish.dishId,
-          dish.selectedOptions,
-          dish.quantity,
-          dish.takeAway
+          orderDish.dishId,
+          orderDish.selectedOptions,
+          orderDish.quantity,
+          orderDish.takeAway,
+          orderDish.note
         );
 
         processedDishes.push(processedDish);
@@ -208,7 +209,8 @@ export class OrderController {
   ) {
     // Get orderId from URL params if available, otherwise from body for backward compatibility
     const orderId = req.params.orderId || req.body.orderId;
-    const { dishId, quantity, selectedOptions, takeAway, table } = req.body;
+    const { dishId, quantity, selectedOptions, takeAway, table, note } =
+      req.body;
 
     // Get user ID from authenticated request
     const userId = req.user?.userId || "";
@@ -216,7 +218,7 @@ export class OrderController {
     const order = await orderUseCase.addOrUpdateOrderItem(
       orderId || null,
       userId,
-      { dishId, quantity, selectedOptions, takeAway },
+      { dishId, quantity, selectedOptions, takeAway, note: note || "" },
       table
     );
 

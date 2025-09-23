@@ -31,7 +31,7 @@ export function AddDishToTableForm({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const handleSelectDish = (dish: Dish) => {
-    setSelectedOrderDish(OrderDish.fromDishAndOrderDishOption(dish, [], 0, false));
+    setSelectedOrderDish(OrderDish.fromDish(dish));
   };
 
   const handleBack = () => {

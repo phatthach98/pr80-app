@@ -18,6 +18,7 @@ interface OrderItemRequest {
   quantity: number;
   selectedOptions: SelectedOptionRequestDTO[];
   takeAway: boolean;
+  note: string;
 }
 
 export class OrderUseCase {
@@ -75,7 +76,8 @@ export class OrderUseCase {
     dishId: string,
     selectedOptions: SelectedOptionRequestDTO[],
     quantity: number,
-    takeAway: boolean = false
+    takeAway: boolean,
+    note: string
   ): Promise<OrderDishItem> {
     // Get dish from database
     const dish = await this.dishRepository.getDishById(dishId);
@@ -94,7 +96,8 @@ export class OrderUseCase {
         quantity,
         dish.basePrice,
         [],
-        takeAway
+        takeAway,
+        note
       );
     }
 
@@ -149,7 +152,8 @@ export class OrderUseCase {
       quantity,
       basePrice,
       processedOptions,
-      takeAway
+      takeAway,
+      note
     );
   }
 
@@ -168,7 +172,8 @@ export class OrderUseCase {
       orderItem.dishId,
       orderItem.selectedOptions,
       orderItem.quantity,
-      orderItem.takeAway
+      orderItem.takeAway,
+      orderItem.note
     );
 
     let order: Order;
@@ -354,7 +359,8 @@ export class OrderUseCase {
           item.dishId,
           item.selectedOptions,
           item.quantity,
-          item.takeAway
+          item.takeAway,
+          item.note
         )
       )
     );

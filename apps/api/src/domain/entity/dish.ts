@@ -1,5 +1,4 @@
 import { v4 as uuid } from "uuid";
-import { DishOption } from "./dish-option";
 
 export type DishOptionWithMetadata = {
   maxSelectionCount: number;

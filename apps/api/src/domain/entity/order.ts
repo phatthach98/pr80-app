@@ -18,7 +18,7 @@ export class Order {
     id: string,
     createdBy: string,
     table: string,
-    status: EOrderStatus = EOrderStatus.PENDING,
+    status: EOrderStatus = EOrderStatus.COOKING,
     type: EOrderType = EOrderType.MAIN,
     dishes: OrderDishItem[] = [],
     linkedOrderId: string | null = null,
@@ -40,7 +40,8 @@ export class Order {
         dish.quantity,
         dish.basePrice,
         dish.selectedOptions,
-        dish.takeAway
+        dish.takeAway,
+        dish.note
       )
     );
     this.customerCount = customerCount;
@@ -68,7 +69,7 @@ export class Order {
       uuid(),
       createdBy,
       table,
-      EOrderStatus.PENDING,
+      EOrderStatus.COOKING,
       type,
       dishes,
       linkedOrderId,

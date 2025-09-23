@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Checkbox, QuantityInput } from '@/components/ui';
+import { Button, Checkbox, QuantityInput, Textarea } from '@/components/ui';
 import { OrderDishOption } from '@/domain/entity/order-dish-option';
 import { ArrowLeftIcon, ShoppingBagIcon } from 'lucide-react';
 import defaultDishImage from '@/assets/default-dish.png';
@@ -24,6 +24,7 @@ export function DishOptionsForm({
     useInitDishOptionsForm(orderDish);
   const [quantity, setQuantity] = useState(orderDish.quantity || 1);
   const [takeAway, setTakeAway] = useState(orderDish.takeAway || false);
+  const [note, setNote] = useState(orderDish.note || '');
 
   if (isPending) return <div className="py-8 text-center">Đang tải tùy chọn...</div>;
   if (isError) return <div className="py-8 text-center text-red-500">Không tải được tùy chọn</div>;
@@ -54,13 +55,14 @@ export function DishOptionsForm({
       const updatedOrderDish = orderDish
         .withSelectedOptions(orderDishOptions)
         .withQuantity(quantity)
-        .withTakeAway(takeAway);
+        .withTakeAway(takeAway)
+        .withNote(note);
       handleAddAndUpdateDishToOrder(updatedOrderDish);
     }
   };
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="max-h-[480px] mb-20 flex flex-col justify-between gap-6 overflow-scroll">
       {/* Header with back button and price */}
       <div className="flex items-center justify-between">
         {!isEditing && (
@@ -80,7 +82,7 @@ export function DishOptionsForm({
 
       {/* Dish image */}
       <div className="flex justify-center">
-        <div className="relative h-36 w-36 overflow-hidden rounded-full">
+        <div className="relative h-24 w-24 overflow-hidden rounded-full">
           <img
             src={defaultDishImage}
             alt={dishDetail.name}
@@ -91,6 +93,13 @@ export function DishOptionsForm({
 
       {/* Description */}
       <div className="text-muted-foreground text-center">{dishDetail.description}</div>
+
+      <Textarea
+        id="note"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Ghi chú"
+      />
 
       {/* Options selection */}
       <DishOptionsSelectField
@@ -114,7 +123,7 @@ export function DishOptionsForm({
       </div>
 
       {/* Add to bag button */}
-      <div className="mt-8 flex items-center justify-between border-t pt-4">
+      <div className="fixed right-0 bottom-0 left-0 flex items-center justify-between border-t bg-white p-4">
         <QuantityInput
           value={quantity}
           onChange={setQuantity}

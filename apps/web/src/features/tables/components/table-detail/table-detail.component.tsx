@@ -86,7 +86,10 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
     if (additionalOrder && additionalOrder.canEdit()) {
       await createAdditionalTable(additionalOrder);
     }
-    await updateTable(activeOrder);
+
+    if (!activeOrder.canEdit()) {
+      await updateTable(activeOrder);
+    }
     toast.success('Đơn hàng đã được gửi');
     router.navigate({ to: '/tables' });
   };
@@ -141,7 +144,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
       <div className="mb-6 text-center md:mb-10">
         <h1 className="mb-4 text-xl font-bold md:text-2xl lg:text-3xl">{currentTable.label}</h1>
         <Badge variant="outline" className="mb-4">
-          {activeOrder.status}
+          {activeOrder.getDisplayStatus()}
         </Badge>
         <div className="flex items-center justify-center">
           <EditableField

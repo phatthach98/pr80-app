@@ -10,16 +10,20 @@ interface TableCardDetailProps {
   className?: string;
 }
 
-const getStatusBadgeVariant = (status: EOrderStatus) => {
+const getStatusColor = (status: EOrderStatus) => {
   switch (status) {
-    case EOrderStatus.PAID:
-      return 'secondary';
     case EOrderStatus.COOKING:
+      return '#E59400';
     case EOrderStatus.READY:
+      return '#53A654';
     case EOrderStatus.SERVING:
-      return 'default';
-    default:
-      return 'outline';
+      return '#53A654';
+    case EOrderStatus.CANCELLED:
+      return '#F84545';
+    case EOrderStatus.PAID:
+      return '#2196F3';
+    case EOrderStatus.DRAFT:
+      return '#9E9E9E';
   }
 };
 export function TableCardDetail({ order }: TableCardDetailProps) {
@@ -35,13 +39,8 @@ export function TableCardDetail({ order }: TableCardDetailProps) {
       className="block w-full hover:no-underline md:max-w-md"
     >
       <div
-        className={cn('rounded-lg border border-dashed border-neutral-900 p-6', {
-          'bg-secondary/50': order.status === EOrderStatus.COOKING,
-          'bg-primary/50': order.status === EOrderStatus.READY,
-          'bg-green-500/50': order.status === EOrderStatus.SERVING,
-          'bg-red-500/50': order.status === EOrderStatus.CANCELLED,
-          'bg-yellow-500/50': order.status === EOrderStatus.PAID,
-          'bg-blue-500/50': order.status === EOrderStatus.DRAFT,
+        className={cn('rounded-lg border-2 border-dashed p-6', {
+          [`border-[${getStatusColor(order.status)}]`]: true,
         })}
       >
         <div className="mb-2 text-sm font-light text-gray-700 italic">
@@ -54,9 +53,13 @@ export function TableCardDetail({ order }: TableCardDetailProps) {
               {order.getDisplayCustomerCount()}
             </div>
           </div>
-          <Badge className="text-sm" variant={getStatusBadgeVariant(order.status)}>
-            {order.getDisplayStatus()}
-          </Badge>
+          <div
+            className={cn('text-md', {
+              [`text-[${getStatusColor(order.status)}]`]: true,
+            })}
+          >
+            ● {order.getDisplayStatus()}
+          </div>
         </div>
 
         <div
