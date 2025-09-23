@@ -61,6 +61,7 @@ export interface OrderResponseDTO {
   customerCount: number;
   createdAt?: Date;
   updatedAt?: Date;
+  linkedOrders?: OrderResponseDTO[];
 }
 
 // DTO for creating a new order

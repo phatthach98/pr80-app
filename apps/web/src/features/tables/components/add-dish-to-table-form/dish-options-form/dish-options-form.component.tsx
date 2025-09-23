@@ -5,16 +5,18 @@ import { ArrowLeftIcon, ShoppingBagIcon } from 'lucide-react';
 import defaultDishImage from '@/assets/default-dish.png';
 import { DishOptionsSelectField } from './dish-options-select-field';
 import { OrderDish } from '@/domain/entity/order-dish';
-import { useInitDishOptionsForm } from '@/features/orders/hooks';
+import { useInitDishOptionsForm } from '@/features/tables/hooks';
 
 interface DishOptionsProps {
   orderDish: OrderDish;
+  isEditing: boolean;
   onBack: () => void;
   handleAddAndUpdateDishToOrder: (selectedOrderDish: OrderDish) => void;
 }
 
 export function DishOptionsForm({
   orderDish,
+  isEditing,
   onBack,
   handleAddAndUpdateDishToOrder,
 }: DishOptionsProps) {
@@ -22,7 +24,6 @@ export function DishOptionsForm({
     useInitDishOptionsForm(orderDish);
   const [quantity, setQuantity] = useState(orderDish.quantity || 1);
   const [takeAway, setTakeAway] = useState(orderDish.takeAway || false);
-  const isEditing = !!orderDish;
 
   if (isPending) return <div className="py-8 text-center">Đang tải tùy chọn...</div>;
   if (isError) return <div className="py-8 text-center text-red-500">Không tải được tùy chọn</div>;
@@ -128,7 +129,7 @@ export function DishOptionsForm({
           className="text-md rounded-full py-6"
         >
           <ShoppingBagIcon className="h-5 w-5" />
-          {orderDish ? 'Cập nhật món' : 'Thêm vào đơn hàng'}
+          {isEditing ? 'Cập nhật món' : 'Thêm món'}
         </Button>
       </div>
     </div>

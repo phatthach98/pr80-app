@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm run generate-routes && rsbuild build",
-    "dev": "pnpm run generate-routes && rsbuild dev --open --port 3030",
+    "dev": "pnpm run generate-routes && rsbuild dev --port 3030",
     "preview": "rsbuild preview",
     "generate-routes": "tsr generate",
     "lint": "eslint",

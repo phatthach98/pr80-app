@@ -38,11 +38,11 @@ const formValidator = z.object({
   customerCount: z.number().min(1, 'Nhập số lượng khách'),
 });
 
-type CreateDraftOrderFormDataType = z.infer<typeof formValidator>;
+type CreateDraftTableFormDataType = z.infer<typeof formValidator>;
 
-export function CreateDraftOrderForm() {
+export function CreateDraftTableForm() {
   const [open, setOpen] = React.useState(false);
-  const form = useForm<CreateDraftOrderFormDataType>({
+  const form = useForm<CreateDraftTableFormDataType>({
     defaultValues: {
       table: '',
       customerCount: 1,
@@ -52,7 +52,7 @@ export function CreateDraftOrderForm() {
   const { data: tableOptions, isPending, isError } = useSettingOptionsQuery();
   const navigate = useNavigate();
 
-  const createDraftOrder = async (data: CreateDraftOrderFormDataType) => {
+  const createDraftTable = async (data: CreateDraftTableFormDataType) => {
     form.reset();
     navigate({
       to: `/tables/create?table=${data.table}&customerCount=${data.customerCount}`,
@@ -84,9 +84,9 @@ export function CreateDraftOrderForm() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(createDraftOrder)}>
+          <form onSubmit={form.handleSubmit(createDraftTable)}>
             <DialogHeader>
-              <DialogTitle>Thêm đơn hàng mới</DialogTitle>
+              <DialogTitle>Thêm đơn bàn mới</DialogTitle>
               <DialogDescription>Thêm đơn hàng mới trước khi gọi món</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4">
@@ -95,11 +95,11 @@ export function CreateDraftOrderForm() {
                 name="table"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel required>Danh sách đơn hàng</FormLabel>
+                    <FormLabel required>Danh sách đơn bàn</FormLabel>
                     <FormControl>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Chọn đơn hàng" />
+                          <SelectValue placeholder="Chọn bàn" />
                         </SelectTrigger>
                         <SelectContent>
                           {tableOptions.tables.map((table) => (
@@ -133,7 +133,7 @@ export function CreateDraftOrderForm() {
               />
             </div>
             <DialogFooter className="mt-4">
-              <Button type="submit">Thêm đơn hàng</Button>
+              <Button type="submit">Thêm đơn bàn</Button>
             </DialogFooter>
           </form>
         </Form>

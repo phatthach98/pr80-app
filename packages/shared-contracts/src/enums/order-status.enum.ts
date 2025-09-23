@@ -1,10 +1,10 @@
 export enum EOrderStatus {
   DRAFT = "draft",
-  PENDING = "pending",
-  WAITING = "waiting",
-  COOKED = "cooked",
-  SERVED = "served",
+  COOKING = "cooking",
+  READY = "ready",
+  SERVING = "serving",
   PAID = "paid",
+  CANCELLED = "cancelled",
 }
 
 export enum EOrderType {

@@ -1,6 +1,6 @@
 import { SidebarIcon } from 'lucide-react';
 import { Button, Separator, useSidebar } from '@/components/ui';
-import { OrderStatusSelect, CreateDraftOrderForm } from '@/features/orders/components';
+import { OrderStatusSelect, CreateDraftTableForm } from '@/features/tables/components';
 import { useLocation } from '@tanstack/react-router';
 
 export function SiteHeader() {
@@ -26,7 +26,7 @@ const HeaderActionOnTablesPage = () => {
   return (
     <div className="flex items-center gap-2">
       <OrderStatusSelect />
-      <CreateDraftOrderForm />
+      <CreateDraftTableForm />
     </div>
   );
 };

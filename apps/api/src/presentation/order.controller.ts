@@ -27,11 +27,14 @@ export class OrderController {
     res: Response<OrderResponseDTO>
   ) {
     const { orderId } = req.params;
-    const order = await orderUseCase.getOrderById(orderId);
+    const order = await orderUseCase.getOrderWithLinkedOrders(orderId);
     if (!order) {
       throw new NotFoundError("Order not found");
     }
-    res.json(order.toJSON());
+    res.json({
+      ...order.mainOrder.toJSON(),
+      linkedOrders: order.linkedOrders.map((order) => order.toJSON()),
+    });
   }
 
   static async getOrdersByStatus(

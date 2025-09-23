@@ -566,7 +566,7 @@ export class OrderUseCase {
     // Calculate the main order's own total from its dishes (to ensure it's accurate)
     let mainOrderTotal = 0;
     for (const dish of mainOrder.dishes) {
-      mainOrderTotal += parseDecimalSafely(dish.basePrice) * dish.quantity;
+      mainOrderTotal += parseDecimalSafely(dish.totalPrice);
     }
     mainOrderTotal = parseDecimalSafely(mainOrderTotal.toFixed(6));
 
@@ -579,7 +579,7 @@ export class OrderUseCase {
         // Validate each linked order's total to prevent manipulation
         let orderTotal = 0;
         for (const dish of order.dishes) {
-          orderTotal += parseDecimalSafely(dish.basePrice) * dish.quantity;
+          orderTotal += parseDecimalSafely(dish.totalPrice);
         }
         orderTotal = parseDecimalSafely(orderTotal.toFixed(6));
 
