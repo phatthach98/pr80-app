@@ -20,5 +20,6 @@ export default defineConfig({
   },
   html: {
     title: 'PR80 | Quản lý đơn hàng',
+    favicon: './src/assets/favicon.ico',
   },
 });
