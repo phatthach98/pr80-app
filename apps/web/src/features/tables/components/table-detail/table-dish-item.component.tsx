@@ -21,7 +21,7 @@ export const TableDishItem = ({
   return (
     <div
       key={dish.id || dish.dishId}
-      className="border-b border-dashed pb-4 last:border-b-0 md:rounded-lg md:p-4 md:pb-6 md:transition-colors md:hover:bg-gray-50"
+      className="border-b border-dashed py-6 last:border-b-0 md:rounded-lg md:p-4 md:py-8 md:transition-colors md:hover:bg-gray-50"
     >
       <div className="flex items-start gap-4 md:gap-6">
         {/* Dish image */}
@@ -59,7 +59,7 @@ export const TableDishItem = ({
                 )}
               </div>
               {dish.note && (
-                <div className="mt-2 rounded-md text-sm italic md:mt-3">
+                <div className="mt-2 rounded-md p-2 text-sm italic md:mt-3">
                   Ghi chú: <span className="text-destructive">{dish.note}</span>
                 </div>
               )}

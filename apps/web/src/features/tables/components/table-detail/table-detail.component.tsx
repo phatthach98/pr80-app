@@ -134,16 +134,16 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
     value: activeOrder.table,
   };
   return (
-    <div className="mx-auto min-h-screen w-full max-w-md bg-white p-4 md:max-w-xl lg:max-w-2xl xl:max-w-3xl">
+    <div className="mx-auto min-h-screen w-full max-w-md bg-white md:max-w-xl lg:max-w-2xl xl:max-w-3xl">
       {/* Back button */}
       <div className="mb-4">
         <BackButton />
       </div>
 
       {/* Header with restaurant name */}
-      <div className="mb-6 text-center md:mb-10">
-        <h1 className="mb-4 text-xl font-bold md:text-2xl lg:text-3xl">{currentTable.label}</h1>
-        <Badge variant="outline" className="mb-4">
+      <div className="mb-4 text-center md:mb-10">
+        <h1 className="mb-2 text-xl font-bold md:text-2xl lg:text-3xl">{currentTable.label}</h1>
+        <Badge variant="outline" className="mb-2">
           {activeOrder.getDisplayStatus()}
         </Badge>
         <div className="flex items-center justify-center">
@@ -172,7 +172,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
       </div>
 
       {/* Dish list  */}
-      <div className="space-y-6 md:space-y-8">
+      <div>
         {activeOrder.dishes.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center md:py-12 md:text-lg">
             Chưa có món nào
@@ -194,23 +194,21 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
 
       {/* Linked orders */}
       {activeOrder.linkedOrders && (
-        <div className="space-y-6 md:space-y-8">
+        <div>
           {activeOrder.linkedOrders.map((order) => {
             return (
-              <div key={order.id} className="border-t border-gray-600 pt-6">
-                <div className="space-y-6 md:space-y-8">
-                  {order.dishes.map((dish) => {
-                    return (
-                      <TableDishItem
-                        isEditable={order.canEdit()}
-                        dish={dish}
-                        removeDish={removeDish}
-                        handleEditDish={handleEditDish}
-                        updateDishQuantity={updateDishQuantity}
-                      />
-                    );
-                  })}
-                </div>
+              <div key={order.id} className="border-t border-gray-600">
+                {order.dishes.map((dish) => {
+                  return (
+                    <TableDishItem
+                      isEditable={order.canEdit()}
+                      dish={dish}
+                      removeDish={removeDish}
+                      handleEditDish={handleEditDish}
+                      updateDishQuantity={updateDishQuantity}
+                    />
+                  );
+                })}
               </div>
             );
           })}
@@ -219,7 +217,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
 
       {/* Additional order */}
       {!activeOrder.canEdit() && (
-        <div className="space-y-6 md:space-y-8">
+        <div>
           <h2 className="mt-6 text-lg font-medium md:text-xl lg:text-2xl">Món gọi thêm</h2>
           <div className="space-y-6 md:space-y-8">
             {additionalOrder?.dishes.map((dish) => {

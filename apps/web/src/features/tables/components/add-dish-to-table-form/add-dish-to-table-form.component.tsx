@@ -60,7 +60,7 @@ export function AddDishToTableForm({
 
   return (
     <Dialog
-      open={isDialogOpen}
+    open={isDialogOpen}
       onOpenChange={(open) => {
         setIsDialogOpen(open);
         if (!open) {
@@ -75,7 +75,7 @@ export function AddDishToTableForm({
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[425px]"
+        className="sm:max-w-[425px] max-h-[90vh] overflow-auto p-4 md:p-6"
         onCloseAutoFocus={() => {
           handleClose();
         }}

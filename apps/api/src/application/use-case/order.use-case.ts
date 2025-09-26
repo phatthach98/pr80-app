@@ -382,6 +382,10 @@ export class OrderUseCase {
     // Recalculate the main order's total amount
     const mainOrder = await this.recalculateMainOrderTotal(originalOrderId);
 
+    if (this.socketService) {
+      this.socketService.emitOrderCreated(additionalOrder);
+    }
+
     return mainOrder;
   }
 

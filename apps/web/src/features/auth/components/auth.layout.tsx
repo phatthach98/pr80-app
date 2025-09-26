@@ -3,24 +3,18 @@ import { SidebarInset, SidebarProvider, Skeleton } from '@/components/ui';
 import { authStore, useAuth } from '@/features/auth/hooks';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useStore } from '@tanstack/react-store';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { authLocalStorageUtil } from '@/utils/auth-local-storage.util';
-import { useSocketConnection } from '@/hooks/socket';
 
 export function AuthLayout() {
   const { getMe, getRefreshToken, logout: authLogout } = useAuth();
 
   // Wrap the logout function to also clear the token state
   const logout = async () => {
-    setAuthToken('');
     await authLogout();
   };
   const { isAuthenticated } = useStore(authStore);
   const navigate = useNavigate();
-
-  // Track the auth token as state to ensure socket reconnects when token changes
-  const [authToken, setAuthToken] = useState(authLocalStorageUtil.getToken() || '');
-  useSocketConnection(authToken);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -59,11 +53,9 @@ export function AuthLayout() {
       const isSuccess = await getRefreshToken();
       if (isSuccess) {
         const newToken = authLocalStorageUtil.getToken();
-        setAuthToken(newToken || ''); // Update the token state to trigger socket reconnection
         onRefreshComplete(newToken);
       } else {
         onRefreshComplete(null);
-        setAuthToken(''); // Clear token state
         logout();
         navigate({
           to: '/login',

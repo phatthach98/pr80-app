@@ -58,7 +58,9 @@ export class SocketServiceImpl implements SocketService {
 
     // Handle connection
     this.io.on("connection", (socket) => {
-      console.log(`User connected: ${socket.id}`);
+      console.log(
+        `User connected: ${socket.id} - Total users: ${this.io?.sockets.sockets.size}`
+      );
       socket.join(SocketEvents.ROOMS.ORDERS);
       console.log(
         `User ${socket.id} subscribe to ${SocketEvents.ROOMS.ORDERS}`
