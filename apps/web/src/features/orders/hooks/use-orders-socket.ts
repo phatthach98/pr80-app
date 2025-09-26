@@ -31,7 +31,7 @@ export const useOrdersSocket = () => {
             const exists = oldData.some((item) => item.id === newOrder.id);
             if (exists) return oldData;
             // Add the new order to the list
-            return [newOrder, ...oldData];
+            return [...oldData, newOrder];
           },
         );
       }

@@ -6,7 +6,6 @@ import {
   UpdateOrderRequestDTO,
   CreateAdditionalOrderRequestDTO,
   AddOrderItemRequestDTO,
-  EOrderStatus,
 } from '@pr80-app/shared-contracts';
 import { ordersKeys } from '../query/orders.query';
 
@@ -33,14 +32,8 @@ const updateOrder = async ({
   return response.data;
 };
 
-const updateOrderStatus = async ({
-  orderId,
-  status,
-}: {
-  orderId: string;
-  status: EOrderStatus;
-}): Promise<OrderResponseDTO> => {
-  const response = await apiClient.patch<OrderResponseDTO>(`/orders/${orderId}/status`, { status });
+const updateOrderStatus = async ({ orderId }: { orderId: string }): Promise<OrderResponseDTO> => {
+  const response = await apiClient.patch<OrderResponseDTO>(`/orders/${orderId}/status`);
   if (!response.success) {
     throw new Error(response.error.message);
   }
