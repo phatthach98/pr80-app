@@ -62,7 +62,7 @@ export function DishOptionsForm({
   };
 
   return (
-    <div className="max-h-[480px] mb-20 flex flex-col justify-between gap-6 overflow-scroll">
+    <div className="flex flex-col justify-between gap-6">
       {/* Header with back button and price */}
       <div className="flex items-center justify-between">
         {!isEditing && (
@@ -123,7 +123,7 @@ export function DishOptionsForm({
       </div>
 
       {/* Add to bag button */}
-      <div className="fixed right-0 bottom-0 left-0 flex items-center justify-between border-t bg-white p-4">
+      <div className="flex items-center justify-between border-t bg-white pt-4">
         <QuantityInput
           value={quantity}
           onChange={setQuantity}

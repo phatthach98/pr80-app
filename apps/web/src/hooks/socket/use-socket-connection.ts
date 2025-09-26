@@ -1,67 +1,51 @@
 import { createSocketClient } from '@/api/socket-client';
-import { useEffect } from 'react';
-import { Socket } from 'socket.io-client';
-import { 
-  ConnectionStatus, 
-  socketStore, 
-  updateConnectionStatus, 
-  updateSocketConnection, 
-  updateSocketError 
+import { useEffect, useRef } from 'react';
+import {
+  ConnectionStatus,
+  updateConnectionStatus,
+  updateSocketConnection,
+  updateSocketError,
 } from '@/store/socket.store';
-import { useStore } from '@tanstack/react-store';
+import { authLocalStorageUtil } from '@/utils/auth-local-storage.util';
+import { Socket } from 'socket.io-client';
 
-/**
- * Hook to manage socket connection
- * @param jwtToken The JWT token for authentication
- * @returns Socket connection state and instance
- */
-export const useSocketConnection = (jwtToken: string) => {
-  const { socket, connectionStatus, error } = useStore(socketStore);
+export const useSocketConnection = () => {
+  const { current: socket } = useRef<Socket>(
+    createSocketClient(authLocalStorageUtil.getToken() || ''),
+  );
 
-  useEffect(() => {
-    // Clean up previous socket connection if it exists
-    if (socket) {
-      socket.disconnect();
-      updateSocketConnection(null);
-    }
-    
-    if (!jwtToken) {
-      updateConnectionStatus(ConnectionStatus.DISCONNECTED);
-      return;
-    }
-    
-    // Create new socket connection
-    updateConnectionStatus(ConnectionStatus.CONNECTING);
-    updateSocketError(null);
-    
-    const newSocket = createSocketClient(jwtToken);
-    newSocket.connect();
-    updateSocketConnection(newSocket);
-
-    newSocket.on('connect', () => {
+  const startConnectionListener = () => {
+    socket.on('connect', () => {
       updateConnectionStatus(ConnectionStatus.CONNECTED);
     });
 
-    newSocket.on('disconnect', () => {
+    socket.on('disconnect', () => {
       updateConnectionStatus(ConnectionStatus.DISCONNECTED);
     });
 
-    newSocket.on('connect_error', (err) => {
+    socket.on('connect_error', (err) => {
       updateConnectionStatus(ConnectionStatus.ERROR);
       updateSocketError(err);
+      setTimeout(() => {
+        socket.auth = {
+          token: authLocalStorageUtil.getToken() || '',
+        };
+        socket.connect();
+      }, 2000);
     });
-
-    return () => {
-      newSocket.disconnect();
-      updateSocketConnection(null);
-      updateConnectionStatus(ConnectionStatus.DISCONNECTED);
-    };
-  }, [jwtToken]);
-
-  return {
-    isConnected: connectionStatus === ConnectionStatus.CONNECTED,
-    connectionStatus,
-    socket,
-    error,
   };
+
+  useEffect(() => {
+    updateConnectionStatus(ConnectionStatus.CONNECTING);
+    startConnectionListener();
+    socket.connect();
+    updateSocketConnection(socket);
+    return () => {
+      if (socket) {
+        socket.close();
+      }
+    };
+  }, [socket]);
+
+  return socket;
 };
