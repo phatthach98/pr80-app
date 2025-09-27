@@ -64,11 +64,11 @@ export const OrderStatus = ({
         case 'sm':
           return 'text-sm';
         case 'md':
-          return 'text-md';
+          return 'text-base';
         case 'lg':
           return 'text-lg';
         default:
-          return 'text-md';
+          return 'text-base';
       }
     } else {
       // badge variant

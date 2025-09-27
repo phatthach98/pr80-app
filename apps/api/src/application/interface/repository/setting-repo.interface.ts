@@ -3,10 +3,10 @@ import { SelectOption } from "../../../types";
 export interface SettingRepository {
   /**
    * Retrieves all settings of type 'option'.
-   * The result is a map where the key is the setting ID (e.g., 'orderStatuses')
+   * The result is a map where the key is the setting ID (e.g., 'orderStatuses', 'tables')
    * and the value is the array of options.
    */
-  getOption(): Promise<Record<"tables" | "orderStatuses", SelectOption[]>>;
+  getOption(): Promise<Record<string, SelectOption[]>>;
 
   /**
    * Retrieves a specific configuration setting by its key.

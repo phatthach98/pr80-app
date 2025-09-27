@@ -1,15 +1,13 @@
-import {
-  SettingRepository,
-  SelectOption,
-} from "@application/interface/repository/setting-repo.interface";
+import { SettingRepository } from "@application/interface/repository/setting-repo.interface";
 import { SettingModel } from "@infras/database/schemas";
+import { SelectOption } from "@pr80-app/shared-contracts";
 
 export class SettingRepoImpl implements SettingRepository {
-  async getOption(): Promise<Record<string, SelectOption[]> | null> {
+  async getOption(): Promise<Record<string, SelectOption[]>> {
     const optionDocs = await SettingModel.find({ type: "option" }).lean();
 
     if (!optionDocs) {
-      return null;
+      return {};
     }
 
     const aggregatedOptions = optionDocs.reduce((acc, doc) => {
@@ -21,13 +19,13 @@ export class SettingRepoImpl implements SettingRepository {
     return aggregatedOptions;
   }
 
-  async getConfig<T>(): Promise<Record<string, T> | null> {
+  async getConfig<T>(): Promise<Record<string, T>> {
     const configDoc = await SettingModel.find({
       type: "config",
     }).lean();
 
     if (!configDoc) {
-      return null;
+      return {};
     }
 
     const aggregatedConfigs = configDoc.reduce((acc, doc) => {

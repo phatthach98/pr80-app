@@ -4,8 +4,7 @@ import { asyncHandler } from "@presentation/middleware/async-handler.middleware"
 import { requestValidator } from "@presentation/middleware/request-validator.middleware";
 import {
   createSettingConfigValidator,
-  createTableOptionsValidator,
-  createOrderStatusOptionsValidator
+  createOptionsValidator
 } from "@presentation/validators/setting.validator";
 
 export const settingRouter = Router();
@@ -28,15 +27,8 @@ settingRouter.post(
 );
 
 settingRouter.post(
-  "/settings/option/tables",
-  createTableOptionsValidator,
+  "/settings/options",
+  createOptionsValidator,
   requestValidator,
-  asyncHandler(SettingController.createTableOptions)
-);
-
-settingRouter.post(
-  "/settings/option/order-statuses",
-  createOrderStatusOptionsValidator,
-  requestValidator,
-  asyncHandler(SettingController.createOrderStatusOptions)
+  asyncHandler(SettingController.createOptions)
 );

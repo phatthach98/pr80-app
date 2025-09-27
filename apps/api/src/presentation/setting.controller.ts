@@ -48,7 +48,7 @@ export class SettingController {
     next: NextFunction
   ) => {
     const { options } = req.body;
-    await settingUseCase.createTableOptions(options);
+    await settingUseCase.createOptions("tables", options);
     res.status(200).json({ message: "Table options updated successfully" });
   };
 
@@ -58,9 +58,30 @@ export class SettingController {
     next: NextFunction
   ) => {
     const { options } = req.body;
-    await settingUseCase.createOrderStatusOptions(options);
+    await settingUseCase.createOptions("orderStatuses", options);
     res
       .status(200)
       .json({ message: "Order status options updated successfully" });
+  };
+
+  static createOptions = async (
+    req: Request<
+      {},
+      {},
+      { key: string; options: postSettingOptionsRequestDTO["options"] }
+    >,
+    res: Response<postSettingOptionsResponseDTO>,
+    next: NextFunction
+  ) => {
+    const { key, options } = req.body;
+
+    try {
+      await settingUseCase.createOptions(key, options);
+      res.status(200).json({ message: `${key} options updated successfully` });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(400).json({ message: errorMessage } as any);
+    }
   };
 }

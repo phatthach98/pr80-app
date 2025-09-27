@@ -1,14 +1,19 @@
 import { v4 as uuid } from "uuid";
-import { OrderRepository } from "@application/interface/repository/order-repo.interface";
+import { OrderRepository, OrderFilters } from "@application/interface/repository/order-repo.interface";
 import { Order } from "@domain/entity/order";
 import { OrderSchema } from "../schemas/order-schema";
 import { formatDecimal } from "../utils/mongodb.util";
 import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
 
 export class OrderRepositoryImpl implements OrderRepository {
-  async getOrders(): Promise<Order[]> {
+  async getOrders(filters?: OrderFilters): Promise<Order[]> {
     try {
-      const orders = await OrderSchema.find().lean()
+      // Build query based on filters - only include defined properties
+      const query = filters ? Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => value !== undefined)
+      ) : {};
+
+      const orders = await OrderSchema.find(query).lean();
 
       if (!orders) {
         return [];
@@ -37,50 +42,6 @@ export class OrderRepositoryImpl implements OrderRepository {
     }
   }
 
-  async getOrdersByStatus(status: EOrderStatus): Promise<Order[] | null> {
-    try {
-      const orders = await OrderSchema.find({ status }).lean();
-
-      if (!orders) {
-        return null;
-      }
-
-      return orders.map((order) => this.mapToOrderEntity(order));
-    } catch (error) {
-      console.error("Error fetching orders by status:", error);
-      return null;
-    }
-  }
-
-  async getOrdersByType(type: EOrderType): Promise<Order[] | null> {
-    try {
-      const orders = await OrderSchema.find({ type }).lean();
-
-      if (!orders) {
-        return null;
-      }
-
-      return orders.map((order) => this.mapToOrderEntity(order));
-    } catch (error) {
-      console.error("Error fetching orders by type:", error);
-      return null;
-    }
-  }
-
-  async getOrdersByCreatedBy(userId: string): Promise<Order[] | null> {
-    try {
-      const orders = await OrderSchema.find({ createdBy: userId }).lean();
-
-      if (!orders) {
-        return null;
-      }
-
-      return orders.map((order) => this.mapToOrderEntity(order));
-    } catch (error) {
-      console.error("Error fetching orders by user ID:", error);
-      return null;
-    }
-  }
 
   async getLinkedOrders(orderId: string): Promise<Order[] | null> {
     try {

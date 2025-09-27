@@ -8,15 +8,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useSettingOptionsQuery } from '@/hooks/query';
+import { ETableStatus } from '@/domain/entity/order';
 
-export function OrderStatusSelect() {
+interface OrderStatusSelectProps {
+  onChange: (value: ETableStatus) => void;
+  defaultStatus: ETableStatus;
+}
+
+export function OrderStatusSelect({ defaultStatus, onChange }: OrderStatusSelectProps) {
   const { data, isError, isPending } = useSettingOptionsQuery();
 
   if (isError || isPending) {
     return null;
   }
 
-  if (!data?.orderStatuses || data.orderStatuses.length === 0) {
+  if (!data.tableStatuses || data.tableStatuses.length === 0) {
     return (
       <Select disabled>
         <SelectTrigger className="w-auto">
@@ -27,16 +33,16 @@ export function OrderStatusSelect() {
   }
 
   return (
-    <Select>
+    <Select onValueChange={onChange} defaultValue={defaultStatus}>
       <SelectTrigger className="w-auto">
         <SelectValue placeholder="Lọc đơn hàng" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Trạng thái đơn hàng</SelectLabel>
-          {data.orderStatuses.map((orderStatus) => (
-            <SelectItem key={orderStatus.value} value={orderStatus.value}>
-              {orderStatus.label}
+          <SelectLabel>Trạng thái bàn</SelectLabel>
+          {data.tableStatuses.map((tableStatus) => (
+            <SelectItem key={tableStatus.value} value={tableStatus.value}>
+              {tableStatus.label}
             </SelectItem>
           ))}
         </SelectGroup>

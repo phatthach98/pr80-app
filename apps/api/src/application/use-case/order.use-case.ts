@@ -1,7 +1,7 @@
 import { v4 as uuid } from "uuid";
 import { Order } from "@domain/entity/order";
 import { OrderDishItem } from "@domain/entity/order-dish-item";
-import { OrderRepository } from "../interface/repository/order-repo.interface";
+import { OrderRepository, OrderFilters } from "../interface/repository/order-repo.interface";
 import { DishRepository } from "../interface/repository/dish-repo.interface";
 import { DishOptionRepository } from "../interface/repository/dish-option-repo.interface";
 import { SocketService } from "../interface/service";
@@ -29,8 +29,8 @@ export class OrderUseCase {
     private readonly socketService?: SocketService
   ) {}
 
-  async getOrders() {
-    return this.orderRepository.getOrders();
+  async getOrders(filters?: OrderFilters) {
+    return this.orderRepository.getOrders(filters);
   }
 
   async getOrderById(id: string) {
@@ -43,17 +43,6 @@ export class OrderUseCase {
     return order;
   }
 
-  async getOrdersByStatus(status: EOrderStatus) {
-    return this.orderRepository.getOrdersByStatus(status);
-  }
-
-  async getOrdersByType(type: EOrderType) {
-    return this.orderRepository.getOrdersByType(type);
-  }
-
-  async getOrdersByCreatedBy(userId: string) {
-    return this.orderRepository.getOrdersByCreatedBy(userId);
-  }
 
   async getOrderWithLinkedOrders(orderId: string) {
     // Get the main order

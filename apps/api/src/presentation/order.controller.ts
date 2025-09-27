@@ -3,6 +3,7 @@ import { OrderUseCase } from "@application/use-case";
 import { ORDER_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
 import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
+import { OrderFilters } from "@application/interface/repository/order-repo.interface";
 import {
   OrderResponseDTO,
   CreateOrderRequestDTO,
@@ -17,8 +18,31 @@ import { NotFoundError, UnauthorizedError } from "@application/errors";
 const orderUseCase = container.resolve<OrderUseCase>(ORDER_USE_CASE);
 
 export class OrderController {
-  static async getAllOrders(req: Request, res: Response<OrderResponseDTO[]>) {
-    const orders = await orderUseCase.getOrders();
+  static async getAllOrders(
+    req: Request<{}, {}, {}, { status?: EOrderStatus; type?: EOrderType; userId?: string; table?: string }>,
+    res: Response<OrderResponseDTO[]>
+  ) {
+    const { status, type, userId, table } = req.query;
+    
+    // Build filters object based on query parameters using a mapping object
+    const filterMapping: Record<string, keyof OrderFilters> = {
+      status: 'status',
+      type: 'type',
+      userId: 'createdBy',
+      table: 'table'
+    };
+    
+    // Create filters object by mapping query params to filter properties
+    const filters: OrderFilters = Object.entries(req.query)
+      .filter(([key, value]) => 
+        key in filterMapping && value !== undefined && value !== ''
+      )
+      .reduce((acc, [key, value]) => {
+        const filterKey = filterMapping[key];
+        return { ...acc, [filterKey]: value };
+      }, {});
+    
+    const orders = await orderUseCase.getOrders(Object.keys(filters).length > 0 ? filters : undefined);
     res.json(orders ? orders.map((order) => order.toJSON()) : []);
   }
 
@@ -37,32 +61,6 @@ export class OrderController {
     });
   }
 
-  static async getOrdersByStatus(
-    req: Request<{}, {}, {}, { status: EOrderStatus }>,
-    res: Response<OrderResponseDTO[]>
-  ) {
-    const { status } = req.query;
-    const orders = await orderUseCase.getOrdersByStatus(status);
-    res.json(orders ? orders.map((order) => order.toJSON()) : []);
-  }
-
-  static async getOrdersByType(
-    req: Request<{}, {}, {}, { type: EOrderType }>,
-    res: Response<OrderResponseDTO[]>
-  ) {
-    const { type } = req.query;
-    const orders = await orderUseCase.getOrdersByType(type);
-    res.json(orders ? orders.map((order) => order.toJSON()) : []);
-  }
-
-  static async getOrdersByCreatedBy(
-    req: Request<{}, {}, {}, { userId: string }>,
-    res: Response<OrderResponseDTO[]>
-  ) {
-    const { userId } = req.query;
-    const orders = await orderUseCase.getOrdersByCreatedBy(userId);
-    res.json(orders ? orders.map((order) => order.toJSON()) : []);
-  }
 
   static async getOrderWithLinkedOrders(
     req: Request<{ orderId: string }>,

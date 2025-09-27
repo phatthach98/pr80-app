@@ -102,13 +102,17 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
   };
 
   const handleMakePayment = async () => {
-    if (!activeOrder) {
-      toast.error('Không tìm thấy đơn hàng');
-      return;
+    try {
+      if (!activeOrder) {
+        toast.error('Không tìm thấy đơn hàng');
+        return;
+      }
+      await updateOrderStatusBasedOnCurrentStatus(activeOrder.id);
+      toast.success('Đơn hàng đã được thanh toán');
+      router.navigate({ to: '/tables' });
+    } catch {
+      toast.error('Thanh toán thất bại. Vui lòng thử lại.');
     }
-    updateOrderStatusBasedOnCurrentStatus(activeOrder.id);
-    toast.success('Đơn hàng đã được thanh toán');
-    router.navigate({ to: '/tables' });
   };
 
   const handleAddOrderDishToOrder = (orderDish: OrderDish) => {
