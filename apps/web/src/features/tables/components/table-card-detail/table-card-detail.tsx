@@ -11,7 +11,7 @@ interface TableCardDetailProps {
 
 export function TableCardDetail({ order }: TableCardDetailProps) {
   const { data: tableOptions } = useSettingOptionsQuery();
-  const currentTable = tableOptions?.tables.find((table) => table.value === order.table) || {
+  const currentTable = tableOptions?.tables?.find((table) => table.value === order.table) ?? {
     label: order.table,
     value: order.table,
   };

@@ -107,7 +107,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
         toast.error('Không tìm thấy đơn hàng');
         return;
       }
-      updateOrderStatusBasedOnCurrentStatus(activeOrder.id);
+      await updateOrderStatusBasedOnCurrentStatus(activeOrder.id);
       toast.success('Đơn hàng đã được thanh toán');
       router.navigate({ to: '/tables' });
     } catch {
