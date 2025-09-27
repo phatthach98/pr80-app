@@ -6,7 +6,7 @@ export class SettingUseCase {
   constructor(private readonly settingRepository: SettingRepository) {}
 
   async getSelectionOptions(): Promise<
-    Record<"tables" | "orderStatuses", SelectOption[]>
+    Record<string, SelectOption[]>
   > {
     const options = await this.settingRepository.getOption();
     return options || { tables: [], orderStatuses: [] };
@@ -17,20 +17,10 @@ export class SettingUseCase {
     return config;
   }
 
-  async createTableOptions(options: SelectOption[]): Promise<void> {
-    // Use a stable, predictable key instead of a random UUID.
+  async createOptions(key: string, options: SelectOption[]): Promise<void> {
     return this.settingRepository.createOptions(
-      uuid(), // A fixed key
-      "tables",
-      options
-    );
-  }
-
-  async createOrderStatusOptions(options: SelectOption[]): Promise<void> {
-    // Use a stable, predictable key here as well.
-    return this.settingRepository.createOptions(
-      uuid(), // A fixed key
-      "orderStatuses",
+      uuid(),
+      key,
       options
     );
   }

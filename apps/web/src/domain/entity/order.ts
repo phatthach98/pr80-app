@@ -15,6 +15,12 @@ import { generateUniqueKey } from '@/utils';
 /**
  * Order entity representing both draft tables from local storage and orders from API
  */
+export enum ETableStatus {
+  IN_PROGRESS = 'in_progress',
+  PAID = 'paid',
+  ALL = 'all',
+}
+
 export class Order {
   id: string;
   linkedOrderId: string | null;
@@ -29,6 +35,7 @@ export class Order {
   updatedAt?: Date;
   customerCount: number;
   linkedOrders?: Order[];
+  tableStatus: ETableStatus;
 
   constructor(props: {
     id: string;
@@ -58,6 +65,7 @@ export class Order {
     this.updatedAt = props.updatedAt;
     this.customerCount = props.customerCount;
     this.linkedOrders = props.linkedOrders;
+    this.tableStatus = this.convertToTableStatus();
   }
 
   /**
@@ -305,7 +313,7 @@ export class Order {
   }
 
   public canEdit(): boolean {
-    return this.status === EOrderStatus.DRAFT; 
+    return this.status === EOrderStatus.DRAFT;
   }
 
   public getParsedTotalAmount(): number {
@@ -348,5 +356,23 @@ export class Order {
 
   public isPaid(): boolean {
     return this.status === EOrderStatus.PAID;
+  }
+
+  private convertToTableStatus(): ETableStatus {
+    if (this.status === EOrderStatus.PAID) {
+      return ETableStatus.PAID;
+    }
+    return ETableStatus.IN_PROGRESS;
+  }
+
+  public getDisplayTableStatus(): string {
+    switch (this.tableStatus) {
+      case ETableStatus.IN_PROGRESS:
+        return 'Đang xử lý';
+      case ETableStatus.PAID:
+        return 'Đã thanh toán';
+      default:
+        return 'Không xác định';
+    }
   }
 }

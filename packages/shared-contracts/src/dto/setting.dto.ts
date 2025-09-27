@@ -2,8 +2,7 @@ import { SelectOption } from "../types/selection-option.types";
 
 // Settings Response DTOs
 export interface getSettingOptionsResponseDTO {
-  tables: SelectOption[];
-  orderStatuses: SelectOption[];
+  [key: string]: SelectOption[];
 }
 
 export interface getSettingConfigResponseDTO {
