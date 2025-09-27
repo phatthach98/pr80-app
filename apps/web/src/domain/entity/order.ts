@@ -345,13 +345,19 @@ export class Order {
   }
 
   public canMakePayment(): boolean {
-    if (this.type === EOrderType.MAIN) {
-      return (
-        this.status === EOrderStatus.READY &&
-        this.linkedOrders?.every((order) => order.status === EOrderStatus.READY) === true
-      );
+    if (!this.isMainOrder()) {
+      return false;
     }
-    return false;
+
+    if (this.status !== EOrderStatus.READY) {
+      return false;
+    }
+
+    if (!this.linkedOrders || this.linkedOrders.length === 0) {
+      return true;
+    }
+
+    return this.linkedOrders.every((order) => order.status === EOrderStatus.READY);
   }
 
   public isPaid(): boolean {
