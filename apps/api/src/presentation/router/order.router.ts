@@ -11,16 +11,13 @@ import {
   updateOrderStatusValidator,
   updateOrderTableValidator,
   orderIdParamValidator,
-  dishItemIdParamValidator
+  dishItemIdParamValidator,
 } from "@presentation/validators/order.validator";
 
 export const orderRouter = Router();
 
 // Get all orders
-orderRouter.get(
-  "/orders",
-  asyncHandler(OrderController.getAllOrders)
-);
+orderRouter.get("/orders", asyncHandler(OrderController.getAllOrders));
 
 // Get orders by status
 orderRouter.get(
@@ -29,10 +26,7 @@ orderRouter.get(
 );
 
 // Get orders by type
-orderRouter.get(
-  "/orders/type",
-  asyncHandler(OrderController.getOrdersByType)
-);
+orderRouter.get("/orders/type", asyncHandler(OrderController.getOrdersByType));
 
 // Get orders by created by
 orderRouter.get(
@@ -90,13 +84,12 @@ orderRouter.put(
   asyncHandler(OrderController.updateOrder)
 );
 
-// Update order status
+// Update order status based on current status
 orderRouter.patch(
   "/orders/:orderId/status",
   orderIdParamValidator,
-  updateOrderStatusValidator,
   requestValidator,
-  asyncHandler(OrderController.updateOrderStatus)
+  asyncHandler(OrderController.updateOrderStatusBasedOnCurrentStatus)
 );
 
 // Update order table

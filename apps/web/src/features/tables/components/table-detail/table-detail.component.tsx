@@ -2,14 +2,16 @@ import { Order } from '@/domain/entity';
 import { OrderDish } from '@/domain/entity/order-dish';
 import { AddDishToTableForm } from '../add-dish-to-table-form/add-dish-to-table-form.component';
 import { useState } from 'react';
-import { SendIcon } from 'lucide-react';
-import { BackButton, Badge, Button, EditableField } from '@/components/ui';
+import { CreditCardIcon, SendIcon } from 'lucide-react';
+import { BackButton, Button, EditableField } from '@/components/ui';
 import { useRouter } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useCreateUpdateTable, useInitTableDetail, useOrderDishUpdate } from '../../hooks';
 import { TableDetailSummaryPrice } from './summary-price.component';
 import { TableDishItem } from './table-dish-item.component';
 import { useSettingOptionsQuery } from '@/hooks/query';
+import { OrderStatusFromOrder } from '@/features/orders/components';
+import { formatDate } from '@/utils';
 
 export interface TableDetailProps {
   order?: Order;
@@ -32,7 +34,12 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
     createParams?.table || '',
     createParams?.customerCount || 0,
   );
-  const { createDraftTable, createAdditionalTable, updateTable } = useCreateUpdateTable();
+  const {
+    createDraftTable,
+    createAdditionalTable,
+    updateTable,
+    updateOrderStatusBasedOnCurrentStatus,
+  } = useCreateUpdateTable();
   const { addOrderDishToTable } = useOrderDishUpdate();
   const { data: tableOptions } = useSettingOptionsQuery();
 
@@ -94,6 +101,16 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
     router.navigate({ to: '/tables' });
   };
 
+  const handleMakePayment = async () => {
+    if (!activeOrder) {
+      toast.error('Không tìm thấy đơn hàng');
+      return;
+    }
+    updateOrderStatusBasedOnCurrentStatus(activeOrder.id);
+    toast.success('Đơn hàng đã được thanh toán');
+    router.navigate({ to: '/tables' });
+  };
+
   const handleAddOrderDishToOrder = (orderDish: OrderDish) => {
     if (!orderDish) {
       toast.error('Không tìm thấy món ăn');
@@ -140,12 +157,9 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
         <BackButton />
       </div>
 
-      {/* Header with restaurant name */}
+      {/* Header with table name */}
       <div className="mb-4 text-center md:mb-10">
         <h1 className="mb-2 text-xl font-bold md:text-2xl lg:text-3xl">{currentTable.label}</h1>
-        <Badge variant="outline" className="mb-2">
-          {activeOrder.getDisplayStatus()}
-        </Badge>
         <div className="flex items-center justify-center">
           <EditableField
             value={activeOrder.customerCount.toString()}
@@ -171,49 +185,59 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
         />
       </div>
 
-      {/* Dish list  */}
+      {/* All orders (main + linked) */}
       <div>
-        {activeOrder.dishes.length === 0 ? (
-          <p className="text-muted-foreground py-8 text-center md:py-12 md:text-lg">
-            Chưa có món nào
-          </p>
-        ) : (
-          activeOrder.dishes.map((dish) => {
-            return (
-              <TableDishItem
-                isEditable={activeOrder.canEdit()}
-                dish={dish}
-                removeDish={removeDish}
-                handleEditDish={handleEditDish}
-                updateDishQuantity={updateDishQuantity}
-              />
-            );
-          })
-        )}
-      </div>
+        {/* Render each order with its dishes */}
+        {(() => {
+          // Concatenate active order and linked orders
+          const allOrders = [activeOrder, ...(activeOrder.linkedOrders || [])];
 
-      {/* Linked orders */}
-      {activeOrder.linkedOrders && (
-        <div>
-          {activeOrder.linkedOrders.map((order) => {
+          if (
+            allOrders.length === 0 ||
+            (allOrders.length === 1 && activeOrder.dishes.length === 0)
+          ) {
             return (
-              <div key={order.id} className="border-t border-gray-600">
-                {order.dishes.map((dish) => {
-                  return (
-                    <TableDishItem
-                      isEditable={order.canEdit()}
-                      dish={dish}
-                      removeDish={removeDish}
-                      handleEditDish={handleEditDish}
-                      updateDishQuantity={updateDishQuantity}
-                    />
-                  );
-                })}
+              <p className="text-muted-foreground py-8 text-center md:py-12 md:text-lg">
+                Chưa có món nào
+              </p>
+            );
+          }
+
+          return allOrders.map((order, index) => {
+            // Skip rendering if there are no dishes
+            if (order.dishes.length === 0) return null;
+
+            return (
+              <div key={order.id} className={index > 0 ? 'border-t border-gray-600' : ''}>
+                {/* Order header with ID, date and status */}
+                <div className="flex items-center justify-between pt-4 pb-2">
+                  <div>
+                    <div className="font-bold text-gray-700">#{order.id.substring(0, 8)}</div>
+                    <div className="text-sm font-light text-gray-700 italic">
+                      {formatDate(order.createdAt || new Date())}
+                    </div>
+                  </div>
+                  <div className="py-2">
+                    <OrderStatusFromOrder order={order} variant="dot" size="md" />
+                  </div>
+                </div>
+
+                {/* Dishes for this order */}
+                {order.dishes.map((dish) => (
+                  <TableDishItem
+                    key={dish.id}
+                    isEditable={order.canEdit()}
+                    dish={dish}
+                    removeDish={removeDish}
+                    handleEditDish={handleEditDish}
+                    updateDishQuantity={updateDishQuantity}
+                  />
+                ))}
               </div>
             );
-          })}
-        </div>
-      )}
+          });
+        })()}
+      </div>
 
       {/* Additional order */}
       {!activeOrder.canEdit() && (
@@ -241,17 +265,33 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
           orderDish={selectedDishForEdit}
           onOrderDishUpdate={handleAddOrderDishToOrder}
           onClose={() => setSelectedDishForEdit(null)}
+          disabled={activeOrder.isPaid()}
         />
       </div>
 
       {/* Order summary */}
       <TableDetailSummaryPrice activeOrder={activeOrder} additionalOrder={additionalOrder} />
       <div className="mt-8 flex justify-center">
-        <Button className="w-full" variant="default" size="lg" onClick={handleSubmitOrder}>
+        <Button
+          className="w-full"
+          variant="default"
+          size="lg"
+          onClick={handleSubmitOrder}
+          disabled={activeOrder.isPaid()}
+        >
           <SendIcon className="size-4" />
           Gửi
         </Button>
       </div>
+
+      {activeOrder.canMakePayment() && (
+        <div className="mt-4 flex justify-center">
+          <Button className="w-full" variant="default" size="lg" onClick={handleMakePayment}>
+            <CreditCardIcon className="size-4" />
+            Thanh toán
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

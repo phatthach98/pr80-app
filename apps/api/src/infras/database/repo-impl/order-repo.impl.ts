@@ -8,7 +8,7 @@ import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
 export class OrderRepositoryImpl implements OrderRepository {
   async getOrders(): Promise<Order[]> {
     try {
-      const orders = await OrderSchema.find().lean().sort({ createdAt: -1 });
+      const orders = await OrderSchema.find().lean()
 
       if (!orders) {
         return [];

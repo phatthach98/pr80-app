@@ -478,6 +478,7 @@ export class OrderUseCase {
 
   /**
    * Update order status
+   * If main order is updated to paid, all linked orders are also updated to paid
    */
   async updateOrderStatus(id: string, newStatus: EOrderStatus) {
     const order = await this.getOrderById(id);
@@ -491,6 +492,74 @@ export class OrderUseCase {
       this.socketService.emitOrderUpdated(updatedOrder);
     }
 
+    // If this is a main order being updated to PAID status, update all linked orders too
+    if (order.type === EOrderType.MAIN && newStatus === EOrderStatus.PAID) {
+      await this.updateAllLinkedOrdersToPaid(id);
+    }
+
+    return updatedOrder;
+  }
+  
+  /**
+   * Helper method to update all linked orders to paid status in parallel
+   */
+  private async updateAllLinkedOrdersToPaid(mainOrderId: string): Promise<void> {
+    const linkedOrders = await this.orderRepository.getLinkedOrders(mainOrderId);
+    
+    if (!linkedOrders || linkedOrders.length === 0) {
+      return;
+    }
+    
+    try {
+      // Prepare all orders for update
+      const updatePromises = linkedOrders.map(linkedOrder => {
+        // Update status to PAID
+        linkedOrder.updateStatus(EOrderStatus.PAID);
+        
+        // Return promise from update operation
+        return this.orderRepository.update(linkedOrder);
+      });
+      
+      // Run all updates in parallel
+      const updatedOrders = await Promise.all(updatePromises);
+      
+      // Emit socket events for all updated orders (if socket service exists)
+      if (this.socketService) {
+        // We can also run socket emissions in parallel
+        await Promise.all(
+          updatedOrders
+            .filter(order => order !== null) // Filter out any failed updates
+            .map(order => this.socketService!.emitOrderUpdated(order))
+        );
+      }
+    } catch (error) {
+      console.error('Error updating linked orders in parallel:', error);
+      // Continue execution - we don't want to fail the main order update if linked orders fail
+    }
+  }
+
+  /**
+   * Update order status based on current status
+   * If main order is updated to paid, all linked orders are also updated to paid
+   */
+  async updateOrderStatusBasedOnCurrentStatus(id: string) {
+    const order = await this.getOrderById(id);
+    
+    // Update status based on current status for all order types
+    order.updateStatusBasedOnCurrentStatus();
+    
+    const updatedOrder = await this.orderRepository.update(order);
+    
+    // Emit socket event for order update
+    if (this.socketService && updatedOrder) {
+      this.socketService.emitOrderUpdated(updatedOrder);
+    }
+    
+    // If this is a main order that was updated to PAID status, update all linked orders too
+    if (order.type === EOrderType.MAIN && order.status === EOrderStatus.PAID) {
+      await this.updateAllLinkedOrdersToPaid(id);
+    }
+    
     return updatedOrder;
   }
 

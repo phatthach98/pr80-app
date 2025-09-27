@@ -20,12 +20,14 @@ interface AddDishToTableFormProps {
   orderDish: OrderDish | null;
   onOrderDishUpdate: (orderDish: OrderDish) => void;
   onClose: () => void;
+  disabled: boolean;
 }
 
 export function AddDishToTableForm({
   orderDish,
   onOrderDishUpdate,
   onClose,
+  disabled,
 }: AddDishToTableFormProps) {
   const [selectedOrderDish, setSelectedOrderDish] = useState<OrderDish | null>(orderDish);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -69,7 +71,7 @@ export function AddDishToTableForm({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
+        <Button variant="outline" onClick={() => setIsDialogOpen(true)} disabled={disabled}>
           <PlusIcon className="size-4" />
           Thêm món
         </Button>

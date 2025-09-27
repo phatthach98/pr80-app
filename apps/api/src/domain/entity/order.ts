@@ -101,7 +101,18 @@ export class Order {
     return this.totalAmount;
   }
 
+  public updateStatusBasedOnCurrentStatus(): void {
+    // Standard progression for all order types
+    if (this.status === EOrderStatus.COOKING) {
+      this.status = EOrderStatus.READY;
+    } else if (this.status === EOrderStatus.READY) {
+      this.status = EOrderStatus.PAID;
+    }
+    // No transition for DRAFT, PAID or CANCELLED statuses
+  }
+
   public updateStatus(newStatus: EOrderStatus): void {
+    // Direct status update
     this.status = newStatus;
   }
 

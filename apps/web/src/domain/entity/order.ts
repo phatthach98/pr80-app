@@ -305,7 +305,7 @@ export class Order {
   }
 
   public canEdit(): boolean {
-    return this.status === EOrderStatus.DRAFT;
+    return this.status === EOrderStatus.DRAFT; 
   }
 
   public getParsedTotalAmount(): number {
@@ -327,8 +327,6 @@ export class Order {
         return 'Đang nấu';
       case EOrderStatus.READY:
         return 'Sẵn sàng';
-      case EOrderStatus.SERVING:
-        return 'Đang phục vụ';
       case EOrderStatus.PAID:
         return 'Đã thanh toán';
       case EOrderStatus.CANCELLED:
@@ -336,5 +334,19 @@ export class Order {
       default:
         return 'Không xác định';
     }
+  }
+
+  public canMakePayment(): boolean {
+    if (this.type === EOrderType.MAIN) {
+      return (
+        this.status === EOrderStatus.READY &&
+        this.linkedOrders?.every((order) => order.status === EOrderStatus.READY) === true
+      );
+    }
+    return false;
+  }
+
+  public isPaid(): boolean {
+    return this.status === EOrderStatus.PAID;
   }
 }

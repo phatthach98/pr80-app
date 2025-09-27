@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { EOrderStatus } from '@pr80-app/shared-contracts';
 import { useUpdateOrderStatusMutation } from '@/hooks/mutation/orders.mutation';
 import { formatDate } from '@/utils';
+import { OrderStatusFromOrder } from './order-status';
 
 type OrderCardItemProps = {
   order: Order;
@@ -16,35 +17,21 @@ export const OrderCardItem = ({ order }: OrderCardItemProps) => {
     if (order.id && order.status === EOrderStatus.COOKING) {
       updateOrderStatus({
         orderId: order.id,
-        status: EOrderStatus.READY,
       });
     }
   };
 
-  const renderStatusBadge = (status: EOrderStatus) => {
-    switch (status) {
-      case EOrderStatus.COOKING:
-        return <Badge variant="secondary">Đang nấu</Badge>;
-      case EOrderStatus.READY:
-        return <Badge variant="success">Sẵn sàng</Badge>;
-      case EOrderStatus.SERVING:
-        return <Badge>Đang phục vụ</Badge>;
-      case EOrderStatus.PAID:
-        return <Badge variant="outline">Đã thanh toán</Badge>;
-      case EOrderStatus.CANCELLED:
-        return <Badge variant="destructive">Đã hủy</Badge>;
-      default:
-        return <Badge variant="outline">{order.getDisplayStatus()}</Badge>;
-    }
-  };
+  // Using the OrderStatus component instead of renderStatusBadge
 
   const renderSelectedOptions = (dish: OrderDish) => {
     const optionGroups = dish.getDishOptionNameGroupById();
-    
+
     return Object.values(optionGroups).map((options, index) => {
-      const optionText = options.map((option: { itemLabel: string }) => option.itemLabel).join(', ');
+      const optionText = options
+        .map((option: { itemLabel: string }) => option.itemLabel)
+        .join(', ');
       const dishOptionName = options[0]?.dishOptionName || '';
-      
+
       return (
         <div key={index} className="text-sm">
           <span className="font-medium">{dishOptionName}:</span> {optionText}
@@ -54,8 +41,8 @@ export const OrderCardItem = ({ order }: OrderCardItemProps) => {
   };
 
   return (
-    <div className="border rounded-lg p-4 mb-4 shadow-sm">
-      <div className="flex justify-between items-start mb-2">
+    <div className="mb-4 rounded-lg border p-4 shadow-sm">
+      <div className="mb-2 flex items-start justify-between">
         <div>
           <h3 className="font-semibold">Order #{order.id.substring(0, 8)}</h3>
           <p className="text-sm text-gray-500">
@@ -63,13 +50,13 @@ export const OrderCardItem = ({ order }: OrderCardItemProps) => {
           </p>
         </div>
         <div className="flex flex-col items-end">
-          {renderStatusBadge(order.status)}
-          <p className="text-sm mt-1">Bàn: {order.table}</p>
+          <OrderStatusFromOrder order={order} variant="badge" />
+          <p className="mt-1 text-sm">Bàn: {order.table}</p>
         </div>
       </div>
 
       {order.note && (
-        <div className="bg-gray-50 p-2 rounded mb-3">
+        <div className="mb-3 rounded bg-gray-50 p-2">
           <p className="text-sm font-medium">Ghi chú đơn hàng:</p>
           <p className="text-sm">{order.note}</p>
         </div>
@@ -82,16 +69,18 @@ export const OrderCardItem = ({ order }: OrderCardItemProps) => {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{dish.name}</span>
-                  <span className="text-sm bg-gray-100 px-2 py-0.5 rounded">x{dish.quantity}</span>
+                  <span className="rounded bg-gray-100 px-2 py-0.5 text-sm">x{dish.quantity}</span>
                   {dish.takeAway && (
-                    <Badge variant="outline" className="text-xs">Mang về</Badge>
+                    <Badge variant="outline" className="text-xs">
+                      Mang về
+                    </Badge>
                   )}
                 </div>
-                
+
                 {renderSelectedOptions(dish)}
-                
+
                 {dish.note && (
-                  <div className="text-sm mt-1">
+                  <div className="mt-1 text-sm">
                     <span className="font-medium">Ghi chú:</span> {dish.note}
                   </div>
                 )}
