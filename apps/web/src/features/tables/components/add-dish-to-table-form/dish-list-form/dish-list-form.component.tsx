@@ -46,7 +46,7 @@ export function DishListForm({ onSelectDish }: DishListProps) {
             onClick={() => onSelectDish(dish)}
           >
             {/* Dish image */}
-            <div className="relative mr-3 h-20 w-20 overflow-hidden rounded-xl">
+            <div className="relative mr-3 h-16 w-16 overflow-hidden rounded-xl">
               <img src={defaultDishImage} alt={dish.name} className="h-full w-full object-cover" />
             </div>
 

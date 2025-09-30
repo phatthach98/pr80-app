@@ -9,13 +9,15 @@ import {
 } from '@/components/ui/select';
 import { useSettingOptionsQuery } from '@/hooks/query';
 import { ETableStatus } from '@/domain/entity/order';
+import { cn } from '@/tailwind/utils';
 
 interface OrderStatusSelectProps {
   onChange: (value: ETableStatus) => void;
   defaultStatus: ETableStatus;
+  className?: string;
 }
 
-export function OrderStatusSelect({ defaultStatus, onChange }: OrderStatusSelectProps) {
+export function OrderStatusSelect({ defaultStatus, onChange, className }: OrderStatusSelectProps) {
   const { data, isError, isPending } = useSettingOptionsQuery();
 
   if (isError || isPending) {
@@ -34,7 +36,7 @@ export function OrderStatusSelect({ defaultStatus, onChange }: OrderStatusSelect
 
   return (
     <Select onValueChange={onChange} defaultValue={defaultStatus}>
-      <SelectTrigger className="w-auto">
+      <SelectTrigger className={cn('w-auto', className)}>
         <SelectValue placeholder="Lọc đơn hàng" />
       </SelectTrigger>
       <SelectContent>

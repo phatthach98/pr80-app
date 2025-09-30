@@ -20,7 +20,7 @@ export function TableCardDetail({ order }: TableCardDetailProps) {
     <Link
       to="/tables/$id"
       params={{ id: order.id }}
-      className="block w-full hover:no-underline md:max-w-md"
+      className="block w-full hover:no-underline md:w-[calc(50%-16px)] xl:w-[calc(33.33%-16px)]"
     >
       <div className="rounded-lg border-2 border-dashed border-gray-300 p-6">
         <div className="mb-2 text-sm font-light text-gray-700 italic">

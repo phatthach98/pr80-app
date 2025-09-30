@@ -1,15 +1,5 @@
 import * as React from 'react';
-import {
-  BookOpen,
-  Bot,
-  Command,
-  LogOut,
-  Package2Icon,
-  Settings2,
-  SquareTerminal,
-  Table,
-  Table2Icon,
-} from 'lucide-react';
+import { Command, LogOut, Package2Icon, Table2Icon } from 'lucide-react';
 
 import { NavMain } from '@/components';
 import {

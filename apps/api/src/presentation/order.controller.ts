@@ -19,30 +19,56 @@ const orderUseCase = container.resolve<OrderUseCase>(ORDER_USE_CASE);
 
 export class OrderController {
   static async getAllOrders(
-    req: Request<{}, {}, {}, { status?: EOrderStatus; type?: EOrderType; userId?: string; table?: string }>,
+    req: Request<
+      {},
+      {},
+      {},
+      {
+        status?: EOrderStatus;
+        type?: EOrderType;
+        userId?: string;
+        table?: string;
+        createdAt?: string;
+      }
+    >,
     res: Response<OrderResponseDTO[]>
   ) {
-    const { status, type, userId, table } = req.query;
-    
     // Build filters object based on query parameters using a mapping object
     const filterMapping: Record<string, keyof OrderFilters> = {
-      status: 'status',
-      type: 'type',
-      userId: 'createdBy',
-      table: 'table'
+      status: "status",
+      type: "type",
+      userId: "createdBy",
+      createdAt: "createdAt",
+      table: "table",
     };
-    
+
     // Create filters object by mapping query params to filter properties
     const filters: OrderFilters = Object.entries(req.query)
-      .filter(([key, value]) => 
-        key in filterMapping && value !== undefined && value !== ''
+      .filter(
+        ([key, value]) =>
+          key in filterMapping && value !== undefined && value !== ""
       )
       .reduce((acc, [key, value]) => {
         const filterKey = filterMapping[key];
+        
+        // Pass createdAt directly as a string (YYYY-MM-DD format)
+        // The repository will handle the date range creation
+        if (key === 'createdAt' && typeof value === 'string') {
+          // Validate that the string looks like a date (simple check)
+          if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+            return { ...acc, [filterKey]: value };
+          }
+          // If invalid date format, skip this filter
+          console.warn(`Invalid date format for createdAt: ${value}`);
+          return acc;
+        }
+        
         return { ...acc, [filterKey]: value };
       }, {});
-    
-    const orders = await orderUseCase.getOrders(Object.keys(filters).length > 0 ? filters : undefined);
+
+    const orders = await orderUseCase.getOrders(
+      Object.keys(filters).length > 0 ? filters : undefined
+    );
     res.json(orders ? orders.map((order) => order.toJSON()) : []);
   }
 
@@ -60,7 +86,6 @@ export class OrderController {
       linkedOrders: order.linkedOrders.map((order) => order.toJSON()),
     });
   }
-
 
   static async getOrderWithLinkedOrders(
     req: Request<{ orderId: string }>,
@@ -183,7 +208,9 @@ export class OrderController {
   ) {
     const { orderId } = req.params;
 
-    const order = await orderUseCase.updateOrderStatusBasedOnCurrentStatus(orderId);
+    const order = await orderUseCase.updateOrderStatusBasedOnCurrentStatus(
+      orderId
+    );
     if (order) {
       res.json(order.toJSON());
     } else {

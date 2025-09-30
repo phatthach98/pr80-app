@@ -1,38 +1,29 @@
-import { Badge } from '@/components/ui';
 import { useOrdersSocket } from '../hooks';
-import { useStore } from '@tanstack/react-store';
-import { socketStore } from '@/store/socket.store';
 import { OrderCardItem } from '../components';
+import { EmptyState, SocketStatus } from '@/components';
 
 export const OrdersPage = () => {
-  // Use the page-specific socket hook
   const { realTimeOrdersQuery } = useOrdersSocket();
-  const { data: cookingOrders, error, isPending } = realTimeOrdersQuery;
-  const { connectionStatus } = useStore(socketStore);
-  if (isPending) {
-    return <div>Đang tải danh sách đơn hàng...</div>;
-  }
+  const { data: cookingOrders, error } = realTimeOrdersQuery;
+
   if (error) {
     return <div>Lỗi tải danh sách đơn hàng: {error.message}</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Đơn hàng đang chờ</h1>
-        <Badge variant="success" className="text-sm">
-          {connectionStatus === 'connected' ? 'Cập nhật thời gian thực' : 'Đang kết nối...'}
-        </Badge>
+    <div className="mt-4 flex flex-1 flex-col gap-8">
+      <div className="flex flex-col items-center justify-between">
+        <h1 className="text-2xl font-bold">Đơn Đang Chờ</h1>
+        <SocketStatus className="mt-4" />
       </div>
+      {cookingOrders.length === 0 && <EmptyState title="Không có đơn hàng đang chờ"></EmptyState>}
 
-      {cookingOrders && cookingOrders.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {cookingOrders.length > 0 && (
+        <div className="flex flex-col flex-wrap gap-4 md:flex-row">
           {cookingOrders.map((order) => (
-            <OrderCardItem key={order.id} order={order} />
+            <OrderCardItem key={order.id} order={order} className="w-[48%]" />
           ))}
         </div>
-      ) : (
-        <div className="py-8 text-center text-gray-500">No orders currently in kitchen</div>
       )}
     </div>
   );

@@ -1,21 +1,49 @@
-import { v4 as uuid } from "uuid";
-import { OrderRepository, OrderFilters } from "@application/interface/repository/order-repo.interface";
+import {
+  OrderRepository,
+  OrderFilters,
+} from "@application/interface/repository/order-repo.interface";
 import { Order } from "@domain/entity/order";
 import { OrderSchema } from "../schemas/order-schema";
 import { formatDecimal } from "../utils/mongodb.util";
-import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
+import { TZDate } from "@date-fns/tz";
+import { endOfDay, startOfDay } from "date-fns";
 
 export class OrderRepositoryImpl implements OrderRepository {
   async getOrders(filters?: OrderFilters): Promise<Order[]> {
     try {
-      // Build query based on filters - only include defined properties
-      const query = filters ? Object.fromEntries(
-        Object.entries(filters).filter(([_, value]) => value !== undefined)
-      ) : {};
+      // Build aggregation pipeline
+      const pipeline: any[] = [];
 
-      const orders = await OrderSchema.find(query).lean();
+      // Match stage for filtering
+      if (filters) {
+        const matchStage: any = {};
 
-      if (!orders) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined) {
+            // Special handling for createdAt date filter
+            if (key === "createdAt") {
+              const tzDate = new TZDate(value, "Asia/Ho_Chi_Minh");
+              matchStage[key] = {
+                $gte: startOfDay(tzDate),
+                $lte: endOfDay(tzDate),
+              };
+            } else {
+              // For all other filters, use direct equality
+              matchStage[key] = value;
+            }
+          }
+        });
+
+        if (Object.keys(matchStage).length > 0) {
+          pipeline.push({ $match: matchStage });
+        }
+      }
+
+      pipeline.push({ $sort: { createdAt: 1 } });
+
+      const orders = await OrderSchema.aggregate(pipeline).exec();
+
+      if (!orders || orders.length === 0) {
         return [];
       }
 
@@ -41,7 +69,6 @@ export class OrderRepositoryImpl implements OrderRepository {
       return null;
     }
   }
-
 
   async getLinkedOrders(orderId: string): Promise<Order[] | null> {
     try {
