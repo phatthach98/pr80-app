@@ -62,7 +62,7 @@ export function AddDishToTableForm({
 
   return (
     <Dialog
-    open={isDialogOpen}
+      open={isDialogOpen}
       onOpenChange={(open) => {
         setIsDialogOpen(open);
         if (!open) {
@@ -71,13 +71,18 @@ export function AddDishToTableForm({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" onClick={() => setIsDialogOpen(true)} disabled={disabled}>
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={() => setIsDialogOpen(true)}
+          disabled={disabled}
+        >
           <PlusIcon className="size-4" />
           Thêm món
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[425px] max-h-[90vh] overflow-auto p-4 md:p-6"
+        className="max-h-[90vh] overflow-auto p-4 sm:max-w-[425px] md:p-6"
         onCloseAutoFocus={() => {
           handleClose();
         }}
@@ -111,7 +116,9 @@ export function AddDishToTableForm({
         {!selectedOrderDish && (
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Huỷ</Button>
+              <Button variant="outline" size={'lg'}>
+                Huỷ
+              </Button>
             </DialogClose>
           </DialogFooter>
         )}

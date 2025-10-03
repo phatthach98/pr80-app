@@ -40,7 +40,11 @@ const formValidator = z.object({
 
 type CreateDraftTableFormDataType = z.infer<typeof formValidator>;
 
-export function CreateDraftTableForm() {
+type CreateDraftTableFormProps = {
+  size?: 'default' | 'sm' | 'lg';
+};
+
+export function CreateDraftTableForm({ size = 'sm' }: CreateDraftTableFormProps) {
   const [open, setOpen] = React.useState(false);
   const form = useForm<CreateDraftTableFormDataType>({
     defaultValues: {
@@ -77,7 +81,7 @@ export function CreateDraftTableForm() {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="default" size="sm" type="button">
+        <Button variant="default" size={size} type="button">
           <PlusIcon className="size-4" />
           Tạo đơn mới
         </Button>

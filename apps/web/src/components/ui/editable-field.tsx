@@ -107,8 +107,9 @@ export function EditableField({
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className={cn('min-h-[80px]', inputClassName)}
+              className={cn('min-h-[40px]', inputClassName)}
               disabled={disabled}
+              rows={2}
             />
           ) : (
             <Input

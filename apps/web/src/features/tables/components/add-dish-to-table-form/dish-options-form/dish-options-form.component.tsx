@@ -62,14 +62,14 @@ export function DishOptionsForm({
   };
 
   return (
-    <div className="flex flex-col justify-between gap-6">
+    <div className="flex flex-col justify-between gap-2 md:gap-6">
       {/* Header with back button and price */}
       <div className="flex items-center justify-between">
         {!isEditing && (
           <Button
             variant="ghost"
             onClick={onBack}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 p-0"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 p-0"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </Button>
@@ -82,7 +82,7 @@ export function DishOptionsForm({
 
       {/* Dish image */}
       <div className="flex justify-center">
-        <div className="relative h-24 w-24 overflow-hidden rounded-full">
+        <div className="relative h-20 w-20 overflow-hidden rounded-full">
           <img
             src={defaultDishImage}
             alt={dishDetail.name}
@@ -99,6 +99,7 @@ export function DishOptionsForm({
         value={note}
         onChange={(e) => setNote(e.target.value)}
         placeholder="Ghi chú"
+        rows={2}
       />
 
       {/* Options selection */}
@@ -116,7 +117,7 @@ export function DishOptionsForm({
             checked={takeAway}
             onCheckedChange={(checked) => setTakeAway(checked === true)}
           />
-          <label htmlFor="takeAway" className="cursor-pointer text-sm font-medium text-gray-700">
+          <label htmlFor="takeAway" className="cursor-pointer font-medium">
             Mang về
           </label>
         </div>
@@ -137,7 +138,7 @@ export function DishOptionsForm({
           disabled={Object.keys(selectedOptions).length === 0}
           className="text-md rounded-full py-6"
         >
-          <ShoppingBagIcon className="h-5 w-5" />
+          <ShoppingBagIcon className="h-4 w-4" />
           {isEditing ? 'Cập nhật món' : 'Thêm món'}
         </Button>
       </div>

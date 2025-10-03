@@ -12,6 +12,7 @@ import { TableDishItem } from './table-dish-item.component';
 import { useSettingOptionsQuery } from '@/hooks/query';
 import { OrderStatusFromOrder } from '@/features/orders/components';
 import { formatDate } from '@/utils';
+import { FullPageLoader } from '@/components/ui/loading-spinner';
 
 export interface TableDetailProps {
   order?: Order;
@@ -42,6 +43,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
   } = useCreateUpdateTable();
   const { addOrderDishToTable } = useOrderDishUpdate();
   const { data: tableOptions } = useSettingOptionsQuery();
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
   // Helper function to remove dish
@@ -83,6 +85,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
   };
 
   const handleSubmitOrder = async () => {
+    setIsLoading(true);
     if (!activeOrder) {
       toast.error('Không tìm thấy đơn hàng');
       return;
@@ -97,12 +100,14 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
     if (!activeOrder.canEdit()) {
       await updateTable(activeOrder);
     }
+    setIsLoading(false);
     toast.success('Đơn hàng đã được gửi');
     router.navigate({ to: '/tables' });
   };
 
   const handleMakePayment = async () => {
     try {
+      setIsLoading(true);
       if (!activeOrder) {
         toast.error('Không tìm thấy đơn hàng');
         return;
@@ -112,6 +117,8 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
       router.navigate({ to: '/tables' });
     } catch {
       toast.error('Thanh toán thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -143,7 +150,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
   };
 
   if (isPending) {
-    return <div>Đang tải đơn hàng...</div>;
+    return <FullPageLoader />;
   }
 
   if (isError) {
@@ -179,12 +186,12 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
 
       <div className="bg-secondary/50 mb-6 rounded-md border border-dashed border-gray-400 p-4 md:mb-10">
         <EditableField
-          label="Ghi chú"
+          label="Ghi chú bàn"
           value={activeOrder.note || ''}
           onSave={handleUpdateNote}
           type="textarea"
           placeholder="Không có ghi chú. Nhấp để thêm ghi chú."
-          displayClassName="text-sm text-gray-600 md:text-base min-h-[40px]"
+          displayClassName="text-sm text-gray-600 md:text-base"
           labelClassName="font-medium mb-2"
         />
       </div>
@@ -201,7 +208,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
             (allOrders.length === 1 && activeOrder.dishes.length === 0)
           ) {
             return (
-              <p className="text-muted-foreground py-8 text-center md:py-12 md:text-lg">
+              <p className="text-muted-foreground py-6 text-center md:py-12 md:text-lg">
                 Chưa có món nào
               </p>
             );
@@ -216,7 +223,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
                 {/* Order header with ID, date and status */}
                 <div className="flex items-center justify-between pt-4 pb-2">
                   <div>
-                    <div className="font-bold text-gray-700">#{order.id.substring(0, 8)}</div>
+                    <div className="font-bold text-gray-700">#{order.getDisplayOrderId()}</div>
                     <div className="text-sm font-light text-gray-700 italic">
                       {formatDate(order.createdAt || new Date())}
                     </div>
@@ -281,7 +288,8 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
           variant="default"
           size="lg"
           onClick={handleSubmitOrder}
-          disabled={activeOrder.isPaid()}
+          disabled={activeOrder.isPaid() || isLoading}
+          isLoading={isLoading}
         >
           <SendIcon className="size-4" />
           Gửi
@@ -290,7 +298,13 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
 
       {activeOrder.canMakePayment() && (
         <div className="mt-4 flex justify-center">
-          <Button className="w-full" variant="default" size="lg" onClick={handleMakePayment}>
+          <Button
+            className="w-full"
+            variant="default"
+            size="lg"
+            onClick={handleMakePayment}
+            isLoading={isLoading}
+          >
             <CreditCardIcon className="size-4" />
             Thanh toán
           </Button>

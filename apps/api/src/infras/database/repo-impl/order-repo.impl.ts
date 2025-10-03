@@ -1,21 +1,101 @@
-import { v4 as uuid } from "uuid";
-import { OrderRepository, OrderFilters } from "@application/interface/repository/order-repo.interface";
+import {
+  OrderRepository,
+  OrderFilters,
+} from "@application/interface/repository/order-repo.interface";
 import { Order } from "@domain/entity/order";
 import { OrderSchema } from "../schemas/order-schema";
 import { formatDecimal } from "../utils/mongodb.util";
-import { EOrderStatus, EOrderType } from "@pr80-app/shared-contracts";
+import { TZDate } from "@date-fns/tz";
+import { endOfDay, startOfDay } from "date-fns";
 
 export class OrderRepositoryImpl implements OrderRepository {
   async getOrders(filters?: OrderFilters): Promise<Order[]> {
     try {
-      // Build query based on filters - only include defined properties
-      const query = filters ? Object.fromEntries(
-        Object.entries(filters).filter(([_, value]) => value !== undefined)
-      ) : {};
+      // Build aggregation pipeline
+      const pipeline: any[] = [];
 
-      const orders = await OrderSchema.find(query).lean();
+      // Match stage for filtering
+      if (filters) {
+        const matchStage: any = {};
 
-      if (!orders) {
+        // Track invalid filter keys for logging
+        const invalidFilterKeys: string[] = [];
+        const invalidFilterTypes: Record<string, string> = {};
+
+        Object.entries(filters).forEach(([key, value]) => {
+          // Skip undefined values and keys starting with '$' (MongoDB operators)
+          if (value === undefined || key.startsWith('$')) {
+            if (key.startsWith('$')) {
+              invalidFilterKeys.push(key);
+              invalidFilterTypes[key] = 'rejected_operator';
+            }
+            return;
+          }
+
+          // Special handling for createdAt date filter
+          if (key === "createdAt") {
+            try {
+              let tzDate;
+              
+              // Handle both string and Date types
+              if (typeof value === 'string') {
+                // Parse YYYY-MM-DD format from frontend
+                if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                  // Create a date in the Asia/Ho_Chi_Minh timezone
+                  tzDate = new TZDate(`${value}T00:00:00`, "Asia/Ho_Chi_Minh");
+                } else {
+                  throw new Error('Invalid date format. Expected YYYY-MM-DD');
+                }
+              } else if (value instanceof Date) {
+                // If it's already a Date object
+                tzDate = new TZDate(value, "Asia/Ho_Chi_Minh");
+              } else {
+                throw new Error(`Invalid createdAt value type: ${typeof value}`);
+              }
+              
+              // Create date range in the user's timezone (Asia/Ho_Chi_Minh)
+              matchStage[key] = {
+                $gte: startOfDay(tzDate),
+                $lte: endOfDay(tzDate),
+              };
+            } catch (error) {
+              // Log error type without including the original value
+              const errorType = error instanceof Error ? 'validation_error' : 'unknown_error';
+              const errorMessage = error instanceof Error ? error.message.replace(/:.+/, '') : 'Unknown error';
+              
+              console.warn(`Error processing ${key} filter: ${errorMessage} (${errorType})`);
+              
+              invalidFilterKeys.push(key);
+              invalidFilterTypes[key] = errorType;
+            }
+          } else {
+            // For all other filters, only accept primitive values
+            const valueType = typeof value;
+            if (valueType === 'string' || valueType === 'number' || valueType === 'boolean') {
+              // For all other filters, use direct equality with primitive values only
+              matchStage[key] = value;
+            } else {
+              invalidFilterKeys.push(key);
+              invalidFilterTypes[key] = `invalid_type_${valueType}`;
+            }
+          }
+        });
+        
+        // Log any invalid filters that were rejected (keys only, no values)
+        if (invalidFilterKeys.length > 0) {
+          console.warn(`Rejected ${invalidFilterKeys.length} invalid order filters. Keys: [${invalidFilterKeys.join(', ')}]`);
+        }
+
+        if (Object.keys(matchStage).length > 0) {
+          pipeline.push({ $match: matchStage });
+        }
+      }
+
+      pipeline.push({ $sort: { createdAt: 1 } });
+
+      const orders = await OrderSchema.aggregate(pipeline).exec();
+
+      if (!orders || orders.length === 0) {
         return [];
       }
 
@@ -41,7 +121,6 @@ export class OrderRepositoryImpl implements OrderRepository {
       return null;
     }
   }
-
 
   async getLinkedOrders(orderId: string): Promise<Order[] | null> {
     try {

@@ -1,23 +1,20 @@
 import { useOrdersQuery } from '@/hooks/query';
 import { ETableStatus } from '@/domain/entity/order';
-import { OrderStatusSelect, TableCardDetail } from '../components';
+import { CreateDraftTableForm, OrderStatusSelect, TableCardDetail } from '../components';
 import { useState } from 'react';
+import { startOfToday } from 'date-fns';
+import { EmptyState } from '@/components';
+import { BackButton } from '@/components/ui';
 
 export function TablesPage() {
-  const { data: orders = [], isPending, isError } = useOrdersQuery();
+  const { data: orders = [], isError } = useOrdersQuery({
+    createdAt: startOfToday(),
+  });
   const [orderStatus, setOrderStatus] = useState<ETableStatus>(ETableStatus.ALL);
   const mainOrders = orders.filter((order) => order.isMainOrder());
 
-  if (isPending) {
-    return <div>Đang tải đơn hàng...</div>;
-  }
-
   if (isError) {
     return <div>Lỗi tải đơn hàng</div>;
-  }
-
-  if (mainOrders.length === 0) {
-    return <div>Không có đơn hàng</div>;
   }
 
   const handleOrderStatusChange = (value: ETableStatus) => {
@@ -30,15 +27,29 @@ export function TablesPage() {
       : mainOrders.filter((order) => order.tableStatus === orderStatus);
 
   return (
-    <>
-      <div>
-        <OrderStatusSelect defaultStatus={ETableStatus.ALL} onChange={handleOrderStatusChange} />
+    <div className="mt-4 flex flex-1 flex-col gap-8">
+      <div className="flex flex-row items-center justify-between">
+        <h1 className="text-2xl font-bold">Danh Sách Bàn</h1>
+        <OrderStatusSelect
+          className="mb-4 min-h-[40px] min-w-[200px]"
+          defaultStatus={ETableStatus.ALL}
+          onChange={handleOrderStatusChange}
+        />
       </div>
-      <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
-        {filteredOrders.map((order, index) => {
-          return <TableCardDetail key={index} order={order} />;
-        })}
-      </div>
-    </>
+
+      {filteredOrders.length === 0 && (
+        <EmptyState title="Không có đơn hàng">
+          <CreateDraftTableForm size="lg" />
+        </EmptyState>
+      )}
+
+      {filteredOrders.length > 0 && (
+        <div className="flex flex-col items-center gap-4 md:flex-row md:flex-wrap">
+          {filteredOrders.map((order, index) => {
+            return <TableCardDetail key={index} order={order} />;
+          })}
+        </div>
+      )}
+    </div>
   );
 }

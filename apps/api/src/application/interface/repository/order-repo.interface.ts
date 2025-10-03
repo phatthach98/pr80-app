@@ -6,6 +6,7 @@ export interface OrderFilters {
   type?: EOrderType;
   createdBy?: string;
   table?: string;
+  createdAt?: string | Date;
 }
 
 export interface OrderRepository {

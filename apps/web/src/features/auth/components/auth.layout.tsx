@@ -1,10 +1,11 @@
 import { AppSidebar, SiteHeader } from '@/components';
-import { SidebarInset, SidebarProvider, Skeleton } from '@/components/ui';
+import { SidebarInset, SidebarProvider } from '@/components/ui';
 import { authStore, useAuth } from '@/features/auth/hooks';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useStore } from '@tanstack/react-store';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { authLocalStorageUtil } from '@/utils/auth-local-storage.util';
+import { FullPageLoader } from '@/components/ui/loading-spinner';
 
 export function AuthLayout() {
   const { getMe, getRefreshToken, logout: authLogout } = useAuth();
@@ -76,36 +77,24 @@ export function AuthLayout() {
   }, []);
 
   if (!isAuthenticated) {
-    return (
-      <>
-        <div className="space-y-2 pb-6">
-          <Skeleton className="h-16 w-full" />
-        </div>
-        <div className="flex flex-row flex-wrap items-center justify-around gap-4 p-4">
-          <Skeleton className="mb-4 h-[184px] w-[48%] rounded-xl" />
-          <Skeleton className="mb-4 h-[184px] w-[48%] rounded-xl" />
-          <Skeleton className="mb-4 h-[184px] w-[48%] rounded-xl" />
-          <Skeleton className="mb-4 h-[184px] w-[48%] rounded-xl" />
-          <Skeleton className="mb-4 h-[184px] w-[48%] rounded-xl" />
-          <Skeleton className="mb-4 h-[184px] w-[48%] rounded-xl" />
-        </div>
-      </>
-    );
+    return <FullPageLoader />;
   }
 
   return (
-    <div className="[--header-height:calc(--spacing(14))]">
-      <SidebarProvider className="flex flex-col">
-        <SiteHeader />
-        <div className="flex flex-1">
-          <AppSidebar />
-          <SidebarInset>
-            <div className="flex flex-1 flex-col gap-4 p-4">
-              <Outlet />
-            </div>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-    </div>
+    <Suspense fallback={<FullPageLoader />}>
+      <div className="[--header-height:calc(--spacing(14))]">
+        <SidebarProvider className="flex flex-col" defaultOpen={false}>
+          <SiteHeader />
+          <div className="flex flex-1">
+            <AppSidebar />
+            <SidebarInset>
+              <div className="flex flex-1 flex-col gap-4 p-4">
+                <Outlet />
+              </div>
+            </SidebarInset>
+          </div>
+        </SidebarProvider>
+      </div>
+    </Suspense>
   );
 }

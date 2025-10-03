@@ -38,7 +38,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
               <span className="sr-only"></span>
             </a>
             <h1 className="text-center text-xl font-bold">
-              Không có khách hàng nào là người xa lạ, tất cả đều là bạn bè cần được giúp đỡ.
+              Đăng nhập
             </h1>
           </div>
           <div className="flex flex-col gap-6">

@@ -6,6 +6,7 @@ import { EOrderStatus } from '@pr80-app/shared-contracts';
 import { useSocketConnection } from '@/hooks/socket/use-socket-connection';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOrdersQuery } from '@/hooks/query/orders.query';
+import { startOfToday } from 'date-fns';
 
 /**
  * Hook to manage socket connection specifically for the Orders page
@@ -16,6 +17,7 @@ export const useOrdersSocket = () => {
   const queryClient = useQueryClient();
   const realTimeOrdersQuery = useOrdersQuery({
     status: EOrderStatus.COOKING,
+    createdAt: startOfToday(),
   });
   useEffect(() => {
     // Handle order created event

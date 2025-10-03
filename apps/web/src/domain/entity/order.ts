@@ -381,4 +381,8 @@ export class Order {
         return 'Không xác định';
     }
   }
+
+  public getDisplayOrderId(): string {
+    return this.id.substring(0, 8);
+  }
 }
