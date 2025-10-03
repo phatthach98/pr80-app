@@ -102,7 +102,7 @@ export const CenteredSkeletonLoader: React.FC<{
 
 export const FullPageLoader: React.FC = () => {
   return (
-    <div className="bg-background/80 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+    <div className="bg-background/80 fixed inset-0 z-60 flex items-center justify-center backdrop-blur-sm">
       <CenteredSkeletonLoader />
     </div>
   );

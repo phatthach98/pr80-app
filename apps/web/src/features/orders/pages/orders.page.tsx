@@ -21,7 +21,11 @@ export const OrdersPage = () => {
       {cookingOrders.length > 0 && (
         <div className="flex flex-col flex-wrap gap-4 md:flex-row">
           {cookingOrders.map((order) => (
-            <OrderCardItem key={order.id} order={order} className="w-[48%]" />
+            <OrderCardItem
+              key={order.id}
+              order={order}
+              className="w-full md:w-[calc(50%-0.5rem)]"
+            />
           ))}
         </div>
       )}

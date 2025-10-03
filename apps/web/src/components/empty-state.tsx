@@ -24,11 +24,6 @@ export interface EmptyStateProps {
   contentClassName?: string;
 
   /**
-   * Optional image size
-   */
-  imageSize?: 'sm' | 'md' | 'lg';
-
-  /**
    * Optional children to render below the description
    */
   children?: React.ReactNode;

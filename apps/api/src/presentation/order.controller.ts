@@ -52,14 +52,14 @@ export class OrderController {
         const filterKey = filterMapping[key];
         
         // Pass createdAt directly as a string (YYYY-MM-DD format)
-        // The repository will handle the date range creation
+        // The repository will handle the date range creation and timezone conversion
         if (key === 'createdAt' && typeof value === 'string') {
-          // Validate that the string looks like a date (simple check)
-          if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+          // Validate that the string is exactly in YYYY-MM-DD format
+          if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
             return { ...acc, [filterKey]: value };
           }
           // If invalid date format, skip this filter
-          console.warn(`Invalid date format for createdAt: ${value}`);
+          console.warn(`Invalid date format for createdAt: ${value}. Expected YYYY-MM-DD`);
           return acc;
         }
         

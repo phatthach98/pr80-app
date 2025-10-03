@@ -41,7 +41,7 @@ const formValidator = z.object({
 type CreateDraftTableFormDataType = z.infer<typeof formValidator>;
 
 type CreateDraftTableFormProps = {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'default' | 'sm' | 'lg';
 };
 
 export function CreateDraftTableForm({ size = 'sm' }: CreateDraftTableFormProps) {

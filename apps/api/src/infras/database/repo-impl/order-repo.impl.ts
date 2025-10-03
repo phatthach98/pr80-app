@@ -18,21 +18,64 @@ export class OrderRepositoryImpl implements OrderRepository {
       if (filters) {
         const matchStage: any = {};
 
+        // Track invalid filters for logging
+        const invalidFilters: string[] = [];
+
         Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined) {
-            // Special handling for createdAt date filter
-            if (key === "createdAt") {
-              const tzDate = new TZDate(value, "Asia/Ho_Chi_Minh");
+          // Skip undefined values and keys starting with '$' (MongoDB operators)
+          if (value === undefined || key.startsWith('$')) {
+            if (key.startsWith('$')) {
+              invalidFilters.push(`Rejected operator key: ${key}`);
+            }
+            return;
+          }
+
+          // Special handling for createdAt date filter
+          if (key === "createdAt") {
+            try {
+              let tzDate;
+              
+              // Handle both string and Date types
+              if (typeof value === 'string') {
+                // Parse YYYY-MM-DD format from frontend
+                if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                  // Create a date in the Asia/Ho_Chi_Minh timezone
+                  tzDate = new TZDate(`${value}T00:00:00`, "Asia/Ho_Chi_Minh");
+                } else {
+                  throw new Error(`Invalid date format: ${value}. Expected YYYY-MM-DD`);
+                }
+              } else if (value instanceof Date) {
+                // If it's already a Date object
+                tzDate = new TZDate(value, "Asia/Ho_Chi_Minh");
+              } else {
+                throw new Error(`Invalid createdAt value type: ${typeof value}`);
+              }
+              
+              // Create date range in the user's timezone (Asia/Ho_Chi_Minh)
               matchStage[key] = {
                 $gte: startOfDay(tzDate),
                 $lte: endOfDay(tzDate),
               };
-            } else {
-              // For all other filters, use direct equality
+            } catch (error) {
+              console.warn(`Error processing createdAt filter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+              invalidFilters.push(`Invalid createdAt value: ${value}`);
+            }
+          } else {
+            // For all other filters, only accept primitive values
+            const valueType = typeof value;
+            if (valueType === 'string' || valueType === 'number' || valueType === 'boolean') {
+              // For all other filters, use direct equality with primitive values only
               matchStage[key] = value;
+            } else {
+              invalidFilters.push(`Invalid value type for ${key}: ${valueType}`);
             }
           }
         });
+        
+        // Log any invalid filters that were rejected
+        if (invalidFilters.length > 0) {
+          console.warn(`Rejected invalid order filters: ${invalidFilters.join(', ')}`);
+        }
 
         if (Object.keys(matchStage).length > 0) {
           pipeline.push({ $match: matchStage });

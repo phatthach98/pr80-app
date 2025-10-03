@@ -2,6 +2,7 @@ import { apiClient } from '@/api/api-client';
 import { Order } from '@/domain/entity';
 import { EOrderStatus, OrderResponseDTO } from '@pr80-app/shared-contracts';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
 
 // Query key factory pattern for orders domain
 export const ordersKeys = {
@@ -14,7 +15,7 @@ export const ordersKeys = {
           ...filters,
           // If createdAt exists, format it as YYYY-MM-DD only
           ...(filters.createdAt && {
-            createdAt: filters.createdAt.toISOString(),
+            createdAt: format(filters.createdAt, 'yyyy-MM-dd'),
           }),
         }
       : undefined;
@@ -80,7 +81,7 @@ export const useOrdersQuery = (filters?: { status?: EOrderStatus; createdAt?: Da
 
   // Format date to YYYY-MM-DD for API requests
   if (filters?.createdAt) {
-    processedFilters.createdAt = filters.createdAt.toISOString();
+    processedFilters.createdAt = format(filters.createdAt, 'yyyy-MM-dd');
   }
 
   return useSuspenseQuery({
