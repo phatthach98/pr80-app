@@ -18,14 +18,16 @@ export class OrderRepositoryImpl implements OrderRepository {
       if (filters) {
         const matchStage: any = {};
 
-        // Track invalid filters for logging
-        const invalidFilters: string[] = [];
+        // Track invalid filter keys for logging
+        const invalidFilterKeys: string[] = [];
+        const invalidFilterTypes: Record<string, string> = {};
 
         Object.entries(filters).forEach(([key, value]) => {
           // Skip undefined values and keys starting with '$' (MongoDB operators)
           if (value === undefined || key.startsWith('$')) {
             if (key.startsWith('$')) {
-              invalidFilters.push(`Rejected operator key: ${key}`);
+              invalidFilterKeys.push(key);
+              invalidFilterTypes[key] = 'rejected_operator';
             }
             return;
           }
@@ -42,7 +44,7 @@ export class OrderRepositoryImpl implements OrderRepository {
                   // Create a date in the Asia/Ho_Chi_Minh timezone
                   tzDate = new TZDate(`${value}T00:00:00`, "Asia/Ho_Chi_Minh");
                 } else {
-                  throw new Error(`Invalid date format: ${value}. Expected YYYY-MM-DD`);
+                  throw new Error('Invalid date format. Expected YYYY-MM-DD');
                 }
               } else if (value instanceof Date) {
                 // If it's already a Date object
@@ -57,8 +59,14 @@ export class OrderRepositoryImpl implements OrderRepository {
                 $lte: endOfDay(tzDate),
               };
             } catch (error) {
-              console.warn(`Error processing createdAt filter: ${error instanceof Error ? error.message : 'Unknown error'}`);
-              invalidFilters.push(`Invalid createdAt value: ${value}`);
+              // Log error type without including the original value
+              const errorType = error instanceof Error ? 'validation_error' : 'unknown_error';
+              const errorMessage = error instanceof Error ? error.message.replace(/:.+/, '') : 'Unknown error';
+              
+              console.warn(`Error processing ${key} filter: ${errorMessage} (${errorType})`);
+              
+              invalidFilterKeys.push(key);
+              invalidFilterTypes[key] = errorType;
             }
           } else {
             // For all other filters, only accept primitive values
@@ -67,14 +75,15 @@ export class OrderRepositoryImpl implements OrderRepository {
               // For all other filters, use direct equality with primitive values only
               matchStage[key] = value;
             } else {
-              invalidFilters.push(`Invalid value type for ${key}: ${valueType}`);
+              invalidFilterKeys.push(key);
+              invalidFilterTypes[key] = `invalid_type_${valueType}`;
             }
           }
         });
         
-        // Log any invalid filters that were rejected
-        if (invalidFilters.length > 0) {
-          console.warn(`Rejected invalid order filters: ${invalidFilters.join(', ')}`);
+        // Log any invalid filters that were rejected (keys only, no values)
+        if (invalidFilterKeys.length > 0) {
+          console.warn(`Rejected ${invalidFilterKeys.length} invalid order filters. Keys: [${invalidFilterKeys.join(', ')}]`);
         }
 
         if (Object.keys(matchStage).length > 0) {

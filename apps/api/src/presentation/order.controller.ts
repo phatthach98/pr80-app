@@ -12,7 +12,11 @@ import {
   AddOrderItemRequestDTO,
   UpdateOrderItemQuantityRequestDTO,
 } from "@pr80-app/shared-contracts";
-import { NotFoundError, UnauthorizedError } from "@application/errors";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "@application/errors";
 
 // Resolve use case at the top level outside the class
 const orderUseCase = container.resolve<OrderUseCase>(ORDER_USE_CASE);
@@ -50,19 +54,23 @@ export class OrderController {
       )
       .reduce((acc, [key, value]) => {
         const filterKey = filterMapping[key];
-        
+
         // Pass createdAt directly as a string (YYYY-MM-DD format)
         // The repository will handle the date range creation and timezone conversion
-        if (key === 'createdAt' && typeof value === 'string') {
+        if (key === "createdAt" && typeof value === "string") {
           // Validate that the string is exactly in YYYY-MM-DD format
           if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
             return { ...acc, [filterKey]: value };
           }
           // If invalid date format, skip this filter
-          console.warn(`Invalid date format for createdAt: ${value}. Expected YYYY-MM-DD`);
-          return acc;
+          console.warn(
+            `Invalid date format for createdAt: ${value}. Expected YYYY-MM-DD`
+          );
+          throw new BadRequestError(
+            "Invalid date format for createdAt, should be YYYY-MM-DD"
+          );
         }
-        
+
         return { ...acc, [filterKey]: value };
       }, {});
 
