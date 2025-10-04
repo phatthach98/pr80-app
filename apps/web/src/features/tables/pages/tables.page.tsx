@@ -4,7 +4,6 @@ import { CreateDraftTableForm, OrderStatusSelect, TableCardDetail } from '../com
 import { useState } from 'react';
 import { startOfToday } from 'date-fns';
 import { EmptyState } from '@/components';
-import { BackButton } from '@/components/ui';
 
 export function TablesPage() {
   const { data: orders = [], isError } = useOrdersQuery({

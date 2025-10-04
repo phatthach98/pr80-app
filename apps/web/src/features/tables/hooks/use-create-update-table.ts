@@ -4,6 +4,7 @@ import {
   useCreateOrderMutation,
   useUpdateOrderMutation,
   useUpdateOrderStatusMutation,
+  useUpdateOrderTableMutation,
 } from '@/hooks/mutation/orders.mutation';
 import { OrderResponseDTO } from '@pr80-app/shared-contracts';
 
@@ -13,6 +14,7 @@ export const useCreateUpdateTable = () => {
   const { mutateAsync: updateOrderMutation } = useUpdateOrderMutation();
   const { mutateAsync: updateOrderStatusBasedOnCurrentStatusMutation } =
     useUpdateOrderStatusMutation();
+  const { mutateAsync: updateOrderTableMutation } = useUpdateOrderTableMutation();
   const createDraftTable = async (order: Order): Promise<OrderResponseDTO> => {
     if (!order.table || order.customerCount <= 0) {
       throw new Error('Invalid table or customer count');
@@ -55,10 +57,24 @@ export const useCreateUpdateTable = () => {
     return updatedOrder;
   };
 
+  const changeOrderTable = async (orderId: string, newTable: string): Promise<OrderResponseDTO> => {
+    if (!orderId || !newTable) {
+      throw new Error('Invalid order ID or table');
+    }
+
+    const updatedOrder = await updateOrderTableMutation({
+      orderId,
+      table: newTable,
+    });
+
+    return updatedOrder;
+  };
+
   return {
     createDraftTable,
     createAdditionalTable,
     updateTable,
     updateOrderStatusBasedOnCurrentStatus,
+    changeOrderTable,
   };
 };

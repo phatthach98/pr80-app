@@ -226,6 +226,20 @@ export class OrderController {
     }
   }
 
+  static async updateOrderToPreviousStatus(
+    req: Request<{ orderId: string }>,
+    res: Response<OrderResponseDTO>
+  ) {
+    const { orderId } = req.params;
+
+    const order = await orderUseCase.updateOrderToPreviousStatus(orderId);
+    if (order) {
+      res.json(order.toJSON());
+    } else {
+      res.status(404).json({ message: "Order not found" } as any);
+    }
+  }
+
   static async updateOrderTable(
     req: Request<{ orderId: string }, {}, { table: string }>,
     res: Response<OrderResponseDTO>

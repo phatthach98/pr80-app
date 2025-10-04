@@ -11,7 +11,7 @@ import { OrderDishOption } from './order-dish-option';
 import { OrderDish } from './order-dish';
 import { formatCurrency } from '@/utils/currency';
 import { generateUniqueKey } from '@/utils';
-
+import { UserEntity } from './user';
 /**
  * Order entity representing both draft tables from local storage and orders from API
  */
@@ -36,6 +36,7 @@ export class Order {
   customerCount: number;
   linkedOrders?: Order[];
   tableStatus: ETableStatus;
+  createdByUser?: UserEntity;
 
   constructor(props: {
     id: string;
@@ -51,6 +52,7 @@ export class Order {
     updatedAt?: Date;
     customerCount: number;
     linkedOrders?: Order[];
+    createdByUser?: UserEntity;
   }) {
     this.id = props.id;
     this.linkedOrderId = props.linkedOrderId;
@@ -66,6 +68,7 @@ export class Order {
     this.customerCount = props.customerCount;
     this.linkedOrders = props.linkedOrders;
     this.tableStatus = this.convertToTableStatus();
+    this.createdByUser = props.createdByUser;
   }
 
   /**
@@ -93,6 +96,9 @@ export class Order {
       updatedAt: orderResponse.updatedAt,
       customerCount: orderResponse.customerCount,
       linkedOrders: linkedOrders,
+      createdByUser: orderResponse.createdByUser
+        ? UserEntity.fromResponseDTO(orderResponse.createdByUser)
+        : undefined,
     });
   }
 
@@ -312,8 +318,12 @@ export class Order {
     return this.type === EOrderType.MAIN;
   }
 
-  public canEdit(): boolean {
+  public canEditOrderDish(): boolean {
     return this.status === EOrderStatus.DRAFT;
+  }
+
+  public canEditOrder(): boolean {
+    return this.status !== EOrderStatus.PAID && this.status !== EOrderStatus.CANCELLED;
   }
 
   public getParsedTotalAmount(): number {
@@ -384,5 +394,9 @@ export class Order {
 
   public getDisplayOrderId(): string {
     return this.id.substring(0, 8);
+  }
+
+  public isDraft(): boolean {
+    return this.status === EOrderStatus.DRAFT;
   }
 }

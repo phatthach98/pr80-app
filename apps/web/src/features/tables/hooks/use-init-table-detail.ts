@@ -2,21 +2,25 @@ import { Order } from '@/domain/entity';
 import { useOrderQuery } from '@/hooks/query';
 import { useEffect, useState } from 'react';
 
-export const useInitTableDetail = (orderId: string, table: string, customerCount: number) => {
+export const useInitTableDetail = (
+  initialOrder: Order | null,
+  table: string,
+  customerCount: number,
+) => {
   const [order, setOrder] = useState<Order | null>(null);
   const {
-    data: orderDetail,  
+    data: orderDetail,
     isPending: isOrderDetailPending,
     isError: isOrderDetailError,
-  } = useOrderQuery(orderId);
+  } = useOrderQuery(initialOrder?.id || '');
 
   useEffect(() => {
-    if (orderId && orderDetail) {
+    if (initialOrder?.id && orderDetail) {
       if (orderDetail) {
         setOrder(orderDetail);
       }
     }
-  }, [orderId, orderDetail?.id]);
+  }, [JSON.stringify(initialOrder), orderDetail?.id]);
 
   useEffect(() => {
     if (table && customerCount) {
@@ -27,7 +31,7 @@ export const useInitTableDetail = (orderId: string, table: string, customerCount
   return {
     order: order || Order.fromDraftOrder({ table, customerCount }),
     setOrder,
-    isPending: orderId ? isOrderDetailPending : false,
-    isError: orderId ? isOrderDetailError : false,
+    isPending: initialOrder?.id ? isOrderDetailPending : false,
+    isError: initialOrder?.id ? isOrderDetailError : false,
   };
 };

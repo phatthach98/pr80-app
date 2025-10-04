@@ -30,7 +30,8 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
     const maxSelectionCount = dishOption.maxSelectionCount;
     const dishOptionName = dishOption.name;
     const isSelected = checkIsSelected(dishOptionName, dishOptionItem);
-    const isOverMaxSelectionCount = checkIsOverMaxSelectionCount(dishOptionName, maxSelectionCount);
+    const isOverMaxSelectionCount =
+      !!maxSelectionCount && checkIsOverMaxSelectionCount(dishOptionName, maxSelectionCount);
     const optionsByName = selectedOptions[dishOptionName] || [];
     let currentOptions = { ...selectedOptions };
 
@@ -58,7 +59,7 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
       {dishOptions.map((dishOption) => {
         return (
           <div key={dishOption.id} className="space-y-2">
-            <h3 className="font-medium text-md">
+            <h3 className="text-md font-medium">
               {dishOption.name}
               {true && <span className="ml-1 text-red-500">*</span>}
             </h3>

@@ -33,7 +33,7 @@ export function DishOptionsForm({
 
   const handleAddToOrder = () => {
     // Allow submission if we have options or if we're editing with pre-populated options
-    if (selectedOptions && Object.keys(selectedOptions).length > 0) {
+    if (selectedOptions && Object.keys(selectedOptions).length === dishDetail.options.length) {
       // Get all option keys, ensuring we have at least the ones from the original dish if editing
       const optionKeys = Object.keys(selectedOptions);
 
@@ -135,7 +135,7 @@ export function DishOptionsForm({
         />
         <Button
           onClick={handleAddToOrder}
-          disabled={Object.keys(selectedOptions).length === 0}
+          disabled={Object.keys(selectedOptions).length !== dishDetail.options.length}
           className="text-md rounded-full py-6"
         >
           <ShoppingBagIcon className="h-4 w-4" />

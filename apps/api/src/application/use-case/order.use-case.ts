@@ -553,6 +553,26 @@ export class OrderUseCase {
   }
 
   /**
+   * Update order to previous status
+   * Reverts the order status to its previous state in the workflow
+   */
+  async updateOrderToPreviousStatus(id: string) {
+    const order = await this.getOrderById(id);
+    
+    // Update to previous status
+    order.updateToPreviousStatus();
+    
+    const updatedOrder = await this.orderRepository.update(order);
+    
+    // Emit socket event for order update
+    if (this.socketService && updatedOrder) {
+      this.socketService.emitOrderUpdated(updatedOrder);
+    }
+    
+    return updatedOrder;
+  }
+
+  /**
    * Update order table
    */
   async updateOrderTable(id: string, newTable: string) {

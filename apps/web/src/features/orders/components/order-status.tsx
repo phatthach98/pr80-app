@@ -1,7 +1,34 @@
 import { EOrderStatus } from '@pr80-app/shared-contracts';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/tailwind/utils';
-import { Order } from '@/domain/entity';
+import { Order, ETableStatus } from '@/domain/entity/order';
+
+// Type that can be either order status or table status
+export type OrderStatusType = EOrderStatus | ETableStatus;
+
+// Get color for table status
+export const getTableStatusColor = (status: ETableStatus): string => {
+  switch (status) {
+    case ETableStatus.IN_PROGRESS:
+      return '#FF9800'; // Orange color for in progress
+    case ETableStatus.PAID:
+      return '#2196F3'; // Blue color for paid (same as order paid)
+    default:
+      return '#9E9E9E'; // Gray for unknown status
+  }
+};
+
+// Get text for table status
+export const getTableStatusText = (status: ETableStatus): string => {
+  switch (status) {
+    case ETableStatus.IN_PROGRESS:
+      return 'Đang xử lý';
+    case ETableStatus.PAID:
+      return 'Đã thanh toán';
+    default:
+      return 'Không xác định';
+  }
+};
 
 export const getStatusColor = (status: EOrderStatus): string => {
   switch (status) {
@@ -40,10 +67,11 @@ export const getStatusText = (status: EOrderStatus): string => {
 type OrderStatusSize = 'xs' | 'sm' | 'md' | 'lg';
 
 type OrderStatusProps = {
-  status: EOrderStatus;
+  status: OrderStatusType;
   variant?: 'dot' | 'badge';
   className?: string;
   size?: OrderStatusSize;
+  statusType?: 'order' | 'table';
 };
 
 export const OrderStatus = ({
@@ -51,9 +79,19 @@ export const OrderStatus = ({
   variant = 'dot',
   size = 'md',
   className,
+  statusType = 'order',
 }: OrderStatusProps) => {
-  const statusColor = getStatusColor(status);
-  const statusText = getStatusText(status);
+  // Use appropriate color and text based on status type
+  let statusColor: string;
+  let statusText: string;
+  
+  if (statusType === 'table' && Object.values(ETableStatus).includes(status as ETableStatus)) {
+    statusColor = getTableStatusColor(status as ETableStatus);
+    statusText = getTableStatusText(status as ETableStatus);
+  } else {
+    statusColor = getStatusColor(status as EOrderStatus);
+    statusText = getStatusText(status as EOrderStatus);
+  }
 
   // Size-specific classes for text and spacing
   const getSizeClasses = (variant: 'dot' | 'badge'): string => {
@@ -90,22 +128,37 @@ export const OrderStatus = ({
   if (variant === 'badge') {
     let badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' = 'default';
 
-    switch (status) {
-      case EOrderStatus.COOKING:
-        badgeVariant = 'secondary';
-        break;
-      case EOrderStatus.READY:
-        badgeVariant = 'success';
-        break;
-      case EOrderStatus.PAID:
-        badgeVariant = 'outline';
-        break;
-      case EOrderStatus.CANCELLED:
-        badgeVariant = 'destructive';
-        break;
-      case EOrderStatus.DRAFT:
-        badgeVariant = 'outline';
-        break;
+    if (statusType === 'table') {
+      // Handle table status badge variants
+      switch (status as ETableStatus) {
+        case ETableStatus.IN_PROGRESS:
+          badgeVariant = 'secondary';
+          break;
+        case ETableStatus.PAID:
+          badgeVariant = 'outline';
+          break;
+        default:
+          badgeVariant = 'default';
+      }
+    } else {
+      // Handle order status badge variants
+      switch (status as EOrderStatus) {
+        case EOrderStatus.COOKING:
+          badgeVariant = 'secondary';
+          break;
+        case EOrderStatus.READY:
+          badgeVariant = 'success';
+          break;
+        case EOrderStatus.PAID:
+          badgeVariant = 'outline';
+          break;
+        case EOrderStatus.CANCELLED:
+          badgeVariant = 'destructive';
+          break;
+        case EOrderStatus.DRAFT:
+          badgeVariant = 'outline';
+          break;
+      }
     }
 
     const sizeClasses = getSizeClasses('badge');
@@ -119,7 +172,7 @@ export const OrderStatus = ({
 
   // Default dot variant
   const sizeClasses = getSizeClasses('dot');
-  const dotSize = size === 'xs' ? '•' : size === 'sm' ? '•' : '●';
+  const dotSize = size === 'xs' ? '•' : '●';
 
   return (
     <div className={cn(sizeClasses, className)} style={{ color: statusColor }}>
@@ -133,6 +186,7 @@ type OrderStatusFromOrderProps = {
   variant?: 'dot' | 'badge';
   size?: OrderStatusSize;
   className?: string;
+  useTableStatus?: boolean;
 };
 
 export const OrderStatusFromOrder = ({
@@ -140,6 +194,15 @@ export const OrderStatusFromOrder = ({
   variant = 'dot',
   size = 'md',
   className,
+  useTableStatus = false,
 }: OrderStatusFromOrderProps) => {
-  return <OrderStatus status={order.status} variant={variant} size={size} className={className} />;
+  return (
+    <OrderStatus 
+      status={useTableStatus ? order.tableStatus : order.status}
+      statusType={useTableStatus ? 'table' : 'order'}
+      variant={variant} 
+      size={size} 
+      className={className} 
+    />
+  );
 };
