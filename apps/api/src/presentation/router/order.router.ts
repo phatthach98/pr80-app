@@ -92,6 +92,14 @@ orderRouter.patch(
   asyncHandler(OrderController.updateOrderStatusBasedOnCurrentStatus)
 );
 
+// Update order to previous status (undo status change)
+orderRouter.patch(
+  "/orders/:orderId/previous-status",
+  orderIdParamValidator,
+  requestValidator,
+  asyncHandler(OrderController.updateOrderToPreviousStatus)
+);
+
 // Update order table
 orderRouter.patch(
   "/orders/:orderId/table",

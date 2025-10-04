@@ -6,6 +6,7 @@ export class Order {
   public id: string;
   public linkedOrderId: string | null;
   public createdBy: string;
+  public createdByUser?: any; // Add user details field
   public status: EOrderStatus;
   public table: string;
   public totalAmount: string;
@@ -120,6 +121,15 @@ export class Order {
     this.table = newTable;
   }
 
+  public updateToPreviousStatus(): void {
+    if (this.status !== EOrderStatus.READY) {
+      throw new Error(
+        "Cannot revert to previous status because the order is not ready"
+      );
+    }
+    this.status = EOrderStatus.COOKING;
+  }
+
   public updateType(newType: EOrderType): void {
     this.type = newType;
   }
@@ -178,6 +188,7 @@ export class Order {
       id: this.id,
       linkedOrderId: this.linkedOrderId,
       createdBy: this.createdBy,
+      createdByUser: this.createdByUser,
       status: this.status,
       table: this.table,
       totalAmount: this.totalAmount,
