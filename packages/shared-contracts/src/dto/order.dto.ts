@@ -1,4 +1,5 @@
 import { EOrderStatus, EOrderType } from "../enums/order-status.enum";
+import { UserResponseDTO } from "./user.dto";
 
 // Pure DTO interfaces - no domain entity imports
 
@@ -64,6 +65,7 @@ export interface OrderResponseDTO {
   createdAt?: Date;
   updatedAt?: Date;
   linkedOrders?: OrderResponseDTO[];
+  createdByUser?: UserResponseDTO;
 }
 
 // DTO for creating a new order

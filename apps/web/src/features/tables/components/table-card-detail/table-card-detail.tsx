@@ -1,8 +1,9 @@
-import { ETableStatus, Order } from '@/domain/entity/order';
+import { Order } from '@/domain/entity/order';
 import { cn } from '@/tailwind/utils';
 import { Link } from '@tanstack/react-router';
 import { useSettingOptionsQuery } from '@/hooks/query';
-import { Badge } from '@/components/ui/badge';
+import { OrderStatusFromOrder } from '@/features/orders/components/order-status';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 
 interface TableCardDetailProps {
   order: Order;
@@ -22,45 +23,42 @@ export function TableCardDetail({ order }: TableCardDetailProps) {
       params={{ id: order.id }}
       className="block w-full hover:no-underline md:w-[calc(50%-16px)] xl:w-[calc(33.33%-16px)]"
     >
-      <div className="rounded-lg border-2 border-dashed border-gray-300 p-6">
-        <div className="mb-2 text-sm font-light text-gray-700 italic">
-          {new Date(order.createdAt || '').toLocaleString('vi-VN')}
-        </div>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="text-lg font-bold">{currentTable.label}</div>
-            <div className="text-sm font-light text-gray-700 italic">
-              {order.getDisplayCustomerCount()}
+      <Card>
+        <CardHeader className="pb-0">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-lg font-bold">{currentTable.label}</div>
+              <div className="text-sm font-light text-gray-700 italic">
+                {order.getDisplayCustomerCount()}
+              </div>
+              <div className="mt-1 text-sm font-light text-gray-700 italic">
+                {new Date(order.createdAt || '').toLocaleString('vi-VN')}
+              </div>
+              <div className="mt-1 text-sm font-light text-gray-700 italic">
+                Nhân viên: <span className="font-bold">{order.createdByUser?.name}</span>
+              </div>
             </div>
+            <OrderStatusFromOrder order={order} variant="dot" size="sm" useTableStatus={true} />
           </div>
-          <Badge
-            variant={order.tableStatus === ETableStatus.PAID ? 'outline' : 'secondary'}
-            className={cn({
-              'bg-blue-100 text-[#2196F3] hover:bg-blue-100':
-                order.tableStatus === ETableStatus.PAID,
-              'bg-orange-100 text-orange-800 hover:bg-orange-100':
-                order.tableStatus !== ETableStatus.PAID,
+        </CardHeader>
+
+        <CardContent>
+          <div
+            className={cn('text-md rounded-md bg-gray-100 p-4 font-light italic', {
+              'text-destructive': order.note,
             })}
           >
-            {order.getDisplayTableStatus()}
-          </Badge>
-        </div>
+            Ghi chú bàn: <div className="pl-2 font-bold">{order.note || 'Không có ghi chú'}</div>
+          </div>
+        </CardContent>
 
-        <div
-          className={cn('text-md mt-4 font-light italic', {
-            'text-destructive': order.note,
-          })}
-        >
-          Ghi chú: <span className="font-bold">{order.note || 'Không có ghi chú'}</span>
-        </div>
-
-        <div className="mt-4 flex items-center justify-between">
-          <div>
-            <div className="text-md text-gray-500">Tổng tiền</div>
+        <CardFooter className="flex items-center justify-end">
+          <div className="py-2">
+            <div className="text-md text-right text-gray-500">Tổng tiền</div>
             <div className="text-xl font-bold">{order.getFormattedTotalAmount()}</div>
           </div>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </Link>
   );
 }

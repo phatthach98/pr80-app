@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useCreateUpdateTable, useInitTableDetail, useOrderDishUpdate } from '../../hooks';
 import { TableDetailSummaryPrice } from './summary-price.component';
 import { TableDishItem } from './table-dish-item.component';
+import { TableSelector } from './table-selector.component';
 import { useSettingOptionsQuery } from '@/hooks/query';
 import { OrderStatusFromOrder } from '@/features/orders/components';
 import { formatDate } from '@/utils';
@@ -31,7 +32,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
     isError,
     setOrder: setActiveOrder,
   } = useInitTableDetail(
-    initialOrder?.id || '',
+    initialOrder || null,
     createParams?.table || '',
     createParams?.customerCount || 0,
   );
@@ -48,10 +49,10 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
   const router = useRouter();
   // Helper function to remove dish
   const removeDish = (dishId: string) => {
-    if (activeOrder?.canEdit()) {
+    if (activeOrder?.canEditOrderDish()) {
       setActiveOrder(activeOrder.removeDish(dishId));
     }
-    if (additionalOrder?.canEdit()) {
+    if (additionalOrder?.canEditOrderDish()) {
       setAdditionalOrder(additionalOrder.removeDish(dishId));
     }
   };
@@ -62,10 +63,10 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
   };
 
   const updateDishQuantity = (dishId: string, quantity: number) => {
-    if (activeOrder?.canEdit()) {
+    if (activeOrder?.canEditOrderDish()) {
       setActiveOrder(activeOrder.updateDishQuantity(dishId, quantity));
     }
-    if (additionalOrder?.canEdit()) {
+    if (additionalOrder?.canEditOrderDish()) {
       setAdditionalOrder(additionalOrder.updateDishQuantity(dishId, quantity));
     }
   };
@@ -85,24 +86,29 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
   };
 
   const handleSubmitOrder = async () => {
-    setIsLoading(true);
-    if (!activeOrder) {
-      toast.error('Không tìm thấy đơn hàng');
-      return;
-    }
-    if (activeOrder.canEdit()) {
-      await createDraftTable(activeOrder);
-    }
-    if (additionalOrder && additionalOrder.canEdit()) {
-      await createAdditionalTable(additionalOrder);
-    }
+    try {
+      setIsLoading(true);
+      if (!activeOrder) {
+        toast.error('Không tìm thấy đơn hàng');
+        return;
+      }
+      if (activeOrder.canEditOrderDish()) {
+        await createDraftTable(activeOrder);
+      }
+      if (additionalOrder && additionalOrder.canEditOrderDish()) {
+        await createAdditionalTable(additionalOrder);
+      }
 
-    if (!activeOrder.canEdit()) {
-      await updateTable(activeOrder);
+      if (!activeOrder.canEditOrderDish()) {
+        await updateTable(activeOrder);
+      }
+      toast.success('Đơn hàng đã được gửi');
+      router.navigate({ to: '/tables' });
+    } catch {
+      toast.error('Gửi đơn hàng thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
-    toast.success('Đơn hàng đã được gửi');
-    router.navigate({ to: '/tables' });
   };
 
   const handleMakePayment = async () => {
@@ -127,7 +133,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
       toast.error('Không tìm thấy món ăn');
       return;
     }
-    if (activeOrder && activeOrder.canEdit()) {
+    if (activeOrder && activeOrder.canEditOrderDish()) {
       const updatedOrder = addOrderDishToTable(activeOrder, orderDish);
       if (updatedOrder) {
         setActiveOrder(updatedOrder);
@@ -135,7 +141,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
     }
 
     // For add more dishes on pending order, create additional order
-    if (activeOrder && !activeOrder.canEdit()) {
+    if (activeOrder && !activeOrder.canEditOrderDish()) {
       if (!additionalOrder) {
         const additionalOrder = Order.fromAdditionalOrder(
           activeOrder,
@@ -161,6 +167,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
     label: activeOrder.table,
     value: activeOrder.table,
   };
+
   return (
     <div className="mx-auto min-h-screen w-full max-w-md bg-white md:max-w-xl lg:max-w-2xl xl:max-w-3xl">
       {/* Back button */}
@@ -170,11 +177,22 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
 
       {/* Header with table name */}
       <div className="mb-4 text-center md:mb-10">
-        <h1 className="mb-2 text-xl font-bold md:text-2xl lg:text-3xl">{currentTable.label}</h1>
+        <div className="mb-2 flex flex-col items-center justify-center gap-2 md:flex-row">
+          <h1 className="text-xl font-bold md:text-2xl lg:text-3xl">{currentTable.label}</h1>
+          {activeOrder.id && !activeOrder.isPaid() && !activeOrder.isDraft() && (
+            <TableSelector
+              orderId={activeOrder.id}
+              currentTable={activeOrder.table}
+              disabled={!activeOrder.canEditOrder()}
+            />
+          )}
+        </div>
+
         <div className="flex items-center justify-center">
           <EditableField
             value={activeOrder.customerCount.toString()}
             onSave={handleUpdateCustomerCount}
+            disabled={!activeOrder.canEditOrder()}
             type="number"
             placeholder="Số lượng khách"
             displayClassName="text-gray-600 md:text-lg text-center"
@@ -184,11 +202,18 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
         </div>
       </div>
 
+      <div className="mb-4 text-center md:mb-10">
+        <div className="text-sm font-light text-gray-700 italic">
+          Nhân viên: <span className="font-bold">{activeOrder.createdByUser?.name}</span>
+        </div>
+      </div>
+
       <div className="bg-secondary/50 mb-6 rounded-md border border-dashed border-gray-400 p-4 md:mb-10">
         <EditableField
           label="Ghi chú bàn"
           value={activeOrder.note || ''}
           onSave={handleUpdateNote}
+          disabled={!activeOrder.canEditOrder()}
           type="textarea"
           placeholder="Không có ghi chú. Nhấp để thêm ghi chú."
           displayClassName="text-sm text-gray-600 md:text-base"
@@ -237,7 +262,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
                 {order.dishes.map((dish) => (
                   <TableDishItem
                     key={dish.id}
-                    isEditable={order.canEdit()}
+                    isEditable={order.canEditOrderDish()}
                     dish={dish}
                     removeDish={removeDish}
                     handleEditDish={handleEditDish}
@@ -251,14 +276,14 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
       </div>
 
       {/* Additional order */}
-      {!activeOrder.canEdit() && (
+      {!activeOrder.canEditOrderDish() && (
         <div>
           <h2 className="mt-6 text-lg font-medium md:text-xl lg:text-2xl">Món gọi thêm</h2>
           <div className="space-y-6 md:space-y-8">
             {additionalOrder?.dishes.map((dish) => {
               return (
                 <TableDishItem
-                  isEditable={additionalOrder.canEdit()}
+                  isEditable={additionalOrder.canEditOrderDish()}
                   dish={dish}
                   removeDish={removeDish}
                   handleEditDish={handleEditDish}
@@ -276,7 +301,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
           orderDish={selectedDishForEdit}
           onOrderDishUpdate={handleAddOrderDishToOrder}
           onClose={() => setSelectedDishForEdit(null)}
-          disabled={activeOrder.isPaid()}
+          disabled={activeOrder.isPaid() || !activeOrder.canEditOrder()}
         />
       </div>
 

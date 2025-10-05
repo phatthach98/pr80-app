@@ -40,6 +40,14 @@ const updateOrderStatus = async ({ orderId }: { orderId: string }): Promise<Orde
   return response.data;
 };
 
+const updateOrderToPreviousStatus = async ({ orderId }: { orderId: string }): Promise<OrderResponseDTO> => {
+  const response = await apiClient.patch<OrderResponseDTO>(`/orders/${orderId}/previous-status`);
+  if (!response.success) {
+    throw new Error(response.error.message);
+  }
+  return response.data;
+};
+
 const updateOrderTable = async ({
   orderId,
   table,
@@ -162,17 +170,46 @@ export const useUpdateOrderStatusMutation = () => {
   });
 };
 
-export const useUpdateOrderTableMutation = () => {
+export const useUpdateOrderToPreviousStatusMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateOrderTable,
+    mutationFn: updateOrderToPreviousStatus,
     onSuccess: (data) => {
       // Invalidate the specific order query
       queryClient.invalidateQueries({ queryKey: ordersKeys.detail(data.id) });
 
       // Invalidate the orders list query
       queryClient.invalidateQueries({ queryKey: ordersKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Failed to revert order status:', error);
+    },
+  });
+};
+
+export const useUpdateOrderTableMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateOrderTable,
+    onSuccess: (data) => {
+      // Update the specific order in the cache
+      queryClient.setQueryData(ordersKeys.detail(data.id), data);
+      
+      // Update any lists that might contain this order
+      queryClient.invalidateQueries({ 
+        queryKey: ordersKeys.lists(),
+        // Don't refetch immediately to avoid UI flicker
+        refetchType: 'none'
+      });
+      
+      // Schedule a background refetch after a short delay
+      setTimeout(() => {
+        queryClient.invalidateQueries({ 
+          queryKey: ordersKeys.all,
+        });
+      }, 500);
     },
     onError: (error) => {
       console.error('Failed to update order table:', error);
