@@ -52,10 +52,10 @@ export class OrderRepositoryImpl implements OrderRepository {
         createdAt: 1,
         updatedAt: 1,
         createdByUser: {
-          _id: 1,
-          name: 1,
-          phoneNumber: 1,
-          roles: 1,
+          _id: "$createdByUser._id",
+          name: "$createdByUser.name",
+          phoneNumber: "$createdByUser.phoneNumber",
+          roles: "$createdByUser.roles",
         },
       },
     });

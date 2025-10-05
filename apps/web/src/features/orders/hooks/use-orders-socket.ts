@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { EOrderStatus } from '@pr80-app/shared-contracts';
 import { useSocketConnection } from '@/hooks/socket/use-socket-connection';
 import { useQueryClient } from '@tanstack/react-query';
-import { useOrdersQuery } from '@/hooks/query/orders.query';
+import { ordersKeys, useOrdersQuery } from '@/hooks/query/orders.query';
 import { startOfToday } from 'date-fns';
 
 /**
@@ -26,11 +26,7 @@ export const useOrdersSocket = () => {
       // If the new order has COOKING status, update the query cache
       if (order.status === EOrderStatus.COOKING) {
         queryClient.setQueryData(
-          [
-            'orders',
-            'list',
-            { filters: { status: EOrderStatus.COOKING, createdAt: startOfToday() } },
-          ],
+          ordersKeys.list({ status: EOrderStatus.COOKING, createdAt: startOfToday() }),
           (oldData: Order[] = []) => {
             // Convert the new order to domain entity
             const newOrder = Order.fromOrderResponse(order);
@@ -54,11 +50,7 @@ export const useOrdersSocket = () => {
 
       // Update specific order in the cooking orders list
       queryClient.setQueryData(
-        [
-          'orders',
-          'list',
-          { filters: { status: EOrderStatus.COOKING, createdAt: startOfToday() } },
-        ],
+        ordersKeys.list({ status: EOrderStatus.COOKING, createdAt: startOfToday() }),
         (oldData: Order[] = []) => {
           if (!oldData.length) return oldData;
 

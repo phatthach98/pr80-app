@@ -19,21 +19,6 @@ export const orderRouter = Router();
 // Get all orders
 orderRouter.get("/orders", asyncHandler(OrderController.getAllOrders));
 
-// Get orders by status
-orderRouter.get(
-  "/orders/status",
-  asyncHandler(OrderController.getOrdersByStatus)
-);
-
-// Get orders by type
-orderRouter.get("/orders/type", asyncHandler(OrderController.getOrdersByType));
-
-// Get orders by created by
-orderRouter.get(
-  "/orders/user",
-  asyncHandler(OrderController.getOrdersByCreatedBy)
-);
-
 // Get order by ID
 orderRouter.get(
   "/orders/:orderId",
