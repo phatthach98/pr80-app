@@ -10,7 +10,7 @@
     "dev:web": "pnpm --filter web run dev",
     "build": "pnpm --recursive run build",
     "build:api": "pnpm --filter @pr80-app/api run build",
-    "build:web": "pnpm --filter web run build",
+    "build:web": "pnpm build:types && pnpm --filter web run build",
     "lint": "pnpm --recursive run lint",
     "format": "pnpm --recursive run format"
   },

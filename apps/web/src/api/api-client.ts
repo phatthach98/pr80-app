@@ -39,7 +39,7 @@ export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 export class ApiClient {
   private client: AxiosInstance;
 
-  constructor(baseURL: string = 'http://localhost:3000') {
+  constructor(baseURL: string) {
     // Create axios instance
     this.client = axios.create({
       baseURL,
@@ -413,4 +413,4 @@ export class ApiClient {
 }
 
 // Create and export a default instance
-export const apiClient = new ApiClient('http://localhost:3000/api');
+export const apiClient = new ApiClient(import.meta.env.PUBLIC_API_BASE_URL);
