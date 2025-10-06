@@ -44,7 +44,7 @@ export function TableCardDetail({ order }: TableCardDetailProps) {
 
         <CardContent>
           <div
-            className={cn('text-md rounded-md bg-gray-100 p-4 font-light italic', {
+            className={cn('text-md rounded-md bg-gray-100 px-4 py-2 font-light italic', {
               'text-destructive': order.note,
             })}
           >
@@ -52,11 +52,9 @@ export function TableCardDetail({ order }: TableCardDetailProps) {
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-end">
-          <div className="py-2">
-            <div className="text-md text-right text-gray-500">Tổng tiền</div>
-            <div className="text-xl font-bold">{order.getFormattedTotalAmount()}</div>
-          </div>
+        <CardFooter className="flex-col items-end justify-end">
+          <div className="text-md text-right text-gray-500">Tổng tiền:</div>
+          <div className="text-xl font-bold">{order.getFormattedTotalAmount()}</div>
         </CardFooter>
       </Card>
     </Link>

@@ -186,9 +186,9 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
               disabled={!activeOrder.canEditOrder()}
             />
           )}
-          <div className="text-sm font-light text-gray-700 italic">
-            Nhân viên: <span className="font-bold">{activeOrder.createdByUser?.name}</span>
-          </div>
+        </div>
+        <div className="text-sm font-light text-gray-700 italic">
+          Nhân viên: <span className="font-bold">{activeOrder.createdByUser?.name}</span>
         </div>
 
         <div className="flex items-center justify-center">

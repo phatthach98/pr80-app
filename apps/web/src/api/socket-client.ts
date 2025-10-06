@@ -6,5 +6,6 @@ export const createSocketClient = (jwtToken: string) => {
     auth: {
       token: jwtToken,
     },
+    transports: ['websocket'],
   });
 };

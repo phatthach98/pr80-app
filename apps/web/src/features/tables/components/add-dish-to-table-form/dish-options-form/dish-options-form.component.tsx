@@ -62,7 +62,7 @@ export function DishOptionsForm({
   };
 
   return (
-    <div className="flex max-h-[600px] flex-col gap-2 md:gap-6">
+    <div className="grid max-h-[500px] grid-cols-1 gap-4 overflow-y-auto">
       {!isEditing && (
         <Button variant="ghost" size="sm" className="justify-start" onClick={onBack}>
           <ArrowLeftIcon size={16} />
@@ -104,7 +104,7 @@ export function DishOptionsForm({
       />
 
       {/* Take away option */}
-      <div className="flex items-center gap-2 my-4">
+      <div className="my-4 flex items-center gap-2">
         <Checkbox
           id="takeAway"
           checked={takeAway}
