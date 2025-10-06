@@ -100,18 +100,16 @@ export function AddDishToTableForm({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
-          {selectedOrderDish ? (
-            <DishOptionsForm
-              onBack={handleBack}
-              handleAddAndUpdateDishToOrder={handleAddAndUpdateDishToOrder}
-              orderDish={selectedOrderDish}
-              isEditing={isEditing}
-            />
-          ) : (
-            <DishListForm onSelectDish={handleSelectDish} />
-          )}
-        </div>
+        {selectedOrderDish ? (
+          <DishOptionsForm
+            onBack={handleBack}
+            handleAddAndUpdateDishToOrder={handleAddAndUpdateDishToOrder}
+            orderDish={selectedOrderDish}
+            isEditing={isEditing}
+          />
+        ) : (
+          <DishListForm onSelectDish={handleSelectDish} />
+        )}
 
         {!selectedOrderDish && (
           <DialogFooter>

@@ -62,27 +62,21 @@ export function DishOptionsForm({
   };
 
   return (
-    <div className="flex flex-col justify-between gap-2 md:gap-6">
-      {/* Header with back button and price */}
-      <div className="flex items-center justify-between">
-        {!isEditing && (
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 p-0"
-          >
-            <ArrowLeftIcon className="h-5 w-5" />
-          </Button>
-        )}
-
-        <h1 className="text-xl font-bold">{dishDetail.name}</h1>
-
-        <div className="text-primary text-xl font-bold">{dishDetail.getFormattedBasePrice()}</div>
-      </div>
+    <div className="flex max-h-[600px] flex-col gap-2 md:gap-6">
+      {!isEditing && (
+        <Button variant="ghost" size="sm" className="justify-start" onClick={onBack}>
+          <ArrowLeftIcon size={16} />
+          Quay lại
+        </Button>
+      )}
+      <h1 className="text-center text-xl font-bold">
+        {dishDetail.name} -{' '}
+        <span className="text-primary text-xl font-bold">{dishDetail.getFormattedBasePrice()}</span>
+      </h1>
 
       {/* Dish image */}
       <div className="flex justify-center">
-        <div className="relative h-20 w-20 overflow-hidden rounded-full">
+        <div className="relative h-16 w-16 overflow-hidden rounded-full">
           <img
             src={defaultDishImage}
             alt={dishDetail.name}
@@ -110,17 +104,15 @@ export function DishOptionsForm({
       />
 
       {/* Take away option */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="takeAway"
-            checked={takeAway}
-            onCheckedChange={(checked) => setTakeAway(checked === true)}
-          />
-          <label htmlFor="takeAway" className="cursor-pointer font-medium">
-            Mang về
-          </label>
-        </div>
+      <div className="flex items-center gap-2 my-4">
+        <Checkbox
+          id="takeAway"
+          checked={takeAway}
+          onCheckedChange={(checked) => setTakeAway(checked === true)}
+        />
+        <label htmlFor="takeAway" className="cursor-pointer font-medium">
+          Mang về
+        </label>
       </div>
 
       {/* Add to bag button */}
@@ -136,7 +128,7 @@ export function DishOptionsForm({
         <Button
           onClick={handleAddToOrder}
           disabled={Object.keys(selectedOptions).length !== dishDetail.options.length}
-          className="text-md rounded-full py-6"
+          className="text-md rounded-full py-4"
         >
           <ShoppingBagIcon className="h-4 w-4" />
           {isEditing ? 'Cập nhật món' : 'Thêm món'}

@@ -86,17 +86,14 @@ export function EditableField({
   return (
     <div className={cn('group relative', className)}>
       {label && (
-        <div 
-          className={cn(
-            'text-sm font-medium text-gray-700 mb-1',
-            labelClassName
-          )}
+        <div
+          className={cn('mb-1 text-sm font-medium text-gray-700', labelClassName)}
           onClick={handleStartEdit}
         >
           {label}
         </div>
       )}
-      
+
       {isEditing ? (
         <>
           {type === 'textarea' ? (
@@ -107,7 +104,7 @@ export function EditableField({
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className={cn('min-h-[40px]', inputClassName)}
+              className={cn('min-h-[36px] touch-manipulation text-sm', inputClassName)}
               disabled={disabled}
               rows={2}
             />
@@ -120,7 +117,7 @@ export function EditableField({
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className={inputClassName}
+              className={cn('touch-manipulation text-sm', inputClassName)}
               disabled={disabled}
             />
           )}
@@ -129,12 +126,13 @@ export function EditableField({
         <div
           onClick={handleStartEdit}
           className={cn(
-            'cursor-text rounded-md py-1.5 px-2 min-h-[36px] border border-transparent',
-            'hover:bg-gray-50 hover:border-gray-200',
+            'min-h-[36px] cursor-text rounded-md border border-transparent px-2 py-1.5',
+            'hover:border-gray-200 hover:bg-gray-50',
             'transition-colors duration-200',
             !value && 'text-gray-400 italic',
-            disabled && 'cursor-default opacity-60 hover:bg-transparent hover:border-transparent',
-            displayClassName
+            disabled && 'cursor-default opacity-60 hover:border-transparent hover:bg-transparent',
+            'touch-manipulation text-sm',
+            displayClassName,
           )}
         >
           {value || placeholder}

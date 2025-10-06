@@ -58,8 +58,8 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
     <>
       {dishOptions.map((dishOption) => {
         return (
-          <div key={dishOption.id} className="space-y-2">
-            <h3 className="text-md font-medium">
+          <div key={dishOption.id}>
+            <h3 className="text-md mb-2 font-medium">
               {dishOption.name}
               {true && <span className="ml-1 text-red-500">*</span>}
             </h3>

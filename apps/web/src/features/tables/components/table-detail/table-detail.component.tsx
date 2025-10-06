@@ -186,6 +186,9 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
               disabled={!activeOrder.canEditOrder()}
             />
           )}
+          <div className="text-sm font-light text-gray-700 italic">
+            Nhân viên: <span className="font-bold">{activeOrder.createdByUser?.name}</span>
+          </div>
         </div>
 
         <div className="flex items-center justify-center">
@@ -202,13 +205,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
         </div>
       </div>
 
-      <div className="mb-4 text-center md:mb-10">
-        <div className="text-sm font-light text-gray-700 italic">
-          Nhân viên: <span className="font-bold">{activeOrder.createdByUser?.name}</span>
-        </div>
-      </div>
-
-      <div className="bg-secondary/50 mb-6 rounded-md border border-dashed border-gray-400 p-4 md:mb-10">
+      <div className="bg-secondary/50 mb-4 rounded-md border border-dashed border-gray-400 px-4 py-2 md:mb-6 md:p-4">
         <EditableField
           label="Ghi chú bàn"
           value={activeOrder.note || ''}
