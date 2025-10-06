@@ -11,7 +11,7 @@ export const OrdersPage = () => {
   }
 
   return (
-    <div className="mt-4 flex flex-1 flex-col gap-8">
+    <div className="flex flex-1 flex-col gap-8">
       <div className="flex flex-col items-center justify-between">
         <h1 className="text-2xl font-bold">Đơn Đang Chờ</h1>
         <SocketStatus className="mt-4" />

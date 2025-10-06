@@ -40,11 +40,6 @@ const startServer = async () => {
 
     // Apply the response interceptor middleware before routes
     app.use(responseInterceptor);
-    // TODO: This used for testing purposes - remove it later
-    app.use(async (req, res, next) => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      next();
-    });
     app.use(`/api/health`, (req, res) => {
       res.send("OK");
     });

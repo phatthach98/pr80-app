@@ -26,11 +26,11 @@ export function TablesPage() {
       : mainOrders.filter((order) => order.tableStatus === orderStatus);
 
   return (
-    <div className="mt-4 flex flex-1 flex-col gap-8">
+    <div className="flex flex-1 flex-col gap-8">
       <div className="flex flex-row items-center justify-between">
         <h1 className="text-2xl font-bold">Danh Sách Bàn</h1>
         <OrderStatusSelect
-          className="mb-4 min-h-[40px] min-w-[200px]"
+          className="mb-4 min-h-[40px] min-w-[140px]"
           defaultStatus={ETableStatus.ALL}
           onChange={handleOrderStatusChange}
         />
