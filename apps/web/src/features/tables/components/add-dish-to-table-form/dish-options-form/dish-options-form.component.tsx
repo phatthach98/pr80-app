@@ -62,7 +62,7 @@ export function DishOptionsForm({
   };
 
   return (
-    <div className="grid max-h-[500px] grid-cols-1 gap-4 overflow-y-auto">
+    <div className="grid max-h-[520px] grid-cols-1 gap-4 overflow-y-auto">
       {!isEditing && (
         <Button variant="ghost" size="sm" className="justify-start" onClick={onBack}>
           <ArrowLeftIcon size={16} />
@@ -104,7 +104,7 @@ export function DishOptionsForm({
       />
 
       {/* Take away option */}
-      <div className="my-4 flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <Checkbox
           id="takeAway"
           checked={takeAway}
@@ -116,7 +116,7 @@ export function DishOptionsForm({
       </div>
 
       {/* Add to bag button */}
-      <div className="flex items-center justify-between border-t bg-white pt-4">
+      <div className="flex items-center justify-between border-t bg-white py-4">
         <QuantityInput
           value={quantity}
           onChange={setQuantity}
@@ -128,7 +128,7 @@ export function DishOptionsForm({
         <Button
           onClick={handleAddToOrder}
           disabled={Object.keys(selectedOptions).length !== dishDetail.options.length}
-          className="text-md rounded-full py-4"
+          className="text-md rounded-full py-6"
         >
           <ShoppingBagIcon className="h-4 w-4" />
           {isEditing ? 'Cập nhật món' : 'Thêm món'}
