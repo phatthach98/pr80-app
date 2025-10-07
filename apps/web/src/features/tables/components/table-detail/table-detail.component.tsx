@@ -198,7 +198,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
             disabled={!activeOrder.canEditOrder()}
             type="number"
             placeholder="Số lượng khách"
-            displayClassName="text-gray-600 md:text-lg text-center"
+            displayClassName="text-gray-600 text-center"
             inputClassName="w-20 text-center mx-auto"
           />{' '}
           khách
@@ -213,7 +213,7 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
           disabled={!activeOrder.canEditOrder()}
           type="textarea"
           placeholder="Không có ghi chú. Nhấp để thêm ghi chú."
-          displayClassName="text-sm text-gray-600 md:text-base"
+          displayClassName=" text-gray-600"
           labelClassName="font-medium mb-2"
         />
       </div>

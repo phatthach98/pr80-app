@@ -128,7 +128,6 @@ export function CreateDraftTableForm({ size = 'sm' }: CreateDraftTableFormProps)
                       <Input
                         {...field}
                         type="number"
-                        inputMode="numeric"
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />
                     </FormControl>

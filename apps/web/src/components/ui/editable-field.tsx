@@ -87,7 +87,7 @@ export function EditableField({
     <div className={cn('group relative', className)}>
       {label && (
         <div
-          className={cn('mb-1 text-sm font-medium text-gray-700', labelClassName)}
+          className={cn('mb-1 text-base font-medium text-gray-700', labelClassName)}
           onClick={handleStartEdit}
         >
           {label}
@@ -104,7 +104,7 @@ export function EditableField({
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className={cn('min-h-[36px] touch-manipulation text-sm', inputClassName)}
+              className={cn('min-h-[36px] touch-manipulation text-base', inputClassName)}
               disabled={disabled}
               rows={2}
             />
@@ -117,7 +117,7 @@ export function EditableField({
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className={cn('touch-manipulation text-sm', inputClassName)}
+              className={cn('touch-manipulation text-base', inputClassName)}
               disabled={disabled}
             />
           )}
@@ -131,7 +131,7 @@ export function EditableField({
             'transition-colors duration-200',
             !value && 'text-gray-400 italic',
             disabled && 'cursor-default opacity-60 hover:border-transparent hover:bg-transparent',
-            'touch-manipulation text-sm',
+            'touch-manipulation text-base',
             displayClassName,
           )}
         >
