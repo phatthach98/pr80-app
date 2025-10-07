@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 export type DishOptionWithMetadata = {
   maxSelectionCount: number;
   id: string;
+  defaultOptionValues: string[];
 };
 
 export class Dish {

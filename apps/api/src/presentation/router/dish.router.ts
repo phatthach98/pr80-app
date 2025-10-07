@@ -1,22 +1,20 @@
 import { Router } from "express";
 import { asyncHandler } from "@presentation/middleware/async-handler.middleware";
 import { DishController } from "@presentation/dish.controller";
-import { createDishValidator, updateDishValidator } from "@presentation/validators/dish.validator";
+import {
+  addOptionToDishValidator,
+  createDishValidator,
+  updateDishValidator,
+} from "@presentation/validators/dish.validator";
 import { requestValidator } from "@presentation/middleware/request-validator.middleware";
 
 export const dishRouter = Router();
 
 // Get all dishes
-dishRouter.get(
-  "/dishes",
-  asyncHandler(DishController.getDishes)
-);
+dishRouter.get("/dishes", asyncHandler(DishController.getDishes));
 
 // Get dish by ID
-dishRouter.get(
-  "/dishes/:id",
-  asyncHandler(DishController.getDishById)
-);
+dishRouter.get("/dishes/:id", asyncHandler(DishController.getDishById));
 
 // Create dish
 dishRouter.post(
@@ -35,14 +33,13 @@ dishRouter.put(
 );
 
 // Delete dish
-dishRouter.delete(
-  "/dishes/:id",
-  asyncHandler(DishController.deleteDish)
-);
+dishRouter.delete("/dishes/:id", asyncHandler(DishController.deleteDish));
 
 // Add option to dish
 dishRouter.post(
   "/dishes/:id/options/:optionId",
+  addOptionToDishValidator,
+  requestValidator,
   asyncHandler(DishController.addOptionToDish)
 );
 
@@ -51,4 +48,3 @@ dishRouter.delete(
   "/dishes/:id/options/:optionId",
   asyncHandler(DishController.removeOptionFromDish)
 );
-

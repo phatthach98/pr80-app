@@ -64,7 +64,8 @@ export class DishUseCase {
   async addOptionToDish(
     dishId: string,
     optionId: string,
-    maxSelectionCount: number
+    maxSelectionCount: number,
+    defaultOptionValues: string[]
   ) {
     // Get dish from repository directly to avoid fetching options
     const dish = await this.dishRepository.getDishById(dishId);
@@ -73,7 +74,7 @@ export class DishUseCase {
       throw new NotFoundError(`Dish with id ${dishId} not found`);
     }
 
-    dish.addOption({ id: optionId, maxSelectionCount });
+    dish.addOption({ id: optionId, maxSelectionCount, defaultOptionValues });
 
     return this.dishRepository.update(dish);
   }

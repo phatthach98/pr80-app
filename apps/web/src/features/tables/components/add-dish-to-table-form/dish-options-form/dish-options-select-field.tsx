@@ -2,6 +2,7 @@ import { Button } from '@/components/ui';
 import { Dish, DishOption } from '@/domain/entity';
 import { DishOptionItem } from '@/domain/entity/dish-option-item';
 import { cn } from '@/tailwind/utils';
+import { useEffect } from 'react';
 
 interface DishOptionsSelectFieldProps {
   dish: Dish;
@@ -53,6 +54,36 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
     // Only call onSelect, no internal state
     onSelect(currentOptions);
   };
+
+
+  useEffect(() => {
+    // Set default options when component mounts
+    // Only set defaults if the option doesn't already have selections
+    const newSelectedOptions = { ...selectedOptions };
+    let hasChanges = false;
+
+    dishOptions.forEach(dishOption => {
+      const dishOptionName = dishOption.name;
+      // Only set defaults if this option doesn't have any selections yet
+      if ((!selectedOptions[dishOptionName] || selectedOptions[dishOptionName].length === 0) && 
+          dishOption.defaultOptionValues.length > 0) {
+        
+        const defaultItems = dishOption.items.filter(item => 
+          dishOption.defaultOptionValues.includes(item.value)
+        );
+        
+        if (defaultItems.length > 0) {
+          newSelectedOptions[dishOptionName] = defaultItems;
+          hasChanges = true;
+        }
+      }
+    });
+
+    // Only update if we actually added default options
+    if (hasChanges) {
+      onSelect(newSelectedOptions);
+    }
+  }, [dishOptions, selectedOptions, onSelect]);
 
   return (
     <>

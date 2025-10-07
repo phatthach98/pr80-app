@@ -6,7 +6,6 @@ const dishOptionSchema = new Schema(
     _id: { type: String, required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
-    isAllowMultipleSelection: { type: Boolean, required: true },
     optionItems: [
       {
         label: { type: String, required: true },

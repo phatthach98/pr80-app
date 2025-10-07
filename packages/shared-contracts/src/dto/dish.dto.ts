@@ -1,3 +1,4 @@
+import { SelectOptionWithPrice } from "../types/selection-option.types";
 import { DishOptionResponseDTO } from "./dish-option.dto";
 
 // Pure DTO interfaces - no domain entity imports
@@ -5,6 +6,16 @@ import { DishOptionResponseDTO } from "./dish-option.dto";
 export interface DishOptionWithMetadataResponseDTO {
   id: string;
   maxSelectionCount: number;
+  defaultOptionValues: string[];
+}
+
+export interface DetailDishOptionsResponseWithMetadataDTO {
+  id: string;
+  name: string;
+  description: string;
+  maxSelectionCount: number;
+  defaultOptionValues: string[];
+  optionItems: SelectOptionWithPrice[];
 }
 
 export interface GetDishResponseDTO {
@@ -12,7 +23,7 @@ export interface GetDishResponseDTO {
   name: string;
   description: string;
   basePrice: string;
-  options: DishOptionResponseDTO[];
+  options: DetailDishOptionsResponseWithMetadataDTO[];
 }
 
 export interface MutationDishResponseDTO {
@@ -35,4 +46,9 @@ export interface UpdateDishRequestDTO {
   description?: string;
   basePrice?: string;
   options?: DishOptionWithMetadataResponseDTO[];
+}
+
+export interface AddOptionToDishRequestDTO {
+  maxSelectionCount: number;
+  defaultOptionValues: string[];
 }

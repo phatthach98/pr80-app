@@ -14,9 +14,7 @@ export const createDishValidator = [
     .notEmpty()
     .withMessage("Base price is required.")
     .isString()
-    .withMessage("Base price must be a string.")
-    .matches(/^\d+(\.\d{1,2})?$/)
-    .withMessage("Base price must be a numeric string (e.g. '10' or '10.99')."),
+    .withMessage("Base price must be a string."),
   body("options").optional().isArray().withMessage("Options must be an array."),
 ];
 
@@ -29,9 +27,18 @@ export const updateDishValidator = [
   body("basePrice")
     .optional()
     .isString()
-    .withMessage("Base price must be a string.")
-    .if(body("basePrice").exists())
-    .matches(/^\d+(\.\d{1,2})?$/)
-    .withMessage("Base price must be a numeric string (e.g. '10' or '10.99')."),
+    .withMessage("Base price must be a string."),
   body("options").optional().isArray().withMessage("Options must be an array."),
+];
+
+export const addOptionToDishValidator = [
+  body("maxSelectionCount")
+    .notEmpty()
+    .withMessage("Max selection count is required.")
+    .isInt()
+    .withMessage("Max selection count must be an integer."),
+  body("defaultOptionValues")
+    .optional()
+    .isArray()
+    .withMessage("Default option values must be an array."),
 ];

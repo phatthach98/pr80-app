@@ -82,7 +82,7 @@ export function AddDishToTableForm({
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="max-h-[95vh] overflow-auto p-4 sm:max-w-[425px] md:p-6"
+        className="h-auto max-h-[100vh] max-w-full overflow-auto p-4 md:p-6"
         onCloseAutoFocus={() => {
           handleClose();
         }}

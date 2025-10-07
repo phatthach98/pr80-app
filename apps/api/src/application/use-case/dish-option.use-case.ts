@@ -23,24 +23,13 @@ export class DishOptionUseCase {
   async createDishOption(
     name: string,
     description: string,
-    options: SelectOptionWithPrice[],
-    isAllowMultipleSelection: boolean
+    options: SelectOptionWithPrice[]
   ) {
-    const dishOption = DishOption.create(
-      name,
-      description,
-      options,
-      isAllowMultipleSelection
-    );
+    const dishOption = DishOption.create(name, description, options);
     return this.dishOptionRepository.create(dishOption);
   }
 
-  async updateDishOption(
-    id: string,
-    changes: Partial<
-      Omit<DishOption, "id"> & { isAllowMultipleSelection?: boolean }
-    >
-  ) {
+  async updateDishOption(id: string, changes: Partial<Omit<DishOption, "id">>) {
     const dishOption = await this.dishOptionRepository.getDishOptionById(id);
     if (!dishOption) {
       throw new NotFoundError(`Dish option with id ${id} not found`);
@@ -50,8 +39,6 @@ export class DishOptionUseCase {
       ...dishOption,
       ...changes,
       id,
-      isAllowMultipleSelection:
-        changes.isAllowMultipleSelection ?? dishOption.isAllowMultipleSelection,
     };
 
     return this.dishOptionRepository.update(updatedDishOption);
