@@ -3,8 +3,9 @@ import { DishOptionUseCase, DishUseCase } from "@application/use-case";
 import { DISH_OPTION_USE_CASE, DISH_USE_CASE } from "@infras/di/tokens";
 import { container } from "@infras/di";
 import {
+  AddOptionToDishRequestDTO,
   CreateDishRequestDTO,
-  DishOptionResponseDTO,
+  DetailDishOptionsResponseWithMetadataDTO,
   GetDishResponseDTO,
   MutationDishResponseDTO,
   UpdateDishRequestDTO,
@@ -39,12 +40,15 @@ export class DishController {
             ...optionDetail,
             optionItems: optionDetail.optionItems || [],
             maxSelectionCount: optionInDish.maxSelectionCount || 1,
+            defaultOptionValues: optionInDish.defaultOptionValues || [],
           };
         });
 
         return {
           ...dish.toJSON(),
-          options: optionsDetail.filter(Boolean) as DishOptionResponseDTO[],
+          options: optionsDetail.filter(
+            Boolean
+          ) as DetailDishOptionsResponseWithMetadataDTO[],
         };
       })
       .filter(Boolean);
@@ -74,6 +78,7 @@ export class DishController {
         ...optionDetail.toJSON(),
         optionItems: optionDetail.optionItems || [],
         maxSelectionCount: optionInDish.maxSelectionCount || 1,
+        defaultOptionValues: optionInDish.defaultOptionValues || [],
       };
     });
 
@@ -116,14 +121,20 @@ export class DishController {
   }
 
   static async addOptionToDish(
-    req: Request<{ id: string; optionId: string; maxSelectionCount: number }>,
+    req: Request<
+      { id: string; optionId: string },
+      {},
+      AddOptionToDishRequestDTO
+    >,
     res: Response<MutationDishResponseDTO>
   ) {
-    const { id, optionId, maxSelectionCount } = req.params;
+    const { id, optionId } = req.params;
+    const { maxSelectionCount, defaultOptionValues } = req.body;
     const dish = await dishUseCase.addOptionToDish(
       id,
       optionId,
-      maxSelectionCount
+      maxSelectionCount,
+      defaultOptionValues
     );
     res.json(dish.toJSON());
   }

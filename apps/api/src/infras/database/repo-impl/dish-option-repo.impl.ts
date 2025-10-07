@@ -26,8 +26,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
           dishOption._id.toString(), // Use _id as id in domain model
           dishOption.name,
           dishOption.description,
-          formattedOptions,
-          dishOption.isAllowMultipleSelection
+          formattedOptions
         );
       });
     } catch (error) {
@@ -43,7 +42,6 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         name: dishOption.name,
         description: dishOption.description,
         optionItems: dishOption.optionItems,
-        isAllowMultipleSelection: dishOption.isAllowMultipleSelection,
       });
 
       return dishOption;
@@ -68,7 +66,6 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         {
           $set: {
             ...updateData,
-            isAllowMultipleSelection: updateData.isAllowMultipleSelection,
           },
         },
         { new: true }
@@ -91,8 +88,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         updatedDishOption._id.toString(), // Use _id as id in domain model
         updatedDishOption.name,
         updatedDishOption.description,
-        formattedOptions,
-        updatedDishOption.isAllowMultipleSelection
+        formattedOptions
       );
     } catch (error) {
       console.error("Error updating dish option:", error);
@@ -119,8 +115,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
         dishOption._id.toString(), // Use _id as id in domain model
         dishOption.name,
         dishOption.description,
-        formattedOptions,
-        dishOption.isAllowMultipleSelection
+        formattedOptions
       );
     } catch (error) {
       console.error("Error fetching dish option by ID:", error);
@@ -147,8 +142,7 @@ export class DishOptionRepositoryImpl implements DishOptionRepository {
           dishOption._id.toString(),
           dishOption.name,
           dishOption.description,
-          formattedOptions,
-          dishOption.isAllowMultipleSelection
+          formattedOptions
         );
       });
     } catch (error) {

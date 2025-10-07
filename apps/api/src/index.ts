@@ -20,7 +20,10 @@ import {
   SocketEventSource,
 } from "@application/interface/service";
 import { authMiddlewareFactory } from "@presentation/middleware/request-authenticator.middleware";
-import { setupOrderChangeStream } from "@infras/database/utils/change-stream.util";
+import {
+  checkMongoDBDeployment,
+  setupOrderChangeStream,
+} from "@infras/database/utils/change-stream.util";
 import cors from "cors";
 
 dotenv.config();
@@ -68,20 +71,19 @@ const startServer = async () => {
 
     // If using change streams, set up MongoDB change stream
     if (eventSource === SocketEventSource.CHANGE_STREAM) {
-      try {
+      if (!(await checkMongoDBDeployment())) {
+        console.log("MongoDB deployment does not support change streams");
+        socketService.initialize(server, SocketEventSource.USE_CASE);
+      } else {
         socketService.initialize(server, eventSource);
         await setupOrderChangeStream(socketService);
         console.log(
           "MongoDB change stream set up successfully for order updates"
         );
-      } catch (error) {
-        console.error("Failed to set up MongoDB change stream:", error);
-        console.log("Falling back to use case events for order updates");
-        // Fall back to use case events if change stream setup fails
-        socketService.close();
-        socketService.initialize(server, SocketEventSource.USE_CASE);
       }
-    } else {
+    }
+
+    if (eventSource === SocketEventSource.USE_CASE) {
       socketService.initialize(server, eventSource);
       console.log(
         "Socket server initialized for order updates from application layer"

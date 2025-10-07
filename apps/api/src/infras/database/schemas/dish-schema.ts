@@ -16,6 +16,7 @@ const DishSchemaDefinition = new Schema(
       {
         id: { type: String, required: true },
         maxSelectionCount: { type: Number, required: true },
+        defaultOptionValues: { type: [String] },
       },
     ],
   },

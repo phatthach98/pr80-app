@@ -1,4 +1,3 @@
-import { v4 as uuid } from "uuid";
 import { DishRepository } from "@application/interface/repository/dish-repo.interface";
 import { Dish } from "@domain/entity/dish";
 import { DishSchema } from "../schemas/dish-schema";

@@ -26,10 +26,6 @@ export const updateDishOptionValidator = [
     .notEmpty()
     .withMessage("Valid dish option ID is required"),
   body("name").optional().isString().withMessage("Name must be a string"),
-  body("isAllowMultipleSelection")
-    .optional()
-    .isBoolean()
-    .withMessage("Is allow multiple selection must be a boolean"),
   body("description")
     .optional()
     .isString()

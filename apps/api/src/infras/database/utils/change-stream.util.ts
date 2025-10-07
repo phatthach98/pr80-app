@@ -14,112 +14,101 @@ let retryTimer: NodeJS.Timeout | null = null;
 // TODO: persist resume token on redis or local cache instead
 let lastResumeToken: mongoose.mongo.ResumeToken | undefined;
 
+export const checkMongoDBDeployment = async () => {
+  if (!mongoose.connection.db) {
+    throw new Error("MongoDB connection not established");
+  }
+  const admin = mongoose.connection.db.admin();
+  const helloCommand: any =
+    (await admin.command({ hello: 1 } as any).catch(() => null)) ??
+    (await admin.command({ isMaster: 1 } as any));
+  const isReplicaSet = Boolean(helloCommand?.setName);
+  const isSharded = helloCommand?.msg === "isdbgrid";
+  return isReplicaSet || isSharded;
+};
+
 export const setupOrderChangeStream = async (socketService: SocketService) => {
   try {
-    // Check if MongoDB deployment supports change streams
-    if (!mongoose.connection.db) {
-      throw new Error("MongoDB connection not established");
-    }
-    const admin = mongoose.connection.db.admin();
-    const helloCommand: any =
-      (await admin.command({ hello: 1 } as any).catch(() => null)) ??
-      (await admin.command({ isMaster: 1 } as any));
-    const isReplicaSet = Boolean(helloCommand?.setName);
-    const isSharded = helloCommand?.msg === "isdbgrid";
-
-    // Create a new repository instance to map documents to domain entities
     const orderRepo = new OrderRepositoryImpl();
+    console.log(
+      "MongoDB deployment supports change streams, setting up change stream"
+    );
 
-    // If we're in a replica set or sharded cluster, use change streams
-    if (isReplicaSet || isSharded) {
-      console.log(
-        "MongoDB deployment supports change streams, setting up change stream"
-      );
+    // Set up change stream for Order collection
+    const changeStream = OrderSchema.watch([], {
+      fullDocument: "updateLookup",
+      ...(lastResumeToken ? { resumeAfter: lastResumeToken } : {}),
+    });
 
-      // Set up change stream for Order collection
-      const changeStream = OrderSchema.watch([], {
-        fullDocument: "updateLookup",
-        ...(lastResumeToken ? { resumeAfter: lastResumeToken } : {}),
-      });
-
-      // Handle change stream events
-      changeStream.on("change", async (change) => {
-        try {
-          console.log(
-            `Change detected in Order collection: ${change.operationType}`
-          );
-          lastResumeToken = change._id as any;
-          switch (change.operationType) {
-            case "insert": {
-              // New order created
-              const orderDoc = change.fullDocument;
-              const order = orderRepo.mapFromDocument(orderDoc);
-              if (order) {
-                socketService.emitOrderCreated(
-                  order,
-                  SocketEventSource.CHANGE_STREAM
-                );
-              }
-              break;
-            }
-            case "update": {
-              // Order updated
-              const orderDoc = change.fullDocument;
-              const order = orderRepo.mapFromDocument(orderDoc);
-              if (order) {
-                socketService.emitOrderUpdated(
-                  order,
-                  SocketEventSource.CHANGE_STREAM
-                );
-              }
-              break;
-            }
-            case "delete": {
-              // Order deleted
-              const orderId = change.documentKey._id.toString();
-              socketService.emitOrderDeleted(
-                orderId,
+    // Handle change stream events
+    changeStream.on("change", async (change) => {
+      try {
+        console.log(
+          `Change detected in Order collection: ${change.operationType}`
+        );
+        lastResumeToken = change._id as any;
+        switch (change.operationType) {
+          case "insert": {
+            // New order created
+            const orderDoc = change.fullDocument;
+            const order = orderRepo.mapFromDocument(orderDoc);
+            if (order) {
+              socketService.emitOrderCreated(
+                order,
                 SocketEventSource.CHANGE_STREAM
               );
-              break;
             }
-            default:
-              // Ignore other operations
-              break;
+            break;
           }
-        } catch (error) {
-          console.error("Error processing order change stream:", error);
+          case "update": {
+            // Order updated
+            const orderDoc = change.fullDocument;
+            const order = orderRepo.mapFromDocument(orderDoc);
+            if (order) {
+              socketService.emitOrderUpdated(
+                order,
+                SocketEventSource.CHANGE_STREAM
+              );
+            }
+            break;
+          }
+          case "delete": {
+            // Order deleted
+            const orderId = change.documentKey._id.toString();
+            socketService.emitOrderDeleted(
+              orderId,
+              SocketEventSource.CHANGE_STREAM
+            );
+            break;
+          }
+          default:
+            // Ignore other operations
+            break;
         }
-      });
+      } catch (error) {
+        console.error("Error processing order change stream:", error);
+      }
+    });
 
-      // Handle errors
-      changeStream.on("error", (error) => {
-        console.error("Error in order change stream:", error);
-        changeStream.close().catch((err) => {
-          console.error("Error closing change stream:", err);
-        });
-        // Try to resume the change stream after a delay
-        if (retryTimer) {
-          clearTimeout(retryTimer);
-        }
-        retryTimer = setTimeout(
-          () => setupOrderChangeStream(socketService),
-          5000
-        );
+    // Handle errors
+    changeStream.on("error", (error) => {
+      console.error("Error in order change stream:", error);
+      changeStream.close().catch((err) => {
+        console.error("Error closing change stream:", err);
       });
-
-      return changeStream;
-    } else {
-      // Standalone MongoDB instance - fallback to repository-based events
-      console.log(
-        "MongoDB deployment does not support change streams (standalone server)"
+      // Try to resume the change stream after a delay
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+      }
+      retryTimer = setTimeout(
+        () => setupOrderChangeStream(socketService),
+        5000
       );
-      console.log("Using repository-based events as fallback mechanism");
+    });
 
-      // The socket events will be emitted directly from the repository methods
-      // No change stream to return
-      return null;
-    }
+    return changeStream;
+
+    return null;
   } catch (error) {
     console.error("Error setting up change stream:", error);
     console.log("Falling back to repository-based events");
