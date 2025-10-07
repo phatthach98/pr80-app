@@ -107,8 +107,6 @@ export const setupOrderChangeStream = async (socketService: SocketService) => {
     });
 
     return changeStream;
-
-    return null;
   } catch (error) {
     console.error("Error setting up change stream:", error);
     console.log("Falling back to repository-based events");

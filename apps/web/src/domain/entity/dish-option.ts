@@ -12,6 +12,7 @@ export class DishOption {
   ) {
     // Freeze arrays and object for immutability enforcement
     Object.freeze(this.items);
+    Object.freeze(this.defaultOptionValues);
     Object.freeze(this);
   }
 
