@@ -304,11 +304,12 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
 
       {/* Order summary */}
       <TableDetailSummaryPrice activeOrder={activeOrder} additionalOrder={additionalOrder} />
-      <div className="mt-8 flex justify-center">
+
+      <div className="mt-8 flex flex-col items-center justify-center gap-6">
         <Button
-          className="w-full"
+          className={'w-full'}
           variant="default"
-          size="lg"
+          size="xl"
           onClick={handleSubmitOrder}
           disabled={activeOrder.isPaid() || isLoading}
           isLoading={isLoading}
@@ -316,22 +317,20 @@ export const TableDetail = ({ order: initialOrder, createParams }: TableDetailPr
           <SendIcon className="size-4" />
           Gửi
         </Button>
-      </div>
 
-      {activeOrder.canMakePayment() && (
-        <div className="mt-4 flex justify-center">
+        {activeOrder.canMakePayment() && (
           <Button
             className="w-full"
             variant="default"
-            size="lg"
+            size="xl"
             onClick={handleMakePayment}
             isLoading={isLoading}
           >
             <CreditCardIcon className="size-4" />
             Thanh toán
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

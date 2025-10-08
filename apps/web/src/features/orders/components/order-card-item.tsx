@@ -64,9 +64,9 @@ export const OrderCardItem = ({ order, className }: OrderCardItemProps) => {
 
       // Show toast with undo button
       toast('Đơn hàng đã sẵn sàng', {
-        description: 'Trạng thái đã được cập nhật từ "Đang nấu" sang "Sẵn sàng"',
+        description: 'Trạng thái đã được cập nhật',
         action: {
-          label: isUndoLoading ? 'Đang hoàn tác...' : 'Hoàn tác',
+          label: isUndoLoading ? 'Đang khôi phục...' : 'Khôi phục',
           onClick: handleUndoStatusChange,
         },
         duration: 5000, // Show for 5 seconds
@@ -137,7 +137,7 @@ export const OrderCardItem = ({ order, className }: OrderCardItemProps) => {
           </div>
         )}
 
-        <div className="space-y-3 mt-4">
+        <div className="mt-4 space-y-3">
           {order.dishes.map((dish) => (
             <div key={dish.id} className="rounded-lg bg-gray-200 p-4">
               <div className="flex justify-between">

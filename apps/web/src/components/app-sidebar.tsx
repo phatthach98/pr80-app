@@ -12,8 +12,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui';
-import { useAuth } from '@/features/auth/hooks/use-auth';
+import { authStore, useAuth } from '@/features/auth/hooks/use-auth';
 import { useNavigate } from '@tanstack/react-router';
+import { useStore } from '@tanstack/react-store';
 
 const data = {
   user: {
@@ -43,6 +44,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { logout } = useAuth();
+  const { userDetail } = useStore(authStore);
   const navigate = useNavigate();
   const handleLogout = () => {
     logout();
@@ -59,8 +61,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <Command className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
+                  <span className="truncate font-medium">Xin chào!</span>
+                  <span className="truncate text-xs">{userDetail?.name || 'PR-80'}</span>
                 </div>
               </a>
             </SidebarMenuButton>
