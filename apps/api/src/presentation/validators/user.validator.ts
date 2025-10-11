@@ -13,10 +13,23 @@ export const createUserValidator = [
     .isString()
     .withMessage("Phone number must be a string.")
     .isMobilePhone("vi-VN")
+    .custom((value) => {
+      // Remove any country code prefix if present (e.g., +84)
+      const phoneNumberWithoutCountryCode = value.replace(/^\+\d+/, "");
+
+      // Check if the phone number starts with 0
+      if (!phoneNumberWithoutCountryCode.startsWith("0")) {
+        throw new Error(
+          "Phone number must start with 0 when country code is removed"
+        );
+      }
+
+      return true;
+    })
     .withMessage("Phone number must be a valid phone number."),
   body("passCode")
-    .isLength({ min: 4, max: 4 })
-    .withMessage("Passcode must be 4 digits."),
+    .isLength({ min: 4 })
+    .withMessage("Passcode must be at least 4 digits."),
 ];
 
 export const getUserDetailValidator = [

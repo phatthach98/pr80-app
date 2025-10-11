@@ -14,12 +14,6 @@ const UserSchema = new Schema(
       minlength: [2, "Name must be at least 2 characters"],
       maxlength: [100, "Name cannot exceed 100 characters"],
       trim: true,
-      validate: {
-        validator: function (name: string) {
-          return /^[a-zA-Z\s]+$/.test(name); // Only letters and spaces
-        },
-        message: "Name can only contain letters and spaces",
-      },
     },
     phoneNumber: {
       type: String,
@@ -29,7 +23,7 @@ const UserSchema = new Schema(
       validate: {
         validator: function (phone: string) {
           // International phone format validation
-          return /^\+?[1-9]\d{1,14}$/.test(phone.replace(/\s/g, ""));
+          return /^\+?[0-9]\d{1,14}$/.test(phone.replace(/\s/g, ""));
         },
         message: "Invalid phone number format",
       },
@@ -38,7 +32,6 @@ const UserSchema = new Schema(
       type: String,
       required: [true, "Pass code is required"],
       minlength: [4, "Pass code must be at least 4 characters"],
-      maxlength: [4, "Pass code cannot exceed 4 characters"],
       trim: true,
     },
     roles: {
