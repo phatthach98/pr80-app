@@ -12,21 +12,8 @@ export const createUserValidator = [
     .withMessage("Phone number is required.")
     .isString()
     .withMessage("Phone number must be a string.")
-    .isMobilePhone("vi-VN")
-    .custom((value) => {
-      // Remove any country code prefix if present (e.g., +84)
-      const phoneNumberWithoutCountryCode = value.replace(/^\+\d+/, "");
-
-      // Check if the phone number starts with 0
-      if (!phoneNumberWithoutCountryCode.startsWith("0")) {
-        throw new Error(
-          "Phone number must start with 0 when country code is removed"
-        );
-      }
-
-      return true;
-    })
-    .withMessage("Phone number must be a valid phone number."),
+    .matches(/^(0\d{9}|\+84\d{9})$/)
+    .withMessage("Phone number must be a valid Vietnamese number (format: 0XXXXXXXXX or +84XXXXXXXXX)."),
   body("passCode")
     .isLength({ min: 4 })
     .withMessage("Passcode must be at least 4 digits."),
