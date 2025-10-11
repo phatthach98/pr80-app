@@ -40,14 +40,11 @@ export class ApiClient {
   private client: AxiosInstance;
 
   constructor(baseURL: string) {
-    console.log(
-      'CONFIG TIMEOUT',
-      import.meta.env?.PUBLIC_API_TIMEOUT ? Number(import.meta.env.PUBLIC_API_TIMEOUT) : 10000,
-    );
     // Create axios instance
+    console.log('TIMEOUT', Number(import.meta.env.PUBLIC_API_TIMEOUT));
     this.client = axios.create({
       baseURL,
-      timeout: import.meta.env?.PUBLIC_API_TIMEOUT
+      timeout: import.meta.env.PUBLIC_API_TIMEOUT
         ? Number(import.meta.env.PUBLIC_API_TIMEOUT)
         : 10000,
       headers: {
