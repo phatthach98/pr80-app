@@ -55,23 +55,20 @@ export const DishOptionsSelectField = (props: DishOptionsSelectFieldProps) => {
     onSelect(currentOptions);
   };
 
-
   useEffect(() => {
     // Set default options when component mounts
     // Only set defaults if the option doesn't already have selections
     const newSelectedOptions = { ...selectedOptions };
     let hasChanges = false;
 
-    dishOptions.forEach(dishOption => {
+    dishOptions.forEach((dishOption) => {
       const dishOptionName = dishOption.name;
       // Only set defaults if this option doesn't have any selections yet
-      if ((!selectedOptions[dishOptionName] || selectedOptions[dishOptionName].length === 0) && 
-          dishOption.defaultOptionValues.length > 0) {
-        
-        const defaultItems = dishOption.items.filter(item => 
-          dishOption.defaultOptionValues.includes(item.value)
+      if (!selectedOptions[dishOptionName] && dishOption.defaultOptionValues.length > 0) {
+        const defaultItems = dishOption.items.filter((item) =>
+          dishOption.defaultOptionValues.includes(item.value),
         );
-        
+
         if (defaultItems.length > 0) {
           newSelectedOptions[dishOptionName] = defaultItems;
           hasChanges = true;

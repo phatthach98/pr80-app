@@ -12,11 +12,11 @@ export const createUserValidator = [
     .withMessage("Phone number is required.")
     .isString()
     .withMessage("Phone number must be a string.")
-    .isMobilePhone("vi-VN")
-    .withMessage("Phone number must be a valid phone number."),
+    .matches(/^(0\d{9}|\+84\d{9})$/)
+    .withMessage("Phone number must be a valid Vietnamese number (format: 0XXXXXXXXX or +84XXXXXXXXX)."),
   body("passCode")
-    .isLength({ min: 4, max: 4 })
-    .withMessage("Passcode must be 4 digits."),
+    .isLength({ min: 4 })
+    .withMessage("Passcode must be at least 4 digits."),
 ];
 
 export const getUserDetailValidator = [
